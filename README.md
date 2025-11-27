@@ -76,8 +76,8 @@ npm run test:e2e:ui
 > [!NOTE]
 > To run tests against the secure server, create a `.env` file in the `app` directory with:
 > ```
-> ZM_SECURE_HOST=https://zm.connortechnology.com
-> ZM_SECURE_USER=demo
+> ZM_SECURE_HOST=your_ZM_server
+> ZM_SECURE_USER=your_ZM_user
 > ZM_SECURE_PASSWORD=your_password_here
 > ```
 
