@@ -4,6 +4,8 @@ import { useProfileStore } from './stores/profile';
 import { setQueryClient } from './stores/query-cache';
 import { Toaster } from './components/ui/toast';
 import { ThemeProvider } from './components/theme-provider';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { useTokenRefresh } from './hooks/useTokenRefresh';
 import AppLayout from './components/layout/AppLayout';
 import Setup from './pages/Setup';
 import Monitors from './pages/Monitors';
@@ -15,6 +17,7 @@ import EventMontage from './pages/EventMontage';
 import Timeline from './pages/Timeline';
 import Profiles from './pages/Profiles';
 import Settings from './pages/Settings';
+import { log } from './lib/logger';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,54 +31,63 @@ const queryClient = new QueryClient({
 // Make query client available globally for cache clearing
 setQueryClient(queryClient);
 
-function App() {
+function AppRoutes() {
   const profiles = useProfileStore((state) => state.profiles);
   const currentProfile = useProfileStore((state) => state.currentProfile());
 
+  // Enable automatic token refresh
+  useTokenRefresh();
+
   // Log app mount and profile state
-  console.log('[App] ═══════════════════════════════════════');
-  console.log('[App] React app mounting');
-  console.log('[App]   - Total profiles:', profiles.length);
-  console.log('[App]   - Current profile:', currentProfile?.name || 'None');
-  console.log('[App]   - Profile ID:', currentProfile?.id || 'None');
-  console.log('[App]   - Has credentials:', !!(currentProfile?.username && currentProfile?.password));
-  console.log('[App] ═══════════════════════════════════════');
+  log.info('React app initialized', {
+    component: 'App',
+    totalProfiles: profiles.length,
+    currentProfile: currentProfile?.name || 'None',
+    profileId: currentProfile?.id || 'None',
+    hasCredentials: !!(currentProfile?.username && currentProfile?.password),
+  });
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="dark" storageKey="zmng-ui-theme">
-        <BrowserRouter>
-          <Routes>
-            <Route
-              path="/"
-              element={
-                // If we have a current profile, go to monitors
-                // Otherwise, go to setup
-                currentProfile ? (
-                  <Navigate to="/monitors" replace />
-                ) : (
-                  <Navigate to="/setup" replace />
-                )
-              }
-            />
-            <Route path="/setup" element={<Setup />} />
+    <Routes>
+      <Route
+        path="/"
+        element={
+          currentProfile ? (
+            <Navigate to="/monitors" replace />
+          ) : (
+            <Navigate to="/setup" replace />
+          )
+        }
+      />
+      <Route path="/setup" element={<Setup />} />
 
-            <Route element={<AppLayout />}>
-              <Route path="/monitors" element={<Monitors />} />
-              <Route path="/monitors/:id" element={<MonitorDetail />} />
-              <Route path="/montage" element={<Montage />} />
-              <Route path="/events" element={<Events />} />
-              <Route path="/events/:id" element={<EventDetail />} />
-              <Route path="/event-montage" element={<EventMontage />} />
-              <Route path="/timeline" element={<Timeline />} />
-              <Route path="/profiles" element={<Profiles />} />
-              <Route path="/settings" element={<Settings />} />
-            </Route>
-          </Routes>
-        </BrowserRouter>
-        <Toaster />
-      </ThemeProvider>
-    </QueryClientProvider>
+      <Route element={<AppLayout />}>
+        <Route path="/monitors" element={<Monitors />} />
+        <Route path="/monitors/:id" element={<MonitorDetail />} />
+        <Route path="/montage" element={<Montage />} />
+        <Route path="/events" element={<Events />} />
+        <Route path="/events/:id" element={<EventDetail />} />
+        <Route path="/event-montage" element={<EventMontage />} />
+        <Route path="/timeline" element={<Timeline />} />
+        <Route path="/profiles" element={<Profiles />} />
+        <Route path="/settings" element={<Settings />} />
+      </Route>
+    </Routes>
+  );
+}
+
+function App() {
+  return (
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider defaultTheme="dark" storageKey="zmng-ui-theme">
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+          <Toaster />
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

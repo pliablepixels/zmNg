@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Profile } from '../api/types';
 import { createApiClient, setApiClient } from '../api/client';
+import { setSecureValue, getSecureValue, removeSecureValue } from '../lib/secureStorage';
+import { log } from '../lib/logger';
 
 interface ProfileState {
   profiles: Profile[];
@@ -17,6 +19,9 @@ interface ProfileState {
   deleteProfile: (id: string) => void;
   switchProfile: (id: string) => Promise<void>;
   setDefaultProfile: (id: string) => void;
+
+  // Helpers
+  getDecryptedPassword: (profileId: string) => Promise<string | undefined>;
 }
 
 export const useProfileStore = create<ProfileState>()(
@@ -43,9 +48,24 @@ export const useProfileStore = create<ProfileState>()(
           throw new Error(`Profile "${profileData.name}" already exists`);
         }
 
+        const newProfileId = crypto.randomUUID();
+
+        // Store password in secure storage (native keystore on mobile, encrypted on web)
+        if (profileData.password) {
+          try {
+            await setSecureValue(`password_${newProfileId}`, profileData.password);
+            log.profile('Password stored securely', { profileId: newProfileId });
+          } catch (error) {
+            log.error('Failed to store password securely', { component: 'Profile' }, error);
+            throw new Error('Failed to securely store password');
+          }
+        }
+
+        // Don't store password in Zustand state - it's in secure storage
         const newProfile: Profile = {
           ...profileData,
-          id: crypto.randomUUID(),
+          password: profileData.password ? 'stored-securely' : undefined, // Flag indicating password exists
+          id: newProfileId,
           createdAt: Date.now(),
         };
 
@@ -67,41 +87,30 @@ export const useProfileStore = create<ProfileState>()(
       },
 
       updateProfile: async (id, updates) => {
-        console.log('[Profile Store] updateProfile called');
-        console.log('[Profile Store]   - Profile ID:', id);
-        console.log('[Profile Store]   - Updates:', updates);
-        console.log('[Profile Store]   - Updates keys:', Object.keys(updates));
-        console.log('[Profile Store]   - Has password in updates:', 'password' in updates);
-        console.log('[Profile Store]   - Password value:', updates.password ? `(${updates.password.length} chars)` : 'undefined');
-        console.log('[Profile Store]   - Has username in updates:', 'username' in updates);
-        console.log('[Profile Store]   - Username value:', updates.username || 'undefined');
+        log.profile(`updateProfile called for profile ID: ${id}`, updates);
 
         // Check for duplicate names if name is being updated
         if (updates.name && get().profileExists(updates.name, id)) {
           throw new Error(`Profile "${updates.name}" already exists`);
         }
 
-        // Get profile before update
-        const profileBefore = get().profiles.find((p) => p.id === id);
-        console.log('[Profile Store]   - Profile before update:', {
-          username: profileBefore?.username,
-          hasPassword: !!profileBefore?.password,
-          passwordLength: profileBefore?.password?.length,
-        });
+        // Store password in secure storage if provided
+        let processedUpdates = { ...updates };
+        if (updates.password) {
+          try {
+            await setSecureValue(`password_${id}`, updates.password);
+            log.profile('Password updated in secure storage', { profileId: id });
+            // Set flag instead of actual password
+            processedUpdates.password = 'stored-securely';
+          } catch (error) {
+            log.error('Failed to update password in secure storage', { component: 'Profile' }, error);
+            throw new Error('Failed to securely update password');
+          }
+        }
 
         set((state) => ({
-          profiles: state.profiles.map((p) =>
-            p.id === id ? { ...p, ...updates } : p
-          ),
+          profiles: state.profiles.map((p) => (p.id === id ? { ...p, ...processedUpdates } : p)),
         }));
-
-        // Get profile after update
-        const profileAfter = get().profiles.find((p) => p.id === id);
-        console.log('[Profile Store]   - Profile after update:', {
-          username: profileAfter?.username,
-          hasPassword: !!profileAfter?.password,
-          passwordLength: profileAfter?.password?.length,
-        });
 
         // If updating current profile's API URL, reinitialize client
         const currentProfile = get().currentProfile();
@@ -109,10 +118,18 @@ export const useProfileStore = create<ProfileState>()(
           setApiClient(createApiClient(updates.apiUrl));
         }
 
-        console.log('[Profile Store] updateProfile complete');
+        log.profile('updateProfile complete');
       },
 
-      deleteProfile: (id) => {
+      deleteProfile: async (id) => {
+        // Remove password from secure storage
+        try {
+          await removeSecureValue(`password_${id}`);
+          log.profile('Password removed from secure storage', { profileId: id });
+        } catch (error) {
+          log.warn('Failed to remove password from secure storage', { component: 'Profile' }, error);
+        }
+
         set((state) => {
           const profiles = state.profiles.filter((p) => p.id !== id);
           const currentProfileId =
@@ -144,79 +161,81 @@ export const useProfileStore = create<ProfileState>()(
           ? get().profiles.find((p) => p.id === previousProfileId)
           : null;
 
-        console.log('════════════════════════════════════════════════');
-        console.log('[Profile Switch] Starting switch');
-        console.log('[Profile Switch] From:', previousProfile?.name || 'None');
-        console.log('[Profile Switch] To:', profile.name);
-        console.log('[Profile Switch] Target Portal:', profile.portalUrl);
-        console.log('[Profile Switch] Target API:', profile.apiUrl);
-        console.log('════════════════════════════════════════════════');
+        log.profile('Starting profile switch', {
+          from: previousProfile?.name || 'None',
+          to: profile.name,
+          targetPortal: profile.portalUrl,
+          targetAPI: profile.apiUrl,
+        });
 
         try {
           // STEP 1: Clear ALL existing state FIRST (critical for avoiding data mixing)
-          console.log('[Profile Switch] Step 1: Clearing all existing state...');
+          log.profile('Step 1: Clearing all existing state');
 
           const { useAuthStore } = await import('./auth');
-          console.log('[Profile Switch]   - Clearing auth state (logout)...');
+          log.profile('Clearing auth state (logout)');
           useAuthStore.getState().logout();
 
           const { clearQueryCache } = await import('./query-cache');
-          console.log('[Profile Switch]   - Clearing query cache...');
+          log.profile('Clearing query cache');
           clearQueryCache();
 
           const { resetApiClient } = await import('../api/client');
-          console.log('[Profile Switch]   - Resetting API client...');
+          log.profile('Resetting API client');
           resetApiClient();
 
           // STEP 2: Update current profile ID
-          console.log('[Profile Switch] Step 2: Setting new profile as current...');
+          log.profile('Step 2: Setting new profile as current');
           set({ currentProfileId: id });
 
           // Update last used timestamp (don't await this)
           get().updateProfile(id, { lastUsed: Date.now() });
 
           // STEP 3: Initialize API client with new profile
-          console.log('[Profile Switch] Step 3: Initializing API client...');
-          console.log('[Profile Switch]   - Creating API client for:', profile.apiUrl);
+          log.profile('Step 3: Initializing API client', { apiUrl: profile.apiUrl });
           setApiClient(createApiClient(profile.apiUrl));
-          console.log('[Profile Switch]   - API client initialized');
+          log.profile('API client initialized');
 
           // STEP 4: Authenticate immediately if credentials exist
           if (profile.username && profile.password) {
-            console.log('[Profile Switch] Step 4: Authenticating with stored credentials...');
-            console.log('[Profile Switch]   - Username:', profile.username);
-            console.log('[Profile Switch]   - Calling login API...');
+            log.profile('Step 4: Authenticating with stored credentials', {
+              username: profile.username,
+            });
 
             try {
+              // Decrypt password before login
+              const decryptedPassword = await get().getDecryptedPassword(id);
+              if (!decryptedPassword) {
+                throw new Error('Failed to decrypt password');
+              }
+
               // Use the auth store action so state is updated!
               const { useAuthStore } = await import('./auth');
-              await useAuthStore.getState().login(profile.username, profile.password);
-              console.log('[Profile Switch]   ✓ Authentication successful!');
+              await useAuthStore.getState().login(profile.username, decryptedPassword);
+              log.profile('Authentication successful');
             } catch (authError: unknown) {
-              console.error('[Profile Switch]   ✗ Authentication failed:', authError);
-              console.error('[Profile Switch]   This might be OK if the server doesn\'t require auth');
+              log.warn('Authentication failed - this might be OK if server does not require auth', {
+                component: 'Profile',
+                error: authError,
+              });
               // Don't throw - allow switch to complete even if auth fails
               // Some servers (like demo.zoneminder.com) work without auth
             }
           } else {
-            console.log('[Profile Switch] Step 4: No credentials stored, skipping authentication');
-            console.log('[Profile Switch]   ℹ This is normal for public servers like demo.zoneminder.com');
+            log.profile('No credentials stored, skipping authentication');
+            log.info('This is normal for public servers', { component: 'Profile' });
           }
 
-          console.log('════════════════════════════════════════════════');
-          console.log('[Profile Switch] ✓ Switch completed successfully!');
-          console.log('[Profile Switch] Current profile:', profile.name);
-          console.log('════════════════════════════════════════════════');
+          log.profile('Profile switch completed successfully', { currentProfile: profile.name });
 
         } catch (error) {
-          console.error('════════════════════════════════════════════════');
-          console.error('[Profile Switch] ✗ Switch FAILED:', error);
-          console.error('════════════════════════════════════════════════');
+          log.error('Profile switch FAILED', { component: 'Profile' }, error);
 
           // ROLLBACK: Restore previous profile if it exists
           if (previousProfile) {
-            console.log('[Profile Switch] Starting rollback to previous profile...');
-            console.log('[Profile Switch]   - Previous profile:', previousProfile.name);
+            log.profile('Starting rollback to previous profile', {
+              previousProfile: previousProfile.name,
+            });
 
             try {
               // Clear state again to ensure clean rollback
@@ -230,25 +249,31 @@ export const useProfileStore = create<ProfileState>()(
               resetApiClient();
 
               // Restore previous profile
-              console.log('[Profile Switch]   - Restoring previous profile ID...');
+              log.profile('Restoring previous profile ID');
               set({ currentProfileId: previousProfileId });
 
               // Re-initialize with previous profile
-              console.log('[Profile Switch]   - Re-initializing API client:', previousProfile.apiUrl);
+              log.profile('Re-initializing API client', { apiUrl: previousProfile.apiUrl });
               setApiClient(createApiClient(previousProfile.apiUrl));
 
               // Try to re-authenticate with previous profile
               if (previousProfile.username && previousProfile.password) {
-                console.log('[Profile Switch]   - Re-authenticating with previous profile...');
-                const { useAuthStore } = await import('./auth');
-                await useAuthStore.getState().login(previousProfile.username, previousProfile.password);
-                console.log('[Profile Switch]   ✓ Rollback successful, restored to:', previousProfile.name);
+                log.profile('Re-authenticating with previous profile');
+                const decryptedPassword = await get().getDecryptedPassword(previousProfileId!);
+                if (decryptedPassword) {
+                  const { useAuthStore } = await import('./auth');
+                  await useAuthStore
+                    .getState()
+                    .login(previousProfile.username, decryptedPassword);
+                  log.profile('Rollback successful', { restoredTo: previousProfile.name });
+                }
               } else {
-                console.log('[Profile Switch]   ✓ Rollback successful (no auth)');
+                log.profile('Rollback successful (no auth)');
               }
             } catch (rollbackError) {
-              console.error('[Profile Switch]   ✗ Rollback FAILED:', rollbackError);
-              console.error('[Profile Switch]   User may need to manually re-authenticate');
+              log.error('Rollback FAILED - user may need to manually re-authenticate', {
+                component: 'Profile',
+              }, rollbackError);
             }
           }
 
@@ -265,60 +290,56 @@ export const useProfileStore = create<ProfileState>()(
           })),
         }));
       },
+
+      getDecryptedPassword: async (profileId) => {
+        const profile = get().profiles.find((p) => p.id === profileId);
+        if (!profile?.password || profile.password !== 'stored-securely') {
+          return undefined;
+        }
+
+        try {
+          const password = await getSecureValue(`password_${profileId}`);
+          return password || undefined;
+        } catch (error) {
+          log.error('Failed to retrieve password from secure storage', { component: 'Profile' }, error);
+          return undefined;
+        }
+      },
     }),
     {
       name: 'zmng-profiles',
       // On load, initialize API client with current profile and authenticate
       onRehydrateStorage: () => async (state) => {
-        // Log what's in localStorage
-        try {
-          const storedData = localStorage.getItem('zmng-profiles');
-          console.log('[Profile Store] Raw localStorage data:', storedData);
-          if (storedData) {
-            const parsed = JSON.parse(storedData);
-            console.log('[Profile Store] Parsed localStorage:', parsed);
-            console.log('[Profile Store] Profiles in localStorage:', parsed.state?.profiles);
-          }
-        } catch (e) {
-          console.error('[Profile Store] Error reading localStorage:', e);
-        }
         if (!state?.currentProfileId) {
-          console.log('[Profile Init] No current profile found on app load');
+          log.profile('No current profile found on app load');
           return;
         }
 
         const profile = state.profiles.find((p) => p.id === state.currentProfileId);
         if (!profile) {
-          console.error('[Profile Init] Current profile ID exists but profile not found:', state.currentProfileId);
+          log.error('Current profile ID exists but profile not found', {
+            component: 'Profile',
+            profileId: state.currentProfileId,
+          });
           return;
         }
 
-        console.log('════════════════════════════════════════════════');
-        console.log('[Profile Init] App loading with profile:', profile.name);
-        console.log('[Profile Init] Profile ID:', profile.id);
-        console.log('[Profile Init] Portal URL:', profile.portalUrl);
-        console.log('[Profile Init] API URL:', profile.apiUrl);
-        console.log('[Profile Init] CGI URL:', profile.cgiUrl);
-        console.log('[Profile Init] Username:', profile.username || '(not set)');
-        console.log('[Profile Init] Password:', profile.password ? `(set - ${profile.password.length} chars)` : '(not set)');
-        console.log('[Profile Init] Has credentials:', !!(profile.username && profile.password));
-        console.log('[Profile Init] Full profile data:', {
-          id: profile.id,
+        log.profile('App loading with profile', {
           name: profile.name,
+          id: profile.id,
           portalUrl: profile.portalUrl,
           apiUrl: profile.apiUrl,
           cgiUrl: profile.cgiUrl,
-          username: profile.username,
+          username: profile.username || '(not set)',
           hasPassword: !!profile.password,
           passwordLength: profile.password?.length,
           isDefault: profile.isDefault,
           createdAt: new Date(profile.createdAt).toLocaleString(),
           lastUsed: profile.lastUsed ? new Date(profile.lastUsed).toLocaleString() : 'never',
         });
-        console.log('════════════════════════════════════════════════');
 
         // STEP 1: Clear any stale auth state and cache from previous sessions
-        console.log('[Profile Init] Clearing stale auth and cache...');
+        log.profile('Clearing stale auth and cache');
         const { useAuthStore } = await import('./auth');
         useAuthStore.getState().logout();
 
@@ -326,30 +347,37 @@ export const useProfileStore = create<ProfileState>()(
         clearQueryCache();
 
         // STEP 2: Initialize API client for current profile
-        console.log('[Profile Init] Initializing API client for:', profile.apiUrl);
+        log.profile('Initializing API client', { apiUrl: profile.apiUrl });
         setApiClient(createApiClient(profile.apiUrl));
 
         // STEP 3: Authenticate if credentials exist
         if (profile.username && profile.password) {
-          console.log('[Profile Init] Authenticating with stored credentials...');
-          console.log('[Profile Init]   - Username:', profile.username);
+          log.profile('Authenticating with stored credentials', { username: profile.username });
           try {
+            // Decrypt password before login
+            const decryptedPassword = await useProfileStore
+              .getState()
+              .getDecryptedPassword(state.currentProfileId);
+            if (!decryptedPassword) {
+              throw new Error('Failed to decrypt password');
+            }
+
             const { useAuthStore } = await import('./auth');
-            await useAuthStore.getState().login(profile.username, profile.password);
-            console.log('[Profile Init] ✓ Authentication successful on app load');
+            await useAuthStore.getState().login(profile.username, decryptedPassword);
+            log.profile('Authentication successful on app load');
           } catch (error) {
-            console.error('[Profile Init] ✗ Authentication failed on app load:', error);
-            console.error('[Profile Init] This might be OK if the server doesn\'t require auth');
+            log.warn('Authentication failed on app load - this might be OK if server does not require auth', {
+              component: 'Profile',
+              error,
+            });
             // Don't crash the app - some servers work without auth
           }
         } else {
-          console.log('[Profile Init] No credentials stored, skipping authentication');
-          console.log('[Profile Init] ℹ This is normal for public servers like demo.zoneminder.com');
+          log.profile('No credentials stored, skipping authentication');
+          log.info('This is normal for public servers', { component: 'Profile' });
         }
 
-        console.log('════════════════════════════════════════════════');
-        console.log('[Profile Init] App initialization complete');
-        console.log('════════════════════════════════════════════════');
+        log.profile('App initialization complete');
       },
     }
   )

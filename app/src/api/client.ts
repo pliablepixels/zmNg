@@ -3,6 +3,23 @@ import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { Capacitor } from '@capacitor/core';
 import { CapacitorHttp } from '@capacitor/core';
 import { useAuthStore } from '../stores/auth';
+import { log } from '../lib/logger';
+
+interface NativeHttpError {
+  message: string;
+  status?: number;
+  data?: unknown;
+  headers?: Record<string, string>;
+}
+
+interface AdapterResponse {
+  data: unknown;
+  status: number;
+  statusText: string;
+  headers: Record<string, string>;
+  config: InternalAxiosRequestConfig;
+  request: Record<string, unknown>;
+}
 
 let apiClient: AxiosInstance | null = null;
 
@@ -29,8 +46,8 @@ export function createApiClient(baseURL: string): AxiosInstance {
     decompress: true,
     // On native platforms, use custom adapter that uses CapacitorHttp
     ...(isNative && {
-      adapter: async (config) => {
-        console.log('[Native HTTP] Request:', config.method, config.url);
+      adapter: async (config): Promise<AdapterResponse> => {
+        log.api(`[Native HTTP] Request: ${config.method} ${config.url}`);
 
         try {
           const fullUrl = config.url?.startsWith('http')
@@ -42,31 +59,43 @@ export function createApiClient(baseURL: string): AxiosInstance {
           const urlWithParams = params ? `${fullUrl}?${params}` : fullUrl;
 
           const response = await CapacitorHttp.request({
-            method: (config.method?.toUpperCase() || 'GET') as any,
+            method: (config.method?.toUpperCase() || 'GET') as 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
             url: urlWithParams,
-            headers: config.headers as Record<string, string> || {},
+            headers: (config.headers as Record<string, string>) || {},
             data: config.data,
           });
 
-          console.log('[Native HTTP] Response:', response.status, fullUrl);
+          log.api(`[Native HTTP] Response: ${response.status} ${fullUrl}`);
 
           return {
             data: response.data,
             status: response.status,
             statusText: '',
-            headers: response.headers,
+            headers: response.headers as Record<string, string>,
             config: config,
             request: {},
           };
-        } catch (error: any) {
-          console.error('[Native HTTP] Error:', error);
-          const axiosError: any = new Error(error.message);
+        } catch (error) {
+          const nativeError = error as NativeHttpError;
+          log.error('[Native HTTP] Error', { component: 'API' }, error);
+
+          const axiosError = new Error(nativeError.message) as Error & {
+            config: InternalAxiosRequestConfig;
+            response: {
+              data: unknown;
+              status: number;
+              statusText: string;
+              headers: Record<string, string>;
+              config: InternalAxiosRequestConfig;
+            };
+          };
+
           axiosError.config = config;
           axiosError.response = {
-            data: error.data,
-            status: error.status || 0,
-            statusText: error.message,
-            headers: error.headers || {},
+            data: nativeError.data,
+            status: nativeError.status || 0,
+            statusText: nativeError.message,
+            headers: nativeError.headers || {},
             config: config,
           };
           throw axiosError;
@@ -117,31 +146,35 @@ export function createApiClient(baseURL: string): AxiosInstance {
         const queryParams = config.params ? new URLSearchParams(config.params).toString() : '';
         const fullUrlWithParams = queryParams ? `${fullZmUrl}?${queryParams}` : fullZmUrl;
 
-        console.log(`[API Request] ${config.method?.toUpperCase()} ${fullUrlWithParams}`);
-        console.log('  Full ZoneMinder URL:', fullZmUrl);
-        console.log('  Method:', config.method?.toUpperCase());
+        const logData: Record<string, unknown> = {
+          method: config.method?.toUpperCase(),
+          url: fullUrlWithParams,
+          zmUrl: fullZmUrl,
+        };
 
         if (queryParams) {
-          console.log('  Query Params:', config.params);
+          logData.queryParams = config.params;
         }
 
         if (config.data) {
           if (config.data instanceof URLSearchParams) {
             const formDataObj: Record<string, string> = {};
-            config.data.forEach((value, key) => {
+            config.data.forEach((value: string, key: string) => {
               formDataObj[key] = key === 'pass' ? '***' : value;
             });
-            console.log('  Form Data:', formDataObj);
+            logData.formData = formDataObj;
           } else {
-            console.log('  Body Data:', config.data);
+            logData.bodyData = config.data;
           }
         }
+
+        log.api(`[Request] ${config.method?.toUpperCase()} ${fullUrlWithParams}`, logData);
       }
 
       return config;
     },
     (error: AxiosError) => {
-      console.error('[API] Request error:', error);
+      log.error('[API] Request error', { component: 'API' }, error);
       return Promise.reject(error);
     }
   );
@@ -155,9 +188,11 @@ export function createApiClient(baseURL: string): AxiosInstance {
         const path = response.config.url || '';
         const fullZmUrl = zmApiUrl + path;
 
-        console.log(`[API Response] ${response.status} ${response.statusText} - ${fullZmUrl}`);
-        console.log('  Status:', response.status);
-        console.log('  Response Data:', response.data);
+        log.api(`[Response] ${response.status} ${response.statusText} - ${fullZmUrl}`, {
+          status: response.status,
+          statusText: response.statusText,
+          data: response.data,
+        });
       }
       return response;
     },
@@ -194,27 +229,38 @@ export function createApiClient(baseURL: string): AxiosInstance {
           : '';
         const fullUrlWithParams = queryParams ? `${fullZmUrl}?${queryParams}` : fullZmUrl;
 
-        console.error(`[API ERROR] ${error.config?.method?.toUpperCase()} ${fullUrlWithParams}`);
-        console.error('  Full ZoneMinder URL:', zmApiUrl);
-        console.error('  Path:', path);
-        console.error('  HTTP Status:', error.response?.status, error.response?.statusText);
-        console.error('  Error Message:', error.message);
+        const errorData: Record<string, unknown> = {
+          method: error.config?.method?.toUpperCase(),
+          url: fullUrlWithParams,
+          zmUrl: fullZmUrl,
+          path,
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          message: error.message,
+        };
 
         if (error.response?.data) {
-          console.error('  Response Data:', error.response.data);
+          errorData.responseData = error.response.data;
         }
 
         if (error.config?.data) {
           if (error.config.data instanceof URLSearchParams) {
             const formDataObj: Record<string, string> = {};
-            error.config.data.forEach((value, key) => {
+            error.config.data.forEach((value: string, key: string) => {
               formDataObj[key] = key === 'pass' ? '***' : value;
             });
-            console.error('  Request Form Data:', formDataObj);
+            errorData.requestFormData = formDataObj;
           } else {
-            console.error('  Request Body Data:', error.config.data);
+            errorData.requestBodyData = error.config.data;
           }
         }
+
+        log.error(
+          `[API ERROR] ${error.config?.method?.toUpperCase()} ${fullUrlWithParams}`,
+          { component: 'API' },
+          error,
+          errorData
+        );
       }
 
       return Promise.reject(error);

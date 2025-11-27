@@ -21,6 +21,7 @@
     "android:bundle": "cd android && ./gradlew bundleRelease && cd .."
   },
   "dependencies": {
+    "@aparajita/capacitor-secure-storage": "^7.1.6",
     "@capacitor/android": "^7.4.4",
     "@capacitor/cli": "^7.4.4",
     "@capacitor/core": "^7.4.4",

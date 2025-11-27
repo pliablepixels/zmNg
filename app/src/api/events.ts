@@ -1,6 +1,7 @@
 import { getApiClient } from './client';
 import type { EventsResponse, EventData } from './types';
 import { EventsResponseSchema } from './types';
+import { log } from '../lib/logger';
 
 export interface EventFilters {
   monitorId?: string;
@@ -46,7 +47,7 @@ export async function getEvents(filters: EventFilters = {}): Promise<EventsRespo
   const url = filterPath ? `/events/index${filterPath}.json` : '/events/index.json';
 
   const desiredLimit = filters.limit || 300;
-  const allEvents: any[] = [];
+  const allEvents: EventData[] = [];
   let currentPage = 1;
   let hasMore = true;
 
@@ -58,7 +59,10 @@ export async function getEvents(filters: EventFilters = {}): Promise<EventsRespo
     if (filters.sort) params.sort = filters.sort;
     if (filters.direction) params.direction = filters.direction;
 
-    console.log(`[API] Fetching events page ${currentPage}, have ${allEvents.length}/${desiredLimit} events so far`);
+    log.api(
+      `Fetching events page ${currentPage}`,
+      { currentCount: allEvents.length, desired: desiredLimit }
+    );
 
     const response = await client.get<EventsResponse>(url, { params });
     const validated = EventsResponseSchema.parse(response.data);
@@ -77,7 +81,10 @@ export async function getEvents(filters: EventFilters = {}): Promise<EventsRespo
   // Return only the requested number of events
   const finalEvents = allEvents.slice(0, desiredLimit);
 
-  console.log(`[API] Fetched total of ${allEvents.length} events, returning ${finalEvents.length} (requested: ${desiredLimit})`);
+  log.api(
+    `Fetched events complete`,
+    { total: allEvents.length, returning: finalEvents.length, requested: desiredLimit }
+  );
 
   // Return with pagination info set to indicate if there are more events available
   return {

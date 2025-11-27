@@ -233,3 +233,47 @@ export interface ApiError {
   code?: string;
   status?: number;
 }
+
+// Stream options types
+export interface StreamOptions {
+  mode?: 'jpeg' | 'single' | 'stream';
+  scale?: number;
+  width?: number;
+  height?: number;
+  maxfps?: number;
+  buffer?: number;
+  token?: string;
+  connkey?: number;
+  cacheBuster?: number;
+}
+
+// Image options types
+export interface ImageOptions {
+  token?: string;
+  width?: number;
+  height?: number;
+}
+
+// Component prop types
+export interface MonitorCardProps {
+  monitor: Monitor;
+  status: MonitorStatus | undefined;
+  eventCount?: number;
+}
+
+export interface EventCardProps {
+  event: Event;
+  monitorName: string;
+  thumbnailUrl: string;
+}
+
+// Montage layout types
+export interface MontageLayout {
+  lg?: ReactGridLayout.Layout[];
+  md?: ReactGridLayout.Layout[];
+  sm?: ReactGridLayout.Layout[];
+  xs?: ReactGridLayout.Layout[];
+}
+
+// Import for ReactGridLayout namespace
+import type * as ReactGridLayout from 'react-grid-layout';

@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { login as apiLogin, refreshToken as apiRefreshToken } from '../api/auth';
 import type { LoginResponse } from '../api/types';
-import { ZM_CONSTANTS } from '../lib/constants';
+import { log } from '../lib/logger';
 
 interface AuthState {
   accessToken: string | null;
@@ -32,23 +32,24 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
 
       login: async (username: string, password: string) => {
-        console.log('[Auth] Login attempt for user:', username);
+        log.auth(`Login attempt for user: ${username}`);
         try {
           const response = await apiLogin({ user: username, pass: password });
           get().setTokens(response);
-          console.log('[Auth] Login successful');
-          console.log('[Auth]   - Access token expires:', new Date(get().accessTokenExpires!).toLocaleString());
-          console.log('[Auth]   - Refresh token expires:', new Date(get().refreshTokenExpires!).toLocaleString());
-          console.log('[Auth]   - ZoneMinder version:', response.version);
-          console.log('[Auth]   - API version:', response.apiversion);
+          log.auth('Login successful', {
+            accessTokenExpires: new Date(get().accessTokenExpires!).toLocaleString(),
+            refreshTokenExpires: new Date(get().refreshTokenExpires!).toLocaleString(),
+            zmVersion: response.version,
+            apiVersion: response.apiversion,
+          });
         } catch (error) {
-          console.error('[Auth] Login failed:', error);
+          log.error('Login failed', { component: 'Auth' }, error);
           throw error;
         }
       },
 
       logout: () => {
-        console.log('[Auth] Logging out, clearing all auth state');
+        log.auth('Logging out, clearing all auth state');
         set({
           accessToken: null,
           refreshToken: null,
@@ -58,7 +59,7 @@ export const useAuthStore = create<AuthState>()(
           apiVersion: null,
           isAuthenticated: false,
         });
-        console.log('[Auth] Logout complete');
+        log.auth('Logout complete');
       },
 
       refreshAccessToken: async () => {
@@ -71,7 +72,7 @@ export const useAuthStore = create<AuthState>()(
           const response = await apiRefreshToken(refreshToken);
           get().setTokens(response);
         } catch (error) {
-          console.error('Token refresh failed:', error);
+          log.error('Token refresh failed', { component: 'Auth' }, error);
           get().logout();
           throw error;
         }
@@ -100,28 +101,24 @@ export const useAuthStore = create<AuthState>()(
       }),
       onRehydrateStorage: () => (state) => {
         if (state) {
-          console.log('[Auth Init] Auth store rehydrated from localStorage');
-          console.log('[Auth Init]   - Has refresh token:', !!state.refreshToken);
-          console.log('[Auth Init]   - Refresh token expires:', state.refreshTokenExpires ? new Date(state.refreshTokenExpires).toLocaleString() : 'N/A');
-          console.log('[Auth Init]   - Version:', state.version);
-          console.log('[Auth Init]   - API Version:', state.apiVersion);
-          console.log('[Auth Init] NOTE: These tokens may be from previous profile and will be cleared by profile initialization');
+          log.auth('Auth store rehydrated from localStorage', {
+            hasRefreshToken: !!state.refreshToken,
+            refreshTokenExpires: state.refreshTokenExpires
+              ? new Date(state.refreshTokenExpires).toLocaleString()
+              : 'N/A',
+            version: state.version,
+            apiVersion: state.apiVersion,
+          });
+          log.info('NOTE: These tokens may be from previous profile and will be cleared by profile initialization', {
+            component: 'Auth',
+          });
         } else {
-          console.log('[Auth Init] No persisted auth state found');
+          log.auth('No persisted auth state found');
         }
       },
     }
   )
 );
 
-// Auto-refresh token before expiry
-setInterval(() => {
-  const state = useAuthStore.getState();
-  if (state.isAuthenticated && state.accessTokenExpires) {
-    const timeUntilExpiry = state.accessTokenExpires - Date.now();
-    // Refresh 5 minutes before expiry
-    if (timeUntilExpiry < ZM_CONSTANTS.accessTokenLeewayMs && timeUntilExpiry > 0) {
-      state.refreshAccessToken().catch(console.error);
-    }
-  }
-}, ZM_CONSTANTS.tokenCheckInterval); // Check every minute
+// NOTE: Token auto-refresh is now handled by the useTokenRefresh hook
+// See app/src/hooks/useTokenRefresh.ts

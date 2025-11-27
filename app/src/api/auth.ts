@@ -1,6 +1,7 @@
 import { getApiClient } from './client';
 import type { LoginResponse } from './types';
 import { LoginResponseSchema } from './types';
+import { log } from '../lib/logger';
 
 export interface LoginCredentials {
   user: string;
@@ -15,8 +16,7 @@ export interface LoginWithRefreshToken {
  * Login to ZoneMinder with username and password
  */
 export async function login(credentials: LoginCredentials): Promise<LoginResponse> {
-  console.log('[Auth API] login() called');
-  console.log('[Auth API]   - Username:', credentials.user);
+  log.auth('Login attempt', { username: credentials.user });
 
   const client = getApiClient();
 
@@ -25,11 +25,8 @@ export async function login(credentials: LoginCredentials): Promise<LoginRespons
   formData.append('user', credentials.user);
   formData.append('pass', credentials.pass);
 
-  // Log what we're about to send
   const formDataString = formData.toString();
-  console.log('[Auth API] Form data string:', formDataString);
-  console.log('[Auth API] Form data type:', typeof formData);
-  console.log('[Auth API] Form data instanceof URLSearchParams:', formData instanceof URLSearchParams);
+  log.debug('Login form data prepared', { component: 'Auth API' });
 
   try {
     const response = await client.post<LoginResponse>('/host/login.json', formDataString, {
@@ -38,42 +35,34 @@ export async function login(credentials: LoginCredentials): Promise<LoginRespons
       },
     });
 
-    console.log('[Auth API] Login response received:', {
+    log.auth('Login response received', {
       status: response.status,
       statusText: response.statusText,
       hasData: !!response.data,
       dataKeys: response.data ? Object.keys(response.data) : [],
-      headers: response.headers,
     });
-
-    // Log the FULL response data to see exactly what we're getting
-    console.log('[Auth API] Full response.data:', JSON.stringify(response.data, null, 2));
-    console.log('[Auth API] Response type:', typeof response.data);
-    console.log('[Auth API] Is response an object?', response.data && typeof response.data === 'object');
 
     // Validate response with Zod
     try {
       const validated = LoginResponseSchema.parse(response.data);
-      console.log('[Auth API] ✓ Response validation successful');
+      log.auth('Response validation successful');
       return validated;
     } catch (zodError: unknown) {
-      console.error('[Auth API] ✗ Zod validation failed!');
-      console.error('[Auth API]   Expected fields: access_token, access_token_expires, refresh_token, refresh_token_expires');
-      console.error('[Auth API]   Received data:', JSON.stringify(response.data, null, 2));
-      console.error('[Auth API]   Zod error:', (zodError as Error).message);
+      log.error('Zod validation failed for login response', { component: 'Auth API' }, zodError, {
+        expectedFields: 'access_token, access_token_expires, refresh_token, refresh_token_expires',
+        receivedData: response.data,
+        zodError: (zodError as Error).message,
+      });
       throw zodError;
     }
   } catch (error: unknown) {
-    console.error('[Auth API] Login failed');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const err = error as any;
-    console.error('[Auth API]   - Error type:', err.constructor.name);
-    console.error('[Auth API]   - Error message:', err.message);
-
-    if (err.response) {
-      console.error('[Auth API]   - HTTP Status:', err.response.status);
-      console.error('[Auth API]   - Response data:', err.response.data);
-    }
+    const err = error as { constructor: { name: string }; message: string; response?: { status: number; data: unknown } };
+    log.error('Login failed', { component: 'Auth API' }, error, {
+      errorType: err.constructor.name,
+      message: err.message,
+      status: err.response?.status,
+      responseData: err.response?.data,
+    });
 
     throw error;
   }
@@ -118,7 +107,7 @@ export async function testConnection(apiUrl: string): Promise<boolean> {
     await client.get('/host/getVersion.json', { baseURL: apiUrl });
     return true;
   } catch (error) {
-    console.error('Connection test failed:', error);
+    log.warn('Connection test failed', { component: 'Auth API', apiUrl }, error);
     return false;
   }
 }
