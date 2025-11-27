@@ -1,6 +1,8 @@
 # zmNg - Modern ZoneMinder Client
 
-A modern web application for ZoneMinder NVR systems, providing a clean, intuitive interface for viewing live camera feeds, reviewing events, and managing multiple server profiles.
+[View Comparison with zmNinja](COMPARISON.md)
+
+A modern web application for ZoneMinder NVR systems, providing a clean, intuitive interface for viewing live camera feeds, reviewing events, and managing multiple server profiles. It is a ground-up rewrite of the original [zmNinja](https://zmninja.zoneminder.com/) application, using modern web technologies and a more intuitive user interface. The code was 99% claude CLI generated. 
 
 ## Features
 
@@ -28,6 +30,16 @@ A modern web application for ZoneMinder NVR systems, providing a clean, intuitiv
 - **View mode toggle** - Choose between snapshot (lower bandwidth) or streaming
 - **Layout persistence** - Montage layouts saved per profile
 - **Automatic token management** - Silent refresh before expiration
+
+### Screenshots
+
+![Montage View](images/1.png)
+![Events View](images/2.png)
+![Event Detail](images/3.png)
+![Timeline](images/4.png)
+![Monitor Detail](images/5.png)
+![Settings](images/6.png)
+![Profile Switcher](images/7.png)
 
 ## Getting Started
 
@@ -59,7 +71,16 @@ npm run test:e2e:ui
 ## Test Servers
 
 1. **demo.zoneminder.com** - No authentication required
-2. **zm.connortechnology.com** - Username: `demo`, Password: `demo`
+2. **zm.connortechnology.com** - Username: `demo` (Password required)
+
+> [!NOTE]
+> To run tests against the secure server, create a `.env` file in the `app` directory with:
+> ```
+> ZM_SECURE_HOST=https://zm.connortechnology.com
+> ZM_SECURE_USER=demo
+> ZM_SECURE_PASSWORD=your_password_here
+> ```
+
 
 ## Tech Stack
 
