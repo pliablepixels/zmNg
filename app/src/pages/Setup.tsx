@@ -46,12 +46,23 @@ export default function Setup() {
     ];
 
     // Try common CGI URL patterns
-    const cgiPatterns = [
-      `${baseUrl}/zm/cgi-bin`,
-      `${baseUrl}/cgi-bin`,
-      `${baseUrl}/cgi-bin-zm`,
-      `${baseUrl}/zmcgi`,
-    ];
+    // Try common CGI URL patterns
+    const cgiPatterns: string[] = [];
+
+    // Smart pattern generation based on input URL
+    if (baseUrl.endsWith('/zm')) {
+      // If URL ends in /zm, assume user pointed to ZM root
+      // Priority: .../zm/cgi-bin (which is baseUrl + /cgi-bin)
+      cgiPatterns.push(`${baseUrl}/cgi-bin`);
+    } else {
+      // If URL is root, try standard ZM paths first
+      cgiPatterns.push(`${baseUrl}/zm/cgi-bin`);
+      cgiPatterns.push(`${baseUrl}/cgi-bin`);
+    }
+
+    // Add other common variations
+    cgiPatterns.push(`${baseUrl}/cgi-bin-zm`);
+    cgiPatterns.push(`${baseUrl}/zmcgi`);
 
     let apiUrl = '';
     let cgiUrl = '';
