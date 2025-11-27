@@ -85,7 +85,11 @@ export async function getEvents(filters: EventFilters = {}): Promise<EventsRespo
     pagination: {
       page: 1,
       pageCount: Math.ceil(allEvents.length / desiredLimit),
-      nextPage: allEvents.length > desiredLimit ? 2 : undefined,
+      current: 1,
+      count: finalEvents.length,
+      prevPage: false,
+      nextPage: allEvents.length > desiredLimit,
+      limit: desiredLimit,
     },
   };
 }

@@ -6,7 +6,7 @@ import { useAuthStore } from '../stores/auth';
 import { useSettingsStore } from '../stores/settings';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
-import { ArrowLeft, Settings, Maximize2, Camera, Video, AlertTriangle, Clock, Download } from 'lucide-react';
+import { ArrowLeft, Settings, Maximize2, Video, AlertTriangle, Clock, Download } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { cn } from '../lib/utils';
 import { useMonitorStore } from '../stores/monitors';

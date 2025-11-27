@@ -2,7 +2,22 @@
 
 [View Comparison with zmNinja](COMPARISON.md)
 
-A modern web application for ZoneMinder NVR systems, providing a clean, intuitive interface for viewing live camera feeds, reviewing events, and managing multiple server profiles. It is a ground-up rewrite of the original [zmNinja](https://zmninja.zoneminder.com/) application, using modern web technologies and a more intuitive user interface. The code was 99% claude CLI generated. 
+A modern web and mobile application for ZoneMinder NVR systems, providing a clean, intuitive interface for viewing live camera feeds, reviewing events, and managing multiple server profiles. It is a ground-up rewrite of the original [zmNinja](https://zmninja.zoneminder.com/) application, using modern web technologies and a more intuitive user interface. The code was 99% claude CLI generated.
+
+## Quick Start
+
+```bash
+cd app
+npm install
+
+# Desktop development (with CORS proxy)
+npm run dev:all
+
+# Android development
+npm run android
+```
+
+📱 **For detailed Android guide, see [ANDROID.md](app/ANDROID.md)**
 
 ## Features
 
@@ -41,37 +56,70 @@ A modern web application for ZoneMinder NVR systems, providing a clean, intuitiv
 ![Settings](images/6.png)
 ![Profile Switcher](images/7.png)
 
-## Getting Started
-
-### Prerequisites
+## Prerequisites
 - Node.js 18+ and npm
+- For Android: Android SDK, `ANDROID_HOME` env var, and an AVD configured
 
-### Installation
+## Development
+
+### Desktop (Web)
 ```bash
-npm install
+# Start dev server with CORS proxy (required for external ZoneMinder servers)
+npm run dev:all
 ```
+- App: `http://localhost:5173`
+- Proxy: `http://localhost:3001`
 
-### Development
+### Android
 ```bash
-# Start development server
-npm run dev
-```
+# Build, sync, and run on emulator/device
+npm run android
 
-The app will be available at `http://localhost:5173`
+# View logs
+npm run android:logs
+
+# Check connected devices
+npm run android:devices
+```
 
 ### Testing
 ```bash
-# Run E2E tests with Playwright
-npm run test:e2e
-
-# Run tests with interactive UI
-npm run test:e2e:ui
+npm run test:e2e        # Run E2E tests
+npm run test:e2e:ui     # Run with UI
 ```
+
+## Production Builds
+
+### Web
+```bash
+npm run build          # Build to dist/
+npm run preview        # Preview production build
+```
+
+Deploy `dist/` to: Netlify, Vercel, GitHub Pages, AWS S3, etc.
+
+### Android
+
+**See [ANDROID.md](app/ANDROID.md) for complete release build instructions including:**
+- Keystore generation and signing configuration
+- Building APK/AAB for release
+- Publishing to Google Play Store
+
+**Quick reference:**
+```bash
+npm run android:sync      # Build and sync web assets
+npm run android:release   # Build release APK
+npm run android:bundle    # Build AAB for Play Store
+```
+
+Output files:
+- APK: `android/app/build/outputs/apk/release/app-release.apk`
+- AAB: `android/app/build/outputs/bundle/release/app-release.aab`
 
 ## Test Servers
 
-1. **demo.zoneminder.com** - No authentication required
-2. **zm.connortechnology.com** - Username: `demo` (Password required)
+1. **demo.zoneminder.com** - No authentication required but its not a great server. Cameras are finicky
+2. **zm.connortechnology.com** -  (Username & Password required)
 
 > [!NOTE]
 > To run tests against the secure server, create a `.env` file in the `app` directory with:
@@ -86,10 +134,11 @@ npm run test:e2e:ui
 
 - **Frontend**: React 19 + TypeScript 5
 - **Build Tool**: Vite 6
+- **Mobile**: Capacitor 7 (cross-platform native runtime)
 - **Styling**: TailwindCSS 4 + shadcn/ui components
 - **State Management**: Zustand with persistence
 - **Data Fetching**: TanStack Query (React Query)
-- **HTTP Client**: Axios with interceptors
+- **HTTP Client**: Axios with interceptors + Capacitor HTTP (native)
 - **Routing**: React Router v7
 - **Testing**: Playwright for E2E
 - **Layout**: react-grid-layout for drag-and-drop montage
@@ -105,6 +154,9 @@ npm run test:e2e:ui
 
 ### API Layer
 - **API Client** (`api/client.ts`) - Axios instance with automatic token injection
+  - Uses proxy server in web development mode
+  - Uses Capacitor native HTTP on mobile to bypass CORS
+  - Direct requests in web production mode
 - **Monitor API** (`api/monitors.ts`) - Camera listing and stream URL generation
 - **Event API** (`api/events.ts`) - Event queries, filtering, and image URLs
 - **Auth API** (`api/auth.ts`) - Login and token refresh
@@ -169,6 +221,28 @@ src/
 - API URL: Can be `/api` or `/zm/api` depending on setup
 - CGI URL: Stream endpoint, often `/cgi-bin/nph-zms`
 - App tries multiple patterns to detect correct URLs
+
+### Mobile Platform Considerations
+
+#### CORS Handling
+- Web browsers enforce Same-Origin Policy and CORS restrictions
+- Native mobile apps bypass CORS by using native HTTP stack
+- The app automatically detects platform and routes requests appropriately:
+  - **Web Dev**: Uses proxy server on localhost:3001
+  - **Web Production**: Direct requests (assumes CORS enabled on ZM server)
+  - **Android/iOS**: Native HTTP via Capacitor (no CORS issues)
+
+#### Network Security (Android)
+- Android 9+ blocks cleartext (HTTP) traffic by default
+- App includes `network_security_config.xml` to allow HTTP
+- Necessary for ZoneMinder servers without HTTPS
+- Production apps should encourage HTTPS where possible
+
+#### Platform Detection
+```typescript
+import { Capacitor } from '@capacitor/core';
+const isNative = Capacitor.isNativePlatform(); // true on Android/iOS
+```
 
 ---
 

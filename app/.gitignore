@@ -28,3 +28,14 @@ dist-ssr
 test-results/
 playwright-report/
 playwright/.auth/
+
+# Capacitor/Android
+android/app/build/
+android/.gradle/
+android/build/
+android/local.properties
+android/.idea/
+android/app/src/main/assets/public/
+android/keystore.properties
+*.jks
+*.keystore

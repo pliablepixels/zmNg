@@ -24,7 +24,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '../components/ui/collapsible';
-import { RefreshCw, Video, AlertCircle, Filter, ChevronDown, X, Calendar, LayoutGrid, Download, Image } from 'lucide-react';
+import { RefreshCw, Video, AlertCircle, Filter, ChevronDown, X, Calendar, LayoutGrid, Image } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { format } from 'date-fns';
 import { filterEnabledMonitors } from '../lib/filters';

@@ -7,15 +7,14 @@ import { getMonitors } from '../api/monitors';
 import { useProfileStore } from '../stores/profile';
 import { useAuthStore } from '../stores/auth';
 import { useSettingsStore } from '../stores/settings';
-import { Card, CardContent } from '../components/ui/card';
+import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Badge } from '../components/ui/badge';
-import { RefreshCw, Filter, Calendar, Clock, AlertCircle, Video, X, Loader2 } from 'lucide-react';
+import { RefreshCw, Filter, Calendar, Clock, AlertCircle, Video, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { getEnabledMonitorIds } from '../lib/filters';
-import { ZM_CONSTANTS } from '../lib/constants';
 import {
   Popover,
   PopoverContent,

@@ -1,5 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
+import { Capacitor } from '@capacitor/core';
+import { CapacitorHttp } from '@capacitor/core';
 import { useAuthStore } from '../stores/auth';
 
 let apiClient: AxiosInstance | null = null;
@@ -8,21 +10,69 @@ export function createApiClient(baseURL: string): AxiosInstance {
   // Store the actual ZM URL for reference
   localStorage.setItem('zm_api_url', baseURL);
 
-  // In dev mode, use standalone proxy server on port 3001 with X-Target-Host header
-  // In production (Tauri), use full URL directly (no CORS issues)
+  // In dev mode (web), use standalone proxy server on port 3001 with X-Target-Host header
+  // On native platforms (Android/iOS), use full URL directly (native HTTP bypasses CORS)
+  // In production web, use full URL directly
   const isDev = import.meta.env.DEV;
-  const clientBaseURL = isDev ? 'http://localhost:3001/proxy' : baseURL;
+  const isNative = Capacitor.isNativePlatform();
+  const clientBaseURL = (isDev && !isNative) ? 'http://localhost:3001/proxy' : baseURL;
 
   const client = axios.create({
     baseURL: clientBaseURL,
     timeout: 20000, // 20 seconds timeout
     headers: {
       'Content-Type': 'application/json',
-      // In dev mode, add header to tell proxy which server to route to
-      ...(isDev && { 'X-Target-Host': baseURL }),
+      // In dev mode (web only), add header to tell proxy which server to route to
+      ...((isDev && !isNative) && { 'X-Target-Host': baseURL }),
     },
     // Let axios handle response decompression (browser forces gzip anyway)
     decompress: true,
+    // On native platforms, use custom adapter that uses CapacitorHttp
+    ...(isNative && {
+      adapter: async (config) => {
+        console.log('[Native HTTP] Request:', config.method, config.url);
+
+        try {
+          const fullUrl = config.url?.startsWith('http')
+            ? config.url
+            : `${config.baseURL}${config.url}`;
+
+          // Build query string from params
+          const params = new URLSearchParams(config.params || {}).toString();
+          const urlWithParams = params ? `${fullUrl}?${params}` : fullUrl;
+
+          const response = await CapacitorHttp.request({
+            method: (config.method?.toUpperCase() || 'GET') as any,
+            url: urlWithParams,
+            headers: config.headers as Record<string, string> || {},
+            data: config.data,
+          });
+
+          console.log('[Native HTTP] Response:', response.status, fullUrl);
+
+          return {
+            data: response.data,
+            status: response.status,
+            statusText: '',
+            headers: response.headers,
+            config: config,
+            request: {},
+          };
+        } catch (error: any) {
+          console.error('[Native HTTP] Error:', error);
+          const axiosError: any = new Error(error.message);
+          axiosError.config = config;
+          axiosError.response = {
+            data: error.data,
+            status: error.status || 0,
+            statusText: error.message,
+            headers: error.headers || {},
+            config: config,
+          };
+          throw axiosError;
+        }
+      },
+    }),
   });
 
   // Request interceptor - add auth token
