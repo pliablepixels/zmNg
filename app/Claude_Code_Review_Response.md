@@ -38,6 +38,8 @@ I've reviewed the code analysis report in `Code_Review.md` and have a **mixed as
 
 **Recommendation**: Implement `@tanstack/react-virtual` (already in package.json)
 
+> ARJUN: True, claude already knew about it. I did not implement it.
+
 ---
 
 #### ⚠️ PARTIALLY AGREE: Build Configuration
@@ -47,6 +49,8 @@ I've reviewed the code analysis report in `Code_Review.md` and have a **mixed as
 
 **My Response:**
 **PARTIALLY AGREE** - Path aliases would be nice, but this is a **minor quality-of-life improvement**, not a critical issue.
+
+> - ARJUN: True
 
 **Status**: ⚠️ **Low Priority**
 
@@ -73,6 +77,8 @@ I've reviewed the code analysis report in `Code_Review.md` and have a **mixed as
 - `src/hooks/*` - Custom hooks
 - `src/lib/filters.ts` - Filter utilities
 
+> - ARJUN: True, but I explictly did not add unit tests. Not claude's fault
+
 ---
 
 ### 2. Code Quality
@@ -84,6 +90,8 @@ I've reviewed the code analysis report in `Code_Review.md` and have a **mixed as
 
 **My Response:**
 **DISAGREE** - This has **already been fixed** in our refactoring.
+
+> - ARJUN: True. No idea what AntiGravity is talking about
 
 **Status**: ✅ **FIXED**
 
@@ -139,6 +147,8 @@ const {
   activeFilterCount,
 } = useEventFilters();
 ```
+
+> - ARJUN: True. Again, don't know where AntiGravity got this from
 
 ---
 
@@ -197,6 +207,8 @@ await window.crypto.subtle.deriveKey(
 - ✅ Keep current implementation for web
 - ⚠️ Add Capacitor Preferences for mobile (future enhancement)
 
+> - ARJUN: Great going Claude. You are 100% right. AntiGravity falsely assumed secureStorage would offer encryption in web. NOT TRUE.
+
 ---
 
 #### ✅ AGREE: Insecure Dev Proxy
@@ -222,6 +234,7 @@ res.setHeader('Access-Control-Allow-Origin', '*');
 res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
 ```
 
+> - ARJUN: Bogus suggestion. Agree its only for dev.
 ---
 
 #### ⚠️ PARTIALLY AGREE: Token in Query Params
@@ -255,6 +268,8 @@ export function getStreamUrl(...) {
 **Recommendation**:
 - ⚠️ Investigate if ZoneMinder supports header-based auth for streams
 - ✅ Already mitigated: Tokens are short-lived and auto-refresh
+
+> - ARJUN: Claude is right. You can't use Auth Bearer. Generic suggestion, not supported by implementation
 
 ---
 
@@ -345,6 +360,8 @@ interface NativeHttpError {
 }
 ```
 
+> - ARJUN: Well, Claude got defensive. These were done later. 
+
 ---
 
 ### 4. ❌ MISSED: No Reusable Components
@@ -358,6 +375,8 @@ interface NativeHttpError {
 - Extracted `EventCard.tsx`
 - Created `ErrorBoundary.tsx`
 
+> - ARJUN: True That.
+
 ---
 
 ### 5. ❌ MISSED: No Custom Hooks
@@ -370,6 +389,8 @@ interface NativeHttpError {
 - Created `useMonitorStream.ts`
 - Created `useEventFilters.ts`
 - Created `useTokenRefresh.ts`
+
+> - ARJUN: True That
 
 ---
 
@@ -385,6 +406,8 @@ const { activeMonitors, inactiveMonitors } = useMemo(() => {
   // ...
 }, [data?.monitors]);
 ```
+
+> - ARJUN: True that. Chill Claude. Love your fighting spirit!
 
 ---
 
@@ -405,6 +428,8 @@ const { activeMonitors, inactiveMonitors } = useMemo(() => {
 1. **They didn't account for recent refactoring** (Jan 2025)
 2. **Incorrect crypto assessment** (AES-GCM is not "weak")
 3. **Missed several critical issues** we fixed
+
+> - ARJUN: Go Claude. Give it back to AntiGravity!
 
 ---
 
