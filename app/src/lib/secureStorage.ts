@@ -45,12 +45,13 @@ export async function setSecureValue(key: string, value: string): Promise<void> 
   } else {
     // Use AES-GCM encryption for web/desktop
     if (!isCryptoAvailable()) {
-      log.warn('Web Crypto API not available, storing unencrypted', {
-        component: 'SecureStorage',
-        key,
-      });
-      localStorage.setItem(fullKey, value);
-      return;
+      log.error(
+        'Web Crypto API not available - cannot store credentials securely',
+        { component: 'SecureStorage', key }
+      );
+      throw new Error(
+        'Secure storage not available. Please use a modern browser that supports Web Crypto API (Chrome, Firefox, Safari, Edge).'
+      );
     }
 
     try {
@@ -102,10 +103,16 @@ export async function getSecureValue(key: string): Promise<string | null> {
     }
 
     if (!isCryptoAvailable()) {
-      log.warn('Web Crypto API not available, returning unencrypted value', {
-        component: 'SecureStorage',
-        key,
-      });
+      log.error(
+        'Web Crypto API not available - cannot decrypt stored credentials',
+        { component: 'SecureStorage', key }
+      );
+      log.warn(
+        'Returning potentially unencrypted value from legacy storage. Please use a modern browser.',
+        { component: 'SecureStorage', key }
+      );
+      // Return the value as-is (may be unencrypted from old storage)
+      // This allows legacy data to still work but logs the security issue
       return encrypted;
     }
 
@@ -118,6 +125,10 @@ export async function getSecureValue(key: string): Promise<string | null> {
       return decrypted;
     } catch (error) {
       log.error('Failed to decrypt value', { component: 'SecureStorage', key }, error);
+      log.warn(
+        'Returning raw value - may be unencrypted legacy data',
+        { component: 'SecureStorage', key }
+      );
       // Return encrypted value as fallback (may be unencrypted legacy data)
       return encrypted;
     }

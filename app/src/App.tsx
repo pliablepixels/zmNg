@@ -5,6 +5,7 @@ import { setQueryClient } from './stores/query-cache';
 import { Toaster } from './components/ui/toast';
 import { ThemeProvider } from './components/theme-provider';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { RouteErrorBoundary } from './components/RouteErrorBoundary';
 import { useTokenRefresh } from './hooks/useTokenRefresh';
 import AppLayout from './components/layout/AppLayout';
 import Setup from './pages/Setup';
@@ -62,20 +63,104 @@ function AppRoutes() {
           )
         }
       />
-      <Route path="/setup" element={<Setup />} />
+      <Route
+        path="/setup"
+        element={
+          <RouteErrorBoundary routePath="/setup">
+            <Setup />
+          </RouteErrorBoundary>
+        }
+      />
 
       <Route element={<AppLayout />}>
-        <Route path="/monitors" element={<Monitors />} />
-        <Route path="/monitors/:id" element={<MonitorDetail />} />
-        <Route path="/montage" element={<Montage />} />
-        <Route path="/events" element={<Events />} />
-        <Route path="/events/:id" element={<EventDetail />} />
-        <Route path="/event-montage" element={<EventMontage />} />
-        <Route path="/timeline" element={<Timeline />} />
-        <Route path="/profiles" element={<Profiles />} />
-        <Route path="/notifications" element={<NotificationSettings />} />
-        <Route path="/notifications/history" element={<NotificationHistory />} />
-        <Route path="/settings" element={<Settings />} />
+        <Route
+          path="/monitors"
+          element={
+            <RouteErrorBoundary routePath="/monitors">
+              <Monitors />
+            </RouteErrorBoundary>
+          }
+        />
+        <Route
+          path="/monitors/:id"
+          element={
+            <RouteErrorBoundary routePath="/monitors/:id">
+              <MonitorDetail />
+            </RouteErrorBoundary>
+          }
+        />
+        <Route
+          path="/montage"
+          element={
+            <RouteErrorBoundary routePath="/montage">
+              <Montage />
+            </RouteErrorBoundary>
+          }
+        />
+        <Route
+          path="/events"
+          element={
+            <RouteErrorBoundary routePath="/events">
+              <Events />
+            </RouteErrorBoundary>
+          }
+        />
+        <Route
+          path="/events/:id"
+          element={
+            <RouteErrorBoundary routePath="/events/:id">
+              <EventDetail />
+            </RouteErrorBoundary>
+          }
+        />
+        <Route
+          path="/event-montage"
+          element={
+            <RouteErrorBoundary routePath="/event-montage">
+              <EventMontage />
+            </RouteErrorBoundary>
+          }
+        />
+        <Route
+          path="/timeline"
+          element={
+            <RouteErrorBoundary routePath="/timeline">
+              <Timeline />
+            </RouteErrorBoundary>
+          }
+        />
+        <Route
+          path="/profiles"
+          element={
+            <RouteErrorBoundary routePath="/profiles">
+              <Profiles />
+            </RouteErrorBoundary>
+          }
+        />
+        <Route
+          path="/notifications"
+          element={
+            <RouteErrorBoundary routePath="/notifications">
+              <NotificationSettings />
+            </RouteErrorBoundary>
+          }
+        />
+        <Route
+          path="/notifications/history"
+          element={
+            <RouteErrorBoundary routePath="/notifications/history">
+              <NotificationHistory />
+            </RouteErrorBoundary>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <RouteErrorBoundary routePath="/settings">
+              <Settings />
+            </RouteErrorBoundary>
+          }
+        />
       </Route>
     </Routes>
   );

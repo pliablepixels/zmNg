@@ -12,6 +12,46 @@ interface NativeHttpError {
   headers?: Record<string, string>;
 }
 
+/**
+ * Sanitize sensitive data for logging
+ * - Truncates tokens to first 5 chars + "...<truncated>"
+ * - Masks passwords completely with "***"
+ */
+function sanitizeForLogging(obj: unknown): unknown {
+  if (!obj || typeof obj !== 'object') {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(sanitizeForLogging);
+  }
+
+  const sanitized: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    const lowerKey = key.toLowerCase();
+
+    // Mask passwords completely
+    if (lowerKey === 'pass' || lowerKey === 'password') {
+      sanitized[key] = '***';
+    }
+    // Truncate tokens to first 5 chars
+    else if (lowerKey === 'token' || lowerKey === 'access_token' || lowerKey === 'refresh_token') {
+      const tokenValue = String(value || '');
+      sanitized[key] = tokenValue.length > 5
+        ? `${tokenValue.slice(0, 5)}...<truncated>`
+        : tokenValue;
+    }
+    // Recursively sanitize nested objects
+    else if (typeof value === 'object' && value !== null) {
+      sanitized[key] = sanitizeForLogging(value);
+    }
+    else {
+      sanitized[key] = value;
+    }
+  }
+  return sanitized;
+}
+
 interface AdapterResponse {
   data: unknown;
   status: number;
@@ -153,18 +193,18 @@ export function createApiClient(baseURL: string): AxiosInstance {
         };
 
         if (queryParams) {
-          logData.queryParams = config.params;
+          logData.queryParams = sanitizeForLogging(config.params);
         }
 
         if (config.data) {
           if (config.data instanceof URLSearchParams) {
             const formDataObj: Record<string, string> = {};
             config.data.forEach((value: string, key: string) => {
-              formDataObj[key] = key === 'pass' ? '***' : value;
+              formDataObj[key] = value;
             });
-            logData.formData = formDataObj;
+            logData.formData = sanitizeForLogging(formDataObj);
           } else {
-            logData.bodyData = config.data;
+            logData.bodyData = sanitizeForLogging(config.data);
           }
         }
 
@@ -191,7 +231,7 @@ export function createApiClient(baseURL: string): AxiosInstance {
         log.api(`[Response] ${response.status} ${response.statusText} - ${fullZmUrl}`, {
           status: response.status,
           statusText: response.statusText,
-          data: response.data,
+          data: sanitizeForLogging(response.data),
         });
       }
       return response;
@@ -240,18 +280,18 @@ export function createApiClient(baseURL: string): AxiosInstance {
         };
 
         if (error.response?.data) {
-          errorData.responseData = error.response.data;
+          errorData.responseData = sanitizeForLogging(error.response.data);
         }
 
         if (error.config?.data) {
           if (error.config.data instanceof URLSearchParams) {
             const formDataObj: Record<string, string> = {};
             error.config.data.forEach((value: string, key: string) => {
-              formDataObj[key] = key === 'pass' ? '***' : value;
+              formDataObj[key] = value;
             });
-            errorData.requestFormData = formDataObj;
+            errorData.requestFormData = sanitizeForLogging(formDataObj);
           } else {
-            errorData.requestBodyData = error.config.data;
+            errorData.requestBodyData = sanitizeForLogging(error.config.data);
           }
         }
 

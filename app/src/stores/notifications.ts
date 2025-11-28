@@ -43,6 +43,9 @@ interface NotificationState {
   events: NotificationEvent[]; // Recent events (last 100)
   unreadCount: number;
 
+  // Internal runtime state (not persisted)
+  _cleanupFunctions: (() => void)[];
+
   // Actions - Settings
   updateSettings: (updates: Partial<NotificationSettings>) => void;
   setMonitorFilter: (monitorId: number, enabled: boolean, checkInterval?: number) => void;
@@ -90,6 +93,7 @@ export const useNotificationStore = create<NotificationState>()(
       isConnected: false,
       events: [],
       unreadCount: 0,
+      _cleanupFunctions: [],
 
       // ========== Settings Actions ==========
 
@@ -371,18 +375,17 @@ export const useNotificationStore = create<NotificationState>()(
           }
         });
 
-        // Store cleanup functions
-        (window as unknown as { _notificationCleanup?: (() => void)[] })._notificationCleanup = [
-          unsubscribeState,
-          unsubscribeEvents,
-        ];
+        // Store cleanup functions in state instead of window object
+        set({
+          _cleanupFunctions: [unsubscribeState, unsubscribeEvents],
+        });
       },
 
       _cleanup: () => {
-        const cleanup = (window as unknown as { _notificationCleanup?: (() => void)[] })._notificationCleanup;
-        if (cleanup) {
-          cleanup.forEach((fn) => fn());
-          delete (window as unknown as { _notificationCleanup?: (() => void)[] })._notificationCleanup;
+        const { _cleanupFunctions } = get();
+        if (_cleanupFunctions && _cleanupFunctions.length > 0) {
+          _cleanupFunctions.forEach((fn) => fn());
+          set({ _cleanupFunctions: [] });
         }
       },
 
