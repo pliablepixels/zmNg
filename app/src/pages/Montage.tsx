@@ -325,6 +325,7 @@ export default function Montage() {
       <div className="flex-1 overflow-auto p-4 bg-muted/10">
         {isLayoutLoaded && (
           <ResponsiveGridLayout
+            key={`${gridRows}-${gridCols}`}
             className="layout"
             layouts={layouts}
             breakpoints={BREAKPOINTS}
