@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useProfileStore } from '../stores/profile';
 import { getVersion } from '../api/auth';
 import { createApiClient, setApiClient } from '../api/client';
+import { deriveZoneminderUrls } from '../lib/urls';
 import { Video, Server, ShieldCheck, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
 
 export default function Setup() {
@@ -36,33 +37,8 @@ export default function Setup() {
 
   // Try to discover API and CGI URLs from portal URL
   const discoverUrls = async (portal: string) => {
-    const baseUrl = portal.replace(/\/$/, ''); // Remove trailing slash
-
-    // Always use full URLs to support multiple servers
-    // ZoneMinder typically has CORS enabled
-    const apiPatterns = [
-      `${baseUrl}/api`,
-      `${baseUrl}/zm/api`,
-    ];
-
-    // Try common CGI URL patterns
-    // Try common CGI URL patterns
-    const cgiPatterns: string[] = [];
-
-    // Smart pattern generation based on input URL
-    if (baseUrl.endsWith('/zm')) {
-      // If URL ends in /zm, assume user pointed to ZM root
-      // Priority: .../zm/cgi-bin (which is baseUrl + /cgi-bin)
-      cgiPatterns.push(`${baseUrl}/cgi-bin`);
-    } else {
-      // If URL is root, try standard ZM paths first
-      cgiPatterns.push(`${baseUrl}/zm/cgi-bin`);
-      cgiPatterns.push(`${baseUrl}/cgi-bin`);
-    }
-
-    // Add other common variations
-    cgiPatterns.push(`${baseUrl}/cgi-bin-zm`);
-    cgiPatterns.push(`${baseUrl}/zmcgi`);
+    // Derive URL patterns using utility function
+    const { apiPatterns, cgiPatterns } = deriveZoneminderUrls(portal);
 
     let apiUrl = '';
     let cgiUrl = '';
