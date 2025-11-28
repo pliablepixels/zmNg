@@ -29,7 +29,7 @@
     "android:release": "cd android && ./gradlew assembleRelease && cd ..",
     "android:bundle": "cd android && ./gradlew bundleRelease && cd ..",
     "ios:sync": "npm run build && npx cap sync ios",
-    "ios:run": "npx cap run ios",
+    "ios:run": "npx cap run ios --target A0B6DDE7-FAC6-4A71-AF03-73C4E3E1D2BB",
     "ios": "npm run ios:sync && npm run ios:run",
     "ios:open": "npx cap open ios"
   },
