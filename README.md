@@ -6,11 +6,10 @@ A modern web and mobile application for ZoneMinder NVR systems, providing a clea
 
 ### Screenshots
 
-| Montage View | Events View |
-|:---:|:---:|
-| <img src="images/1.png" width="300" alt="Montage View"> | <img src="images/2.png" width="300" alt="Events View"> |
-| **Event Detail** | **Timeline** |
-| <img src="images/3.png" width="300" alt="Event Detail"> | <img src="images/4.png" width="300" alt="Timeline"> |
+| | |
+|---|---|
+| <img src="images/1.png" width="400" alt="Montage View"> | <img src="images/2.png" width="400" alt="Events View"> |
+| <img src="images/3.png" width="400" alt="Event Detail"> | <img src="images/4.png" width="400" alt="Timeline"> |
 
 <details>
 <summary>More Screenshots</summary>
