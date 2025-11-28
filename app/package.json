@@ -34,6 +34,7 @@
     "@capacitor/android": "^7.4.4",
     "@capacitor/cli": "^7.4.4",
     "@capacitor/core": "^7.4.4",
+    "@capacitor/filesystem": "^7.1.5",
     "@capacitor/preferences": "^7.0.2",
     "@capacitor/push-notifications": "^7.0.3",
     "@hookform/resolvers": "^5.2.2",

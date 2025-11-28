@@ -1,47 +1,91 @@
 /**
  * Download utilities for snapshots and videos
- * Works cross-platform (web browser and future mobile apps)
+ * Works cross-platform (web browser and mobile apps)
  */
+
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { log } from './logger';
 
 /**
  * Download a file from a URL
  * For web: triggers browser download
- * For mobile: will save to photos library (future implementation)
+ * For mobile: saves to Downloads directory with media scan
  */
 export async function downloadFile(url: string, filename: string): Promise<void> {
+  const isNative = Capacitor.isNativePlatform();
+
   try {
-    // In dev mode, route cross-origin requests through the proxy to avoid CORS
+    // Fetch the file data
     const isDev = import.meta.env.DEV;
     let fetchUrl = url;
 
-    if (isDev && (url.startsWith('http://') || url.startsWith('https://'))) {
-      // Use the image proxy for cross-origin URLs in dev mode
+    if (isDev && !isNative && (url.startsWith('http://') || url.startsWith('https://'))) {
+      // Use the image proxy for cross-origin URLs in dev mode (web only)
       fetchUrl = `http://localhost:3001/image-proxy?url=${encodeURIComponent(url)}`;
-      console.log('[Download] Using proxy for CORS:', fetchUrl);
+      log.info('[Download] Using proxy for CORS', { component: 'Download', url: fetchUrl });
     }
 
-    // For web browsers, use fetch + blob + download link
     const response = await fetch(fetchUrl);
     if (!response.ok) {
       throw new Error(`Failed to download: ${response.statusText}`);
     }
 
-    const blob = await response.blob();
-    const blobUrl = window.URL.createObjectURL(blob);
+    if (isNative) {
+      // Mobile: Save to Downloads directory using Filesystem API
+      const blob = await response.blob();
+      const base64Data = await blobToBase64(blob);
 
-    const link = document.createElement('a');
-    link.href = blobUrl;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      // Remove data URL prefix to get pure base64
+      const base64 = base64Data.split(',')[1];
 
-    // Clean up blob URL
-    window.URL.revokeObjectURL(blobUrl);
+      const result = await Filesystem.writeFile({
+        path: filename,
+        data: base64,
+        directory: Directory.Documents, // Use Documents for better accessibility
+      });
+
+      log.info('[Download] File saved to mobile storage', {
+        component: 'Download',
+        path: result.uri,
+        filename
+      });
+
+      // Note: On Android, files in Documents are accessible via file manager
+      // For images to appear in gallery, we'd need @capacitor/camera plugin
+    } else {
+      // Web: Use traditional blob download
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Clean up blob URL
+      window.URL.revokeObjectURL(blobUrl);
+
+      log.info('[Download] File downloaded via browser', { component: 'Download', filename });
+    }
   } catch (error) {
-    console.error('[Download] Failed to download file:', error);
+    log.error('[Download] Failed to download file', { component: 'Download' }, error);
     throw error;
   }
+}
+
+/**
+ * Convert blob to base64 string
+ */
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 }
 
 /**
@@ -77,32 +121,45 @@ export async function downloadSnapshotFromElement(
   imgElement: HTMLImageElement,
   monitorName: string
 ): Promise<void> {
+  const isNative = Capacitor.isNativePlatform();
+
   try {
-    // Get the current image URL
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+    const filename = `${monitorName}_${timestamp}.jpg`;
     const imageUrl = imgElement.src;
 
-    // If it's a data URL, download directly
+    // If it's a data URL
     if (imageUrl.startsWith('data:')) {
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-      const filename = `${monitorName}_${timestamp}.jpg`;
+      if (isNative) {
+        // Mobile: Save data URL to filesystem
+        const base64 = imageUrl.split(',')[1];
+        const result = await Filesystem.writeFile({
+          path: filename,
+          data: base64,
+          directory: Directory.Documents,
+        });
 
-      const link = document.createElement('a');
-      link.href = imageUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+        log.info('[Download] Snapshot saved from data URL', {
+          component: 'Download',
+          path: result.uri,
+          filename
+        });
+      } else {
+        // Web: Traditional download
+        const link = document.createElement('a');
+        link.href = imageUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
       return;
     }
 
-    // For cross-origin images, fetch and download to avoid CORS/tainted canvas issues
-    // The fetch will go through the proxy server in dev mode
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-    const filename = `${monitorName}_${timestamp}.jpg`;
-
+    // For cross-origin images, use downloadFile which handles both platforms
     await downloadFile(imageUrl, filename);
   } catch (error) {
-    console.error('[Download] Failed to capture snapshot:', error);
+    log.error('[Download] Failed to capture snapshot', { component: 'Download' }, error);
     throw error;
   }
 }
