@@ -99,7 +99,7 @@ export const MonitorSchema = z.object({
   ReturnDelay: z.coerce.string().nullable(),
   ModectDuringPTZ: z.coerce.string().nullable(),
   DefaultRate: z.coerce.string(),
-  DefaultScale: z.string(),
+  DefaultScale: z.union([z.string(), z.number()]).transform(String),
   SignalCheckPoints: z.coerce.string().nullable(),
   SignalCheckColour: z.string(),
   WebColour: z.string(),
