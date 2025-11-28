@@ -80,15 +80,17 @@ export default function Events() {
 
   if (isLoading) {
     return (
-      <div className="p-8 space-y-6">
-        <div className="flex justify-between">
+      <div className="flex flex-col h-full p-6 md:p-8 gap-6">
+        <div className="flex justify-between flex-shrink-0">
           <div className="h-8 w-32 bg-muted rounded animate-pulse" />
           <div className="h-8 w-24 bg-muted rounded animate-pulse" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-            <div key={i} className="aspect-video bg-muted rounded-xl animate-pulse" />
-          ))}
+        <div className="flex-1 overflow-auto">
+          <div className="grid grid-cols-1 gap-4">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+              <div key={i} className="h-[140px] bg-muted rounded-xl animate-pulse" />
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -106,8 +108,8 @@ export default function Events() {
   }
 
   return (
-    <div className="p-6 md:p-8 space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="flex flex-col h-full p-6 md:p-8 gap-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 flex-shrink-0">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Events</h1>
           <p className="text-muted-foreground mt-1">Review recorded footage</p>
@@ -256,7 +258,7 @@ export default function Events() {
           )}
         </div>
       ) : (
-        <div ref={parentRef} className="h-[calc(100vh-250px)] overflow-auto">
+        <div ref={parentRef} className="flex-1 overflow-auto min-h-0">
           <div
             style={{
               height: `${rowVirtualizer.getTotalSize()}px`,
