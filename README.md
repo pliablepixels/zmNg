@@ -2,7 +2,7 @@
 
 [View Comparison with zmNinja](notes/COMPARISON.md)
 
-A modern web and mobile application for ZoneMinder NVR systems, providing a clean, intuitive interface for viewing live camera feeds, reviewing events, and managing multiple server profiles. It is a ground-up rewrite of the original [zmNinja](https://zmninja.zoneminder.com/) application, using modern web technologies and a more intuitive user interface. The code was 99% Claude CLI generated.
+A modern web and mobile application for ZoneMinder home surveillance systems, providing a clean, intuitive interface for viewing live camera feeds, reviewing events, and managing multiple server profiles. It is a ground-up rewrite of the original [zmNinja](https://zmninja.zoneminder.com/) application, using modern web technologies and a more intuitive user interface. The code was 99% Claude CLI generated.
 
 ### Screenshots
 
@@ -407,18 +407,3 @@ api_key = <your-firebase-server-key>
 See [Capacitor Push Notifications](https://capacitorjs.com/docs/apis/push-notifications) for platform-specific details.
 
 ---
-
-## Recent Code Quality Improvements
-
-This codebase underwent a comprehensive refactoring in January 2025:
-- **308 lines of code removed** through better organization
-- **Monitors.tsx reduced by 56%** (545 → 237 lines)
-- **Events.tsx reduced by 32%** (402 → 272 lines)
-- **3 reusable components** extracted
-- **3 custom hooks** created for common patterns
-- **0 TypeScript errors** - fully type-safe
-- **Improved security** with password encryption
-
----
-
-**Last Updated**: 2025-01-27

@@ -1,6 +1,8 @@
-# zmNinja vs zmNg: Comprehensive Comparison
+# zmNinja vs zmNg:  Comparison
 
-**Platforms Compared:** Android & Web (iOS not yet implemented in zmNg)
+**TLDR**: I pulled through a large scale rewrite (it was more than refactoring) of a popular mobile app with multiple features in 2 days. Code quality was good & tests were better compared to the old app. Totally worth it. In the process, I spent $50 worth of credits over 2 days.
+
+**Platforms Compared:** Android & Web (iOS not yet configured in zmNg)
 
 ## Executive Summary
 
@@ -256,8 +258,6 @@ src/
 - Ionic v1 UI framework
 - AngularJS runtime
 
-**APK Size:** ~30-50 MB (estimated, includes all plugins)
-
 **Native Features:**
 - Firebase Cloud Messaging for push notifications
 - Fingerprint authentication
@@ -344,8 +344,6 @@ npm run android:release    # Build release APK
 
 **Issues:**
 - ⚠️ Passwords stored in SQLite (not encrypted)
-- ⚠️ Firebase SDK collects analytics
-- ⚠️ Multiple plugins = larger attack surface
 - ⚠️ No hardware-backed encryption
 
 ### zmNg Security
@@ -361,7 +359,6 @@ npm run android:release    # Build release APK
 - Keys stored in secure hardware enclave
 - AES-256-GCM encryption
 - Automatic key rotation support
-- Biometric unlock ready
 
 **Network Security:**
 - Capacitor native HTTP on mobile (bypasses browser restrictions)
@@ -378,11 +375,8 @@ npm run android:release    # Build release APK
 **Advantages:**
 - ✅ **Hardware-backed encryption** on Android (Keystore)
 - ✅ **Military-grade AES-GCM** on web
-- ✅ **No analytics/tracking** (FCM only, privacy-first)
-- ✅ **Minimal attack surface** (2 plugins vs 26)
-- ✅ **Auto token refresh** (no re-login)
+- ✅ **Minimal legacy/vulnerability surface** (2 plugins vs 26)
 - ✅ **Type-safe security** layer
-- ✅ **Secure WebSocket** (encrypted event notifications)
 
 **Security Comparison Table:**
 
@@ -390,8 +384,7 @@ npm run android:release    # Build release APK
 |------------------|---------|------|
 | **Password Encryption (Web)** | ❌ None | ✅ AES-GCM 256-bit |
 | **Password Encryption (Android)** | ⚠️ SQLite (not encrypted) | ✅ Android Keystore (hardware) |
-| **Analytics/Tracking** | ⚠️ Firebase Analytics + Crashlytics | ✅ None (FCM only) |
-| **Native Plugins** | 26 (large attack surface) | 2 (minimal surface) |
+| **Native Plugins** | 26 (large legacy vulnerability surface) | 2 (minimal surface) |
 | **Token Management** | Manual | ✅ Automatic refresh |
 | **Credential Storage** | SQLite database | ✅ Encrypted storage |
 | **Notification Security** | Firebase-dependent | ✅ WebSocket SSL/TLS + FCM |
@@ -422,8 +415,6 @@ npm run android:release    # Build release APK
 | **Offline Support** | ✅ | ⚠️ | zmNinja: SQLite cache |
 | **Event Filters** | ✅ | ✅ | zmNg: URL-synchronized |
 | **Camera PTZ** | ✅ | ⏳ | Planned for zmNg |
-| **Face Recognition** | ✅ | ⏳ | Requires Event Server |
-| **Fingerprint Auth** | ✅ | ⏳ | Planned (biometric) |
 
 **Legend:**
 - ✅ Implemented

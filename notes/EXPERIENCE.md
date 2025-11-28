@@ -1,6 +1,6 @@
 # Experiences in migrating zmNinja from AngularJS to React
 
-[zmNinja](https://zmninja.zoneminder.com/) is a popular cross platform app (Desktop/iOS/Android) for [ZoneMinder](https://zoneminder.com/) (Open Source Home Security System) with 1M+ users. I built this over a couple of years. It is built with AngularJS, ionicv1 and cordova. These technologies have long been deprecated and its been a pain to keep the app updated. I have since moved on from thep project and the developers of ZoneMinder have found it to be hard to maintain.
+[zmNinja](https://zmninja.zoneminder.com/) is a popular cross platform app (Desktop/iOS/Android) for [ZoneMinder](https://zoneminder.com/) (Open Source Home Security System) with 100K+ users. I built this over a couple of years. It is built with AngularJS, ionicv1 and cordova. These technologies have long been deprecated and its been a pain to keep the app updated. I have since moved on from thep project and the developers of ZoneMinder have found it to be hard to maintain.
 
 Over the last 2 days, I used Claude CLI to refactor the old zmNinja to zmNg - a complete ground up rewrite of the old zmNinja to a modern react based ecosystem. 
 
