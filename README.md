@@ -4,6 +4,21 @@
 
 A modern web and mobile application for ZoneMinder NVR systems, providing a clean, intuitive interface for viewing live camera feeds, reviewing events, and managing multiple server profiles. It is a ground-up rewrite of the original [zmNinja](https://zmninja.zoneminder.com/) application, using modern web technologies and a more intuitive user interface. The code was 99% Claude CLI generated.
 
+### Screenshots
+
+| Montage View | Events View |
+|:---:|:---:|
+| <img src="images/1.png" width="300" alt="Montage View"> | <img src="images/2.png" width="300" alt="Events View"> |
+| **Event Detail** | **Timeline** |
+| <img src="images/3.png" width="300" alt="Event Detail"> | <img src="images/4.png" width="300" alt="Timeline"> |
+
+<details>
+<summary>More Screenshots</summary>
+
+<img src="images/5.png" width="250" alt="Monitor Detail"> <img src="images/6.png" width="250" alt="Settings"> <img src="images/7.png" width="250" alt="Profile Switcher"> <img src="images/8.png" width="250" alt="Notifications">
+
+</details>
+
 ## Quick Start
 
 ```bash
@@ -57,16 +72,6 @@ npm run android
 - **Notification history** - View last 100 events with unread tracking
 - **Mock server included** - Test notifications without ZM server setup
 
-### Screenshots
-
-![Montage View](images/1.png)
-![Events View](images/2.png)
-![Event Detail](images/3.png)
-![Timeline](images/4.png)
-![Monitor Detail](images/5.png)
-![Settings](images/6.png)
-![Profile Switcher](images/7.png)
-![Notifications](images/8.png)
 
 ## Prerequisites
 - Node.js 18+ and npm
