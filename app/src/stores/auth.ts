@@ -80,11 +80,14 @@ export const useAuthStore = create<AuthState>()(
 
       setTokens: (response: LoginResponse) => {
         const now = Date.now();
+        const currentState = get();
         set({
           accessToken: response.access_token,
-          refreshToken: response.refresh_token,
+          refreshToken: response.refresh_token || currentState.refreshToken,
           accessTokenExpires: now + response.access_token_expires * 1000,
-          refreshTokenExpires: now + response.refresh_token_expires * 1000,
+          refreshTokenExpires: response.refresh_token_expires
+            ? now + response.refresh_token_expires * 1000
+            : currentState.refreshTokenExpires,
           version: response.version,
           apiVersion: response.apiversion,
           isAuthenticated: true,

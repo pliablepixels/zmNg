@@ -109,141 +109,143 @@ export default function Events() {
   }
 
   return (
-    <div className="flex flex-col h-full p-3 sm:p-4 md:p-6 gap-3 sm:gap-4 md:gap-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 flex-shrink-0">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Events</h1>
-          <p className="text-sm text-muted-foreground hidden sm:block">Review recorded footage</p>
-        </div>
+    <div ref={parentRef} className="h-full overflow-auto p-3 sm:p-4 md:p-6">
+      <div className="flex flex-col gap-3 sm:gap-4 mb-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Events</h1>
+            <p className="text-xs text-muted-foreground hidden sm:block">Review recorded footage</p>
+          </div>
 
-        <div className="flex items-center gap-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant={activeFilterCount > 0 ? 'default' : 'outline'}
-                size="icon"
-                className="relative"
-                aria-label="Filter events"
-              >
-                <Filter className="h-4 w-4" />
-                {activeFilterCount > 0 && (
-                  <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500 border-2 border-background" />
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[calc(100vw-2rem)] sm:w-80 max-w-sm">
-              <div className="grid gap-4">
-                <div className="space-y-2">
-                  <h4 className="text-sm sm:text-base font-medium leading-none">Filters</h4>
-                  <p className="text-xs sm:text-sm text-muted-foreground">Refine your event search</p>
-                </div>
+          <div className="flex items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={activeFilterCount > 0 ? 'default' : 'outline'}
+                  size="icon"
+                  className="relative"
+                  aria-label="Filter events"
+                >
+                  <Filter className="h-4 w-4" />
+                  {activeFilterCount > 0 && (
+                    <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500 border-2 border-background" />
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[calc(100vw-2rem)] sm:w-80 max-w-sm">
                 <div className="grid gap-4">
-                  <div className="grid gap-2">
-                    <Label>Cameras</Label>
-                    <div className="border rounded-md max-h-48 overflow-y-auto p-2 space-y-2">
-                      {enabledMonitors.length === 0 ? (
-                        <p className="text-sm text-muted-foreground text-center py-2">
-                          No cameras available
-                        </p>
-                      ) : (
-                        <>
-                          <div className="flex items-center space-x-2 pb-2 border-b">
-                            <Checkbox
-                              id="select-all"
-                              checked={selectedMonitorIds.length === enabledMonitors.length}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  setSelectedMonitorIds(enabledMonitors.map((m) => m.Monitor.Id));
-                                } else {
-                                  setSelectedMonitorIds([]);
-                                }
-                              }}
-                            />
-                            <label
-                              htmlFor="select-all"
-                              className="text-sm font-medium cursor-pointer"
-                            >
-                              Select All
-                            </label>
-                          </div>
-                          {enabledMonitors.map(({ Monitor }) => (
-                            <div key={Monitor.Id} className="flex items-center space-x-2">
+                  <div className="space-y-2">
+                    <h4 className="text-sm sm:text-base font-medium leading-none">Filters</h4>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Refine your event search</p>
+                  </div>
+                  <div className="grid gap-4">
+                    <div className="grid gap-2">
+                      <Label>Cameras</Label>
+                      <div className="border rounded-md max-h-48 overflow-y-auto p-2 space-y-2">
+                        {enabledMonitors.length === 0 ? (
+                          <p className="text-sm text-muted-foreground text-center py-2">
+                            No cameras available
+                          </p>
+                        ) : (
+                          <>
+                            <div className="flex items-center space-x-2 pb-2 border-b">
                               <Checkbox
-                                id={`monitor-${Monitor.Id}`}
-                                checked={selectedMonitorIds.includes(Monitor.Id)}
-                                onCheckedChange={() => toggleMonitorSelection(Monitor.Id)}
-                              />
-                              <label
-                                htmlFor={`monitor-${Monitor.Id}`}
-                                className="text-sm flex-1 cursor-pointer flex items-center justify-between"
-                              >
-                                <span>{Monitor.Name}</span>
-                                <Badge variant="outline" className="text-[10px] ml-2">
-                                  ID: {Monitor.Id}
-                                </Badge>
-                              </label>
-                            </div>
-                          ))}
-                        </>
-                      )}
-                    </div>
-                    {selectedMonitorIds.length > 0 && (
-                      <div className="flex items-center gap-1 flex-wrap">
-                        <span className="text-xs text-muted-foreground">Selected:</span>
-                        {selectedMonitorIds.map((id) => {
-                          const monitor = enabledMonitors.find((m) => m.Monitor.Id === id);
-                          return monitor ? (
-                            <Badge key={id} variant="secondary" className="text-xs">
-                              {monitor.Monitor.Name}
-                              <X
-                                className="h-3 w-3 ml-1 cursor-pointer"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleMonitorSelection(id);
+                                id="select-all"
+                                checked={selectedMonitorIds.length === enabledMonitors.length}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setSelectedMonitorIds(enabledMonitors.map((m) => m.Monitor.Id));
+                                  } else {
+                                    setSelectedMonitorIds([]);
+                                  }
                                 }}
                               />
-                            </Badge>
-                          ) : null;
-                        })}
+                              <label
+                                htmlFor="select-all"
+                                className="text-sm font-medium cursor-pointer"
+                              >
+                                Select All
+                              </label>
+                            </div>
+                            {enabledMonitors.map(({ Monitor }) => (
+                              <div key={Monitor.Id} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`monitor-${Monitor.Id}`}
+                                  checked={selectedMonitorIds.includes(Monitor.Id)}
+                                  onCheckedChange={() => toggleMonitorSelection(Monitor.Id)}
+                                />
+                                <label
+                                  htmlFor={`monitor-${Monitor.Id}`}
+                                  className="text-sm flex-1 cursor-pointer flex items-center justify-between"
+                                >
+                                  <span>{Monitor.Name}</span>
+                                  <Badge variant="outline" className="text-[10px] ml-2">
+                                    ID: {Monitor.Id}
+                                  </Badge>
+                                </label>
+                              </div>
+                            ))}
+                          </>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="start-date">Start Date/Time</Label>
-                    <Input
-                      id="start-date"
-                      type="datetime-local"
-                      value={startDateInput}
-                      onChange={(e) => setStartDateInput(e.target.value)}
-                      step="1"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="end-date">End Date/Time</Label>
-                    <Input
-                      id="end-date"
-                      type="datetime-local"
-                      value={endDateInput}
-                      onChange={(e) => setEndDateInput(e.target.value)}
-                      step="1"
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <Button onClick={applyFilters} size="sm" className="flex-1">
-                      Apply Filters
-                    </Button>
-                    <Button onClick={clearFilters} size="sm" variant="outline" className="flex-1">
-                      Clear
-                    </Button>
+                      {selectedMonitorIds.length > 0 && (
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <span className="text-xs text-muted-foreground">Selected:</span>
+                          {selectedMonitorIds.map((id) => {
+                            const monitor = enabledMonitors.find((m) => m.Monitor.Id === id);
+                            return monitor ? (
+                              <Badge key={id} variant="secondary" className="text-xs">
+                                {monitor.Monitor.Name}
+                                <X
+                                  className="h-3 w-3 ml-1 cursor-pointer"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleMonitorSelection(id);
+                                  }}
+                                />
+                              </Badge>
+                            ) : null;
+                          })}
+                        </div>
+                      )}
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="start-date">Start Date/Time</Label>
+                      <Input
+                        id="start-date"
+                        type="datetime-local"
+                        value={startDateInput}
+                        onChange={(e) => setStartDateInput(e.target.value)}
+                        step="1"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="end-date">End Date/Time</Label>
+                      <Input
+                        id="end-date"
+                        type="datetime-local"
+                        value={endDateInput}
+                        onChange={(e) => setEndDateInput(e.target.value)}
+                        step="1"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button onClick={applyFilters} size="sm" className="flex-1">
+                        Apply Filters
+                      </Button>
+                      <Button onClick={clearFilters} size="sm" variant="outline" className="flex-1">
+                        Clear
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </PopoverContent>
-          </Popover>
+              </PopoverContent>
+            </Popover>
 
-          <Button onClick={() => refetch()} variant="outline" size="icon" aria-label="Refresh events">
-            <RefreshCw className="h-4 w-4" />
-          </Button>
+            <Button onClick={() => refetch()} variant="outline" size="icon" aria-label="Refresh events">
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -259,7 +261,7 @@ export default function Events() {
           )}
         </div>
       ) : (
-        <div ref={parentRef} className="flex-1 overflow-auto min-h-0">
+        <div className="min-h-0">
           <div
             style={{
               height: `${rowVirtualizer.getTotalSize()}px`,
@@ -301,7 +303,7 @@ export default function Events() {
           </div>
 
           {/* Results summary */}
-          <div className="text-center py-6 text-sm text-muted-foreground sticky bottom-0 bg-background/80 backdrop-blur-sm">
+          <div className="text-center py-2 text-xs text-muted-foreground">
             {allEvents.length === (settings.defaultEventLimit || 300) ? (
               <>
                 Showing {allEvents.length} events (maximum per query reached - adjust limit in

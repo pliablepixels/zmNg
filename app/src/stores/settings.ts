@@ -14,6 +14,12 @@ export interface ProfileSettings {
   montageGridCols: number; // Grid columns for Montage page
   eventMontageGridCols: number; // Grid columns for EventMontage page
   montageIsFullscreen: boolean; // Fullscreen state for Montage page
+  eventMontageFilters: {
+    monitorIds: string[];
+    cause: string;
+    startDate: string;
+    endDate: string;
+  };
 }
 
 interface SettingsState {
@@ -43,6 +49,12 @@ const DEFAULT_SETTINGS: ProfileSettings = {
   montageGridCols: 4,
   eventMontageGridCols: 5,
   montageIsFullscreen: false,
+  eventMontageFilters: {
+    monitorIds: [],
+    cause: 'all',
+    startDate: '',
+    endDate: '',
+  },
 };
 
 export const useSettingsStore = create<SettingsState>()(

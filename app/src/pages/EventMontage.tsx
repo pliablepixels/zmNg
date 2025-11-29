@@ -58,11 +58,12 @@ export default function EventMontage() {
   const updateSettings = useSettingsStore((state) => state.updateProfileSettings);
 
   // Filter state
-  const [selectedMonitorIds, setSelectedMonitorIds] = useState<string[]>([]);
-  const [selectedCause, setSelectedCause] = useState<string>('all');
-  const [startDate, setStartDate] = useState<string>('');
-  const [endDate, setEndDate] = useState<string>('');
-  const [isFilterOpen, setIsFilterOpen] = useState(true);
+  // Filter state - load from settings
+  const [selectedMonitorIds, setSelectedMonitorIds] = useState<string[]>(settings.eventMontageFilters.monitorIds);
+  const [selectedCause, setSelectedCause] = useState<string>(settings.eventMontageFilters.cause);
+  const [startDate, setStartDate] = useState<string>(settings.eventMontageFilters.startDate);
+  const [endDate, setEndDate] = useState<string>(settings.eventMontageFilters.endDate);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   // Grid layout configuration state - load from settings
   const [gridCols, setGridCols] = useState<number>(settings.eventMontageGridCols);
@@ -155,11 +156,34 @@ export default function EventMontage() {
 
   const hasActiveFilters = selectedMonitorIds.length > 0 || selectedCause !== 'all' || startDate || endDate;
 
-  // Update grid state when profile changes
+  // Update grid state and filters when profile changes
   useEffect(() => {
     setGridCols(settings.eventMontageGridCols);
     setCustomCols(settings.eventMontageGridCols.toString());
-  }, [currentProfile?.id, settings.eventMontageGridCols]);
+    setSelectedMonitorIds(settings.eventMontageFilters.monitorIds);
+    setSelectedCause(settings.eventMontageFilters.cause);
+    setStartDate(settings.eventMontageFilters.startDate);
+    setEndDate(settings.eventMontageFilters.endDate);
+  }, [currentProfile?.id, settings.eventMontageGridCols, settings.eventMontageFilters]);
+
+  // Persist filters to settings when they change
+  useEffect(() => {
+    if (!currentProfile) return;
+
+    // Debounce updates slightly to avoid thrashing storage on rapid changes (e.g. typing date)
+    const timeoutId = setTimeout(() => {
+      updateSettings(currentProfile.id, {
+        eventMontageFilters: {
+          monitorIds: selectedMonitorIds,
+          cause: selectedCause,
+          startDate,
+          endDate,
+        },
+      });
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [selectedMonitorIds, selectedCause, startDate, endDate, currentProfile, updateSettings]);
 
   const handleApplyGridLayout = (cols: number) => {
     if (!currentProfile) return;

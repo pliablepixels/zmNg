@@ -4,8 +4,8 @@ import { z } from 'zod';
 export const LoginResponseSchema = z.object({
   access_token: z.string(),
   access_token_expires: z.number(),
-  refresh_token: z.string(),
-  refresh_token_expires: z.number(),
+  refresh_token: z.string().optional(),
+  refresh_token_expires: z.number().optional(),
   credentials: z.string().optional(),
   append_password: z.number().optional(),
   version: z.string().optional(),
