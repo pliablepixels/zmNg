@@ -239,19 +239,19 @@ export default function Timeline() {
   }
 
   return (
-    <div className="p-6 md:p-8 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Timeline</h1>
-          <p className="text-muted-foreground mt-1">
-            Visual timeline of events
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Timeline</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 hidden sm:block">
+            <span className="hidden sm:inline">Visual timeline of events</span>
             {selectedMonitorIds.length > 0 && ` (${selectedMonitorIds.length} camera${selectedMonitorIds.length > 1 ? 's' : ''} selected)`}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={() => refetch()} variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+          <Button onClick={() => refetch()} variant="outline" size="sm" className="h-8 sm:h-9">
+            <RefreshCw className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Refresh</span>
           </Button>
         </div>
       </div>
@@ -289,11 +289,11 @@ export default function Timeline() {
                     <Filter className="h-4 w-4 ml-2" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-80">
+                <PopoverContent className="w-[calc(100vw-2rem)] sm:w-80 max-w-sm">
                   <div className="grid gap-4">
                     <div className="space-y-2">
-                      <h4 className="font-medium leading-none">Select Monitors</h4>
-                      <p className="text-sm text-muted-foreground">
+                      <h4 className="text-sm sm:text-base font-medium leading-none">Select Monitors</h4>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
                         Filter timeline by monitors
                       </p>
                     </div>

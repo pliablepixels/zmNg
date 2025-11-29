@@ -129,42 +129,42 @@ export default function MonitorDetail() {
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Go back">
-            <ArrowLeft className="h-5 w-5" />
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-2 sm:p-3 border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Go back" className="h-8 w-8">
+            <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-lg font-semibold">{monitor.Monitor.Name}</h1>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <h1 className="text-sm sm:text-base font-semibold">{monitor.Monitor.Name}</h1>
+            <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground">
               <span className={cn(
-                "w-2 h-2 rounded-full",
+                "w-1.5 h-1.5 rounded-full",
                 monitor.Monitor.Function !== 'None' ? "bg-green-500" : "bg-red-500"
               )} />
-              {monitor.Monitor.Function} • {monitor.Monitor.Width}x{monitor.Monitor.Height}
+              <span className="hidden sm:inline">{monitor.Monitor.Function} • </span>{monitor.Monitor.Width}x{monitor.Monitor.Height}
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => navigate(`/events?monitorId=${monitor.Monitor.Id}`)}>
-            <Video className="h-4 w-4 mr-2" />
-            Events
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+          <Button variant="outline" size="sm" onClick={() => navigate(`/events?monitorId=${monitor.Monitor.Id}`)} className="h-8 sm:h-9" title="Events">
+            <Video className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Events</span>
           </Button>
-          <Button variant="outline" size="sm" onClick={() => navigate(`/timeline?monitorId=${monitor.Monitor.Id}`)}>
-            <Clock className="h-4 w-4 mr-2" />
-            Timeline
+          <Button variant="outline" size="sm" onClick={() => navigate(`/timeline?monitorId=${monitor.Monitor.Id}`)} className="h-8 sm:h-9" title="Timeline">
+            <Clock className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Timeline</span>
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setMode(mode === 'jpeg' ? 'stream' : 'jpeg')}>
+          <Button variant="outline" size="sm" onClick={() => setMode(mode === 'jpeg' ? 'stream' : 'jpeg')} className="h-8 sm:h-9 text-xs">
             {mode === 'jpeg' ? 'MJPEG' : 'Stream'}
           </Button>
-          <Button variant="ghost" size="icon" aria-label="Monitor settings">
-            <Settings className="h-5 w-5" />
+          <Button variant="ghost" size="icon" aria-label="Monitor settings" className="h-8 w-8 sm:h-9 sm:w-9">
+            <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-4 md:p-8 flex flex-col items-center justify-center bg-muted/10">
+      <div className="flex-1 p-2 sm:p-3 md:p-4 flex flex-col items-center justify-center bg-muted/10">
         <Card className="relative w-full max-w-5xl aspect-video bg-black overflow-hidden shadow-2xl border-0 ring-1 ring-border/20">
           <img
             ref={imgRef}

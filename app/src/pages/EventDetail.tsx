@@ -75,31 +75,31 @@ export default function EventDetail() {
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Go back">
-            <ArrowLeft className="h-5 w-5" />
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-2 sm:p-3 border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Go back" className="h-8 w-8">
+            <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-lg font-semibold">{event.Event.Name}</h1>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Badge variant="outline" className="text-[10px] h-5">
+            <h1 className="text-sm sm:text-base font-semibold truncate max-w-[200px] sm:max-w-none">{event.Event.Name}</h1>
+            <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground">
+              <Badge variant="outline" className="text-[10px] h-4">
                 {event.Event.Cause}
               </Badge>
-              <span>Camera {event.Event.MonitorId}</span>
+              <span className="hidden sm:inline">Camera {event.Event.MonitorId}</span>
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate(`/monitors/${event.Event.MonitorId}`)}>
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+          <Button variant="outline" size="sm" className="gap-2 h-8 sm:h-9" onClick={() => navigate(`/monitors/${event.Event.MonitorId}`)} title="View Camera">
             <Video className="h-4 w-4" />
             <span className="hidden sm:inline">View Camera</span>
           </Button>
-          <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate(`/events?monitorId=${event.Event.MonitorId}`)}>
+          <Button variant="outline" size="sm" className="gap-2 h-8 sm:h-9" onClick={() => navigate(`/events?monitorId=${event.Event.MonitorId}`)} title="All Events">
             <ListVideo className="h-4 w-4" />
             <span className="hidden sm:inline">All Events</span>
           </Button>
-          <Button variant="outline" size="sm" className="gap-2">
+          <Button variant="outline" size="sm" className="gap-2 h-8 sm:h-9" title="Archive">
             <Archive className="h-4 w-4" />
             <span className="hidden sm:inline">Archive</span>
           </Button>
@@ -107,7 +107,7 @@ export default function EventDetail() {
             <Button
               variant="outline"
               size="sm"
-              className="gap-2"
+              className="gap-2 h-8 sm:h-9"
               onClick={() => {
                 if (hasVideo && currentProfile) {
                   downloadEventVideo(
@@ -143,8 +143,8 @@ export default function EventDetail() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-4 md:p-8 flex flex-col items-center bg-muted/10 overflow-y-auto">
-        <div className="w-full max-w-5xl space-y-6">
+      <div className="flex-1 p-2 sm:p-3 md:p-4 flex flex-col items-center bg-muted/10 overflow-y-auto">
+        <div className="w-full max-w-5xl space-y-3 sm:space-y-4 md:space-y-6">
           {/* Video Player or Image Display */}
           <Card className="overflow-hidden shadow-2xl border-0 ring-1 ring-border/20 bg-black">
             <div className="aspect-video relative">

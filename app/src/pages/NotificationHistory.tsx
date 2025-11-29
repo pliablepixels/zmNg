@@ -16,33 +16,34 @@ export default function NotificationHistory() {
   };
 
   return (
-    <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="p-3 sm:p-4 md:p-6 max-w-5xl mx-auto space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-            Notification History
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2">
+            <span className="hidden sm:inline">Notification History</span>
+            <span className="sm:hidden">Notifications</span>
             {unreadCount > 0 && (
-              <Badge variant="destructive" className="text-base">
-                {unreadCount} new
+              <Badge variant="destructive" className="text-[10px] sm:text-xs h-4 sm:h-5">
+                {unreadCount}
               </Badge>
             )}
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 hidden sm:block">
             Recent alarm events from your monitors
           </p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-1.5 sm:gap-2">
           {unreadCount > 0 && (
-            <Button variant="outline" onClick={markAllRead}>
-              <CheckCheck className="h-4 w-4 mr-2" />
-              Mark All Read
+            <Button variant="outline" onClick={markAllRead} size="sm" className="h-8 sm:h-10">
+              <CheckCheck className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Mark All Read</span>
             </Button>
           )}
           {events.length > 0 && (
-            <Button variant="destructive" onClick={clearEvents}>
-              <Trash2 className="h-4 w-4 mr-2" />
-              Clear All
+            <Button variant="destructive" onClick={clearEvents} size="sm" className="h-8 sm:h-10">
+              <Trash2 className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Clear All</span>
             </Button>
           )}
         </div>

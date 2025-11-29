@@ -88,23 +88,23 @@ export default function Monitors() {
   }
 
   return (
-    <div className="p-6 md:p-8 space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Cameras</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Cameras</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
             {activeMonitors.length} active, {inactiveMonitors.length} inactive
           </p>
         </div>
-        <Button onClick={() => refetch()} variant="outline" size="sm" className="gap-2">
-          <RefreshCw className="h-4 w-4" />
-          Refresh
+        <Button onClick={() => refetch()} variant="outline" size="sm" className="gap-2 h-8 sm:h-9">
+          <RefreshCw className="h-4 w-4 sm:mr-0" />
+          <span className="hidden sm:inline">Refresh</span>
         </Button>
       </div>
 
       {/* Active Cameras */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold tracking-tight flex items-center gap-2">
+      <div className="space-y-3 sm:space-y-4">
+        <h2 className="text-base sm:text-lg font-semibold tracking-tight flex items-center gap-2">
           <div className="h-2 w-2 rounded-full bg-green-500" />
           Active Cameras
         </h2>
@@ -113,7 +113,7 @@ export default function Monitors() {
             No active cameras found.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {activeMonitors.map(({ Monitor, Monitor_Status }) => (
               <MonitorCard
                 key={Monitor.Id}
@@ -129,9 +129,9 @@ export default function Monitors() {
 
       {/* Inactive Cameras */}
       {inactiveMonitors.length > 0 && (
-        <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-4">
+        <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-3 sm:space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold tracking-tight flex items-center gap-2 text-muted-foreground">
+            <h2 className="text-base sm:text-lg font-semibold tracking-tight flex items-center gap-2 text-muted-foreground">
               <div className="h-2 w-2 rounded-full bg-red-500" />
               Inactive Cameras ({inactiveMonitors.length})
             </h2>
@@ -143,8 +143,8 @@ export default function Monitors() {
             </CollapsibleTrigger>
           </div>
 
-          <CollapsibleContent className="space-y-4 animate-accordion-down overflow-hidden data-[state=closed]:animate-accordion-up">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 opacity-75 grayscale hover:grayscale-0 transition-all duration-300">
+          <CollapsibleContent className="space-y-3 sm:space-y-4 animate-accordion-down overflow-hidden data-[state=closed]:animate-accordion-up">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 opacity-75 grayscale hover:grayscale-0 transition-all duration-300">
               {inactiveMonitors.map(({ Monitor, Monitor_Status }) => (
                 <MonitorCard
                   key={Monitor.Id}

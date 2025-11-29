@@ -232,24 +232,24 @@ export default function EventMontage() {
   }
 
   return (
-    <div className="p-6 md:p-8 space-y-6">
+    <div className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <LayoutGrid className="h-8 w-8" />
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2">
+            <LayoutGrid className="h-5 w-5 sm:h-6 sm:w-6" />
             Event Montage
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 hidden sm:block">
             {events.length} event{events.length !== 1 ? 's' : ''} found
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" title="Grid Layout">
-                <LayoutGrid className="h-4 w-4 mr-2" />
-                {gridCols} Column{gridCols !== 1 ? 's' : ''}
+              <Button variant="ghost" size="sm" title="Grid Layout" className="h-8 sm:h-9">
+                <LayoutGrid className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">{gridCols} Column{gridCols !== 1 ? 's' : ''}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -276,9 +276,9 @@ export default function EventMontage() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button onClick={() => refetch()} variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+          <Button onClick={() => refetch()} variant="outline" size="sm" className="h-8 sm:h-9">
+            <RefreshCw className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Refresh</span>
           </Button>
         </div>
       </div>

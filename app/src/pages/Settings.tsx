@@ -45,15 +45,15 @@ export default function Settings() {
   };
 
   return (
-    <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-8">
+    <div className="p-3 sm:p-4 md:p-6 max-w-5xl mx-auto space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground mt-1">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Settings</h1>
+        <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 hidden sm:block">
           Configure your viewing preferences and app behavior
         </p>
       </div>
 
-      <div className="grid gap-6">
+      <div className="grid gap-4 sm:gap-6">
         {/* View Mode Settings */}
         <Card>
           <CardHeader>

@@ -109,11 +109,11 @@ export default function Events() {
   }
 
   return (
-    <div className="flex flex-col h-full p-6 md:p-8 gap-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 flex-shrink-0">
+    <div className="flex flex-col h-full p-3 sm:p-4 md:p-6 gap-3 sm:gap-4 md:gap-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 flex-shrink-0">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Events</h1>
-          <p className="text-muted-foreground mt-1">Review recorded footage</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Events</h1>
+          <p className="text-sm text-muted-foreground hidden sm:block">Review recorded footage</p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -131,11 +131,11 @@ export default function Events() {
                 )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80">
+            <PopoverContent className="w-[calc(100vw-2rem)] sm:w-80 max-w-sm">
               <div className="grid gap-4">
                 <div className="space-y-2">
-                  <h4 className="font-medium leading-none">Filters</h4>
-                  <p className="text-sm text-muted-foreground">Refine your event search</p>
+                  <h4 className="text-sm sm:text-base font-medium leading-none">Filters</h4>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Refine your event search</p>
                 </div>
                 <div className="grid gap-4">
                   <div className="grid gap-2">

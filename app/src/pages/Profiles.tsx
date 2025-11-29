@@ -228,31 +228,31 @@ export default function Profiles() {
 
   return (
     <>
-      <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-8">
+      <div className="p-3 sm:p-4 md:p-6 max-w-5xl mx-auto space-y-4 sm:space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Profiles</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Profiles</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 hidden sm:block">
             Manage your ZoneMinder server connections
           </p>
         </div>
 
-        <div className="grid gap-6">
+        <div className="grid gap-4 sm:gap-6">
           {/* Profiles Management */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2">
                     <Server className="h-5 w-5 text-primary" />
-                    <CardTitle>Server Connections</CardTitle>
+                    <CardTitle className="text-lg sm:text-xl">Server Connections</CardTitle>
                   </div>
-                  <CardDescription className="mt-1">
+                  <CardDescription className="mt-1 text-xs sm:text-sm">
                     Add and manage multiple ZoneMinder servers
                   </CardDescription>
                 </div>
-                <Button onClick={handleOpenAddDialog}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Profile
+                <Button onClick={handleOpenAddDialog} className="h-9 sm:h-10">
+                  <Plus className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Add Profile</span>
                 </Button>
               </div>
             </CardHeader>

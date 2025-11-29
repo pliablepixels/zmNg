@@ -127,7 +127,7 @@ export default function AppLayout() {
       </aside>
 
       {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 h-16 border-b bg-background/80 backdrop-blur-md z-30 flex items-center px-4 justify-between">
+      <div className="md:hidden fixed top-0 left-0 right-0 h-12 border-b bg-background/80 backdrop-blur-md z-30 flex items-center px-3 justify-between">
         <div className="flex items-center gap-2">
           <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
             <Video className="h-5 w-5 text-primary-foreground" />
@@ -140,14 +140,14 @@ export default function AppLayout() {
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-72">
+          <SheetContent side="left" className="p-0 w-64 sm:w-72">
             <SidebarContent onMobileClose={() => setIsMobileOpen(false)} />
           </SheetContent>
         </Sheet>
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto relative w-full pt-16 md:pt-0">
+      <main className="flex-1 overflow-auto relative w-full pt-12 md:pt-0">
         {/* Background gradient blob for visual interest */}
         <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-primary/5 to-transparent -z-10 pointer-events-none" />
 

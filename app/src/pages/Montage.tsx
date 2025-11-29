@@ -322,24 +322,24 @@ export default function Montage() {
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-card/50 backdrop-blur-sm shrink-0 z-10">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-2 sm:p-3 border-b bg-card/50 backdrop-blur-sm shrink-0 z-10">
+        <div className="flex items-center gap-2 sm:gap-3">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-              <LayoutDashboard className="h-6 w-6" />
+            <h1 className="text-base sm:text-xl md:text-2xl font-bold tracking-tight flex items-center gap-2">
+              <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5" />
               Live Montage
             </h1>
-            <p className="text-sm text-muted-foreground">
-              {monitors.length} camera{monitors.length !== 1 ? 's' : ''} • Drag to reorder • Resize corners
+            <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">
+              {monitors.length} camera{monitors.length !== 1 ? 's' : ''}<span className="hidden md:inline"> • Drag to reorder • Resize corners</span>
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" title="Grid Layout">
-                <LayoutDashboard className="h-4 w-4 mr-2" />
-                {gridRows}x{gridCols} Grid
+              <Button variant="ghost" size="sm" title="Grid Layout" className="h-8 sm:h-9">
+                <LayoutDashboard className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">{gridRows}x{gridCols} Grid</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -362,19 +362,19 @@ export default function Montage() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button onClick={handleResetLayout} variant="ghost" size="sm" title="Reset Layout">
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Reset Layout
+          <Button onClick={handleResetLayout} variant="ghost" size="sm" title="Reset Layout" className="h-8 sm:h-9">
+            <RotateCcw className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Reset Layout</span>
           </Button>
-          <Button onClick={() => refetch()} variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+          <Button onClick={() => refetch()} variant="outline" size="sm" className="h-8 sm:h-9">
+            <RefreshCw className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Refresh</span>
           </Button>
         </div>
       </div>
 
       {/* Grid Content */}
-      <div className="flex-1 overflow-auto p-4 bg-muted/10">
+      <div className="flex-1 overflow-auto p-2 sm:p-3 md:p-4 bg-muted/10">
         {isLayoutLoaded && (
           <ResponsiveGridLayout
             key={`${gridRows}-${gridCols}`}

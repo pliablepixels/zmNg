@@ -21,9 +21,9 @@ function EventCardComponent({ event, monitorName, thumbnailUrl }: EventCardProps
       className="group overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-200 hover:ring-2 hover:ring-primary/50"
       onClick={() => navigate(`/events/${event.Id}`)}
     >
-      <div className="flex gap-4 p-3">
+      <div className="flex gap-2 sm:gap-3 p-2 sm:p-3">
         {/* Thumbnail */}
-        <div className="relative w-40 h-30 flex-shrink-0 rounded overflow-hidden bg-black">
+        <div className="relative w-24 h-18 sm:w-32 sm:h-24 md:w-40 md:h-30 flex-shrink-0 rounded overflow-hidden bg-black">
           <img
             src={thumbnailUrl}
             alt={event.Name}
@@ -31,7 +31,7 @@ function EventCardComponent({ event, monitorName, thumbnailUrl }: EventCardProps
             loading="lazy"
             onError={handleImageError}
           />
-          <div className="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1.5 py-0.5 rounded font-medium">
+          <div className="absolute bottom-0.5 right-0.5 sm:bottom-1 sm:right-1 bg-black/80 text-white text-[10px] sm:text-xs px-1 sm:px-1.5 py-0.5 rounded font-medium">
             {event.Length}s
           </div>
         </div>
@@ -40,44 +40,45 @@ function EventCardComponent({ event, monitorName, thumbnailUrl }: EventCardProps
         <div className="flex-1 min-w-0 flex flex-col justify-between">
           <div>
             <div className="flex items-start justify-between gap-2 mb-1">
-              <h3 className="font-semibold text-base truncate" title={event.Name}>
+              <h3 className="font-semibold text-sm sm:text-base truncate" title={event.Name}>
                 {event.Name}
               </h3>
-              <Badge variant="outline" className="shrink-0 text-xs">
+              <Badge variant="outline" className="shrink-0 text-[10px] sm:text-xs">
                 {event.Cause}
               </Badge>
             </div>
 
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1.5">
-                <Video className="h-4 w-4" />
-                <span className="truncate max-w-[150px]" title={monitorName}>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
+              <div className="flex items-center gap-1 sm:gap-1.5">
+                <Video className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="truncate max-w-[100px] sm:max-w-[150px]" title={monitorName}>
                   {monitorName}
                 </span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <Calendar className="h-4 w-4" />
-                {format(startTime, 'MMM d, yyyy')}
+              <div className="flex items-center gap-1 sm:gap-1.5">
+                <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">{format(startTime, 'MMM d, yyyy')}</span>
+                <span className="sm:hidden">{format(startTime, 'MMM d')}</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <Clock className="h-4 w-4" />
+              <div className="flex items-center gap-1 sm:gap-1.5">
+                <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
                 {format(startTime, 'HH:mm:ss')}
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-2 text-[10px] sm:text-xs text-muted-foreground">
             <span>{event.Frames} frames</span>
-            <span>•</span>
-            <span>{event.AlarmFrames} alarm frames</span>
-            <span>•</span>
-            <span>
+            <span className="hidden sm:inline">•</span>
+            <span>{event.AlarmFrames} alarm</span>
+            <span className="hidden sm:inline">•</span>
+            <span className="hidden md:inline">
               Score: {event.AvgScore}/{event.MaxScore}
             </span>
             {event.Archived === '1' && (
               <>
-                <span>•</span>
-                <Badge variant="secondary" className="text-xs h-5">
+                <span className="hidden sm:inline">•</span>
+                <Badge variant="secondary" className="text-[10px] sm:text-xs h-4 sm:h-5">
                   Archived
                 </Badge>
               </>
