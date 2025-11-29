@@ -109,7 +109,13 @@ export default function Profiles() {
 
     setIsSaving(true);
     try {
-      const portalUrl = formData.portalUrl.replace(/\/$/, '');
+      let portalUrl = formData.portalUrl.replace(/\/$/, '');
+      
+      // Add URL scheme if missing (prefer https://)
+      if (!portalUrl.startsWith('http://') && !portalUrl.startsWith('https://')) {
+        portalUrl = `https://${portalUrl}`;
+      }
+
       const { apiPatterns, cgiPatterns } = deriveZoneminderUrls(portalUrl);
 
       await addProfile({
@@ -152,13 +158,29 @@ export default function Profiles() {
 
     setIsSaving(true);
     try {
-      const portalUrl = formData.portalUrl.replace(/\/$/, '');
+      let portalUrl = formData.portalUrl.replace(/\/$/, '');
+      
+      // Add URL scheme if missing (prefer https://)
+      if (!portalUrl.startsWith('http://') && !portalUrl.startsWith('https://')) {
+        portalUrl = `https://${portalUrl}`;
+      }
+
+      // If URLs were manually edited, use them; otherwise derive from portal URL
+      let apiUrl = formData.apiUrl;
+      let cgiUrl = formData.cgiUrl;
+      
+      // If URLs are empty or look like they need re-derivation, derive them
+      if (!apiUrl || !cgiUrl) {
+        const { apiPatterns, cgiPatterns } = deriveZoneminderUrls(portalUrl);
+        apiUrl = apiUrl || apiPatterns[0];
+        cgiUrl = cgiUrl || cgiPatterns[0];
+      }
 
       const updates: Partial<Profile> = {
         name: formData.name,
         portalUrl,
-        apiUrl: formData.apiUrl,
-        cgiUrl: formData.cgiUrl,
+        apiUrl,
+        cgiUrl,
         username: formData.username || undefined,
         password: formData.password || undefined,
       };
@@ -173,8 +195,8 @@ export default function Profiles() {
       setIsEditDialogOpen(false);
       setSelectedProfile(null);
 
-      // If we updated the current profile's credentials, reload to re-authenticate
-      if (selectedProfile.id === currentProfile?.id && formData.password) {
+      // If we updated the current profile, reload to re-authenticate and apply changes
+      if (selectedProfile.id === currentProfile?.id) {
         setTimeout(() => {
           window.location.reload();
         }, 500);

@@ -39,9 +39,21 @@ export default function Setup() {
       setProfileName(currentProfile.name || '');
       setPortalUrl(currentProfile.portalUrl || 'https://demo.zoneminder.com');
       setUsername(currentProfile.username || '');
-      setPassword(currentProfile.password || '');
       setManualApiUrl(currentProfile.apiUrl || '');
       setManualCgiUrl(currentProfile.cgiUrl || '');
+      
+      // Decrypt password if it's stored securely
+      if (currentProfile.password === 'stored-securely') {
+        const getDecryptedPassword = useProfileStore.getState().getDecryptedPassword;
+        getDecryptedPassword(currentProfile.id).then((decrypted) => {
+          setPassword(decrypted || '');
+        }).catch((error) => {
+          console.error('Failed to decrypt password:', error);
+          setPassword('');
+        });
+      } else {
+        setPassword(currentProfile.password || '');
+      }
     }
   }, [currentProfile]);
 

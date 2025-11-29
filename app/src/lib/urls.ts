@@ -19,14 +19,27 @@ export interface DerivedUrls {
  * This function generates all possible patterns to try in order of likelihood.
  */
 export function deriveZoneminderUrls(portalUrl: string): DerivedUrls {
-  // Remove trailing slash
-  const baseUrl = portalUrl.replace(/\/$/, '');
+  // Add URL scheme if missing (try https:// first, then http://)
+  let baseUrl = portalUrl.replace(/\/$/, '');
+  
+  if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+    // No scheme provided - we'll generate patterns for both https and http
+    // The API client will try https first, then fall back to http
+    baseUrl = `https://${baseUrl}`;
+  }
 
   // API URL patterns (in order of likelihood)
   const apiPatterns = [
     `${baseUrl}/api`,      // Most common
     `${baseUrl}/zm/api`,   // ZM in subpath
   ];
+
+  // If the original URL had no scheme, also add http:// variants
+  if (!portalUrl.startsWith('http://') && !portalUrl.startsWith('https://')) {
+    const httpBaseUrl = `http://${portalUrl.replace(/\/$/, '')}`;
+    apiPatterns.push(`${httpBaseUrl}/api`);
+    apiPatterns.push(`${httpBaseUrl}/zm/api`);
+  }
 
   // CGI URL patterns - smart detection to avoid duplicating /zm
   const cgiPatterns: string[] = [];
@@ -44,6 +57,19 @@ export function deriveZoneminderUrls(portalUrl: string): DerivedUrls {
   // Add alternative CGI patterns
   cgiPatterns.push(`${baseUrl}/cgi-bin-zm`);
   cgiPatterns.push(`${baseUrl}/zmcgi`);
+
+  // If the original URL had no scheme, also add http:// variants
+  if (!portalUrl.startsWith('http://') && !portalUrl.startsWith('https://')) {
+    const httpBaseUrl = `http://${portalUrl.replace(/\/$/, '')}`;
+    if (httpBaseUrl.endsWith('/zm')) {
+      cgiPatterns.push(`${httpBaseUrl}/cgi-bin`);
+    } else {
+      cgiPatterns.push(`${httpBaseUrl}/zm/cgi-bin`);
+      cgiPatterns.push(`${httpBaseUrl}/cgi-bin`);
+    }
+    cgiPatterns.push(`${httpBaseUrl}/cgi-bin-zm`);
+    cgiPatterns.push(`${httpBaseUrl}/zmcgi`);
+  }
 
   return {
     apiPatterns,

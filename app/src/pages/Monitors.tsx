@@ -8,7 +8,6 @@ import { useAuthStore } from '../stores/auth';
 import { Button } from '../components/ui/button';
 import { RefreshCw, AlertCircle, Settings, Video } from 'lucide-react';
 import { MonitorCard } from '../components/monitors/MonitorCard';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../components/ui/collapsible';
 import {
   Dialog,
   DialogContent,
@@ -17,12 +16,10 @@ import {
   DialogTitle,
 } from '../components/ui/dialog';
 import { filterEnabledMonitors } from '../lib/filters';
-import { ChevronDown, ChevronUp } from 'lucide-react';
 import type { Monitor } from '../api/types';
 
 export default function Monitors() {
   const navigate = useNavigate();
-  const [isOpen, setIsOpen] = useState(false);
   const [selectedMonitor, setSelectedMonitor] = useState<Monitor | null>(null);
   const [showPropertiesDialog, setShowPropertiesDialog] = useState(false);
 
@@ -43,16 +40,9 @@ export default function Monitors() {
     refetchInterval: 60000, // Refresh every minute
   });
 
-  // Memoize filtered and grouped monitors
-  const { activeMonitors, inactiveMonitors } = useMemo(() => {
-    const allMonitors = data?.monitors ? filterEnabledMonitors(data.monitors) : [];
-    const active = allMonitors.filter((m) => m.Monitor_Status?.Status === 'Connected');
-    const inactive = allMonitors.filter((m) => m.Monitor_Status?.Status !== 'Connected');
-
-    return {
-      activeMonitors: active,
-      inactiveMonitors: inactive,
-    };
+  // Memoize filtered monitors (all monitors, regardless of status)
+  const allMonitors = useMemo(() => {
+    return data?.monitors ? filterEnabledMonitors(data.monitors) : [];
   }, [data?.monitors]);
 
   const handleShowSettings = (monitor: Monitor) => {
@@ -93,7 +83,7 @@ export default function Monitors() {
         <div>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Cameras</h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-            {activeMonitors.length} active, {inactiveMonitors.length} inactive
+            {allMonitors.length} camera{allMonitors.length !== 1 ? 's' : ''}
           </p>
         </div>
         <Button onClick={() => refetch()} variant="outline" size="sm" className="gap-2 h-8 sm:h-9">
@@ -102,19 +92,15 @@ export default function Monitors() {
         </Button>
       </div>
 
-      {/* Active Cameras */}
+      {/* All Cameras */}
       <div className="space-y-3 sm:space-y-4">
-        <h2 className="text-base sm:text-lg font-semibold tracking-tight flex items-center gap-2">
-          <div className="h-2 w-2 rounded-full bg-green-500" />
-          Active Cameras
-        </h2>
-        {activeMonitors.length === 0 ? (
+        {allMonitors.length === 0 ? (
           <div className="p-8 text-center border rounded-lg bg-muted/20 text-muted-foreground">
-            No active cameras found.
+            No cameras found.
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-            {activeMonitors.map(({ Monitor, Monitor_Status }) => (
+            {allMonitors.map(({ Monitor, Monitor_Status }) => (
               <MonitorCard
                 key={Monitor.Id}
                 monitor={Monitor}
@@ -126,38 +112,6 @@ export default function Monitors() {
           </div>
         )}
       </div>
-
-      {/* Inactive Cameras */}
-      {inactiveMonitors.length > 0 && (
-        <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-3 sm:space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base sm:text-lg font-semibold tracking-tight flex items-center gap-2 text-muted-foreground">
-              <div className="h-2 w-2 rounded-full bg-red-500" />
-              Inactive Cameras ({inactiveMonitors.length})
-            </h2>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="w-9 p-0">
-                {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                <span className="sr-only">Toggle</span>
-              </Button>
-            </CollapsibleTrigger>
-          </div>
-
-          <CollapsibleContent className="space-y-3 sm:space-y-4 animate-accordion-down overflow-hidden data-[state=closed]:animate-accordion-up">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 opacity-75 grayscale hover:grayscale-0 transition-all duration-300">
-              {inactiveMonitors.map(({ Monitor, Monitor_Status }) => (
-                <MonitorCard
-                  key={Monitor.Id}
-                  monitor={Monitor}
-                  status={Monitor_Status}
-                  eventCount={eventCounts?.[Monitor.Id]}
-                  onShowSettings={handleShowSettings}
-                />
-              ))}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      )}
 
       {/* Monitor Properties Dialog */}
       <Dialog open={showPropertiesDialog} onOpenChange={setShowPropertiesDialog}>
