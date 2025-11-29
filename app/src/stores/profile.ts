@@ -17,6 +17,7 @@ interface ProfileState {
   addProfile: (profile: Omit<Profile, 'id' | 'createdAt'>) => Promise<void>;
   updateProfile: (id: string, updates: Partial<Profile>) => Promise<void>;
   deleteProfile: (id: string) => void;
+  deleteAllProfiles: () => Promise<void>;
   switchProfile: (id: string) => Promise<void>;
   setDefaultProfile: (id: string) => void;
 
@@ -147,6 +148,29 @@ export const useProfileStore = create<ProfileState>()(
         if (newCurrentProfile) {
           setApiClient(createApiClient(newCurrentProfile.apiUrl));
         }
+      },
+
+      deleteAllProfiles: async () => {
+        const { profiles } = get();
+
+        // Remove all passwords from secure storage
+        for (const profile of profiles) {
+          try {
+            await removeSecureValue(`password_${profile.id}`);
+            log.profile('Password removed from secure storage', { profileId: profile.id });
+          } catch (error) {
+            log.warn('Failed to remove password from secure storage', { component: 'Profile' }, error);
+          }
+        }
+
+        // Clear all profiles and reset state
+        set({ profiles: [], currentProfileId: null });
+
+        // Reset API client
+        const { resetApiClient } = await import('../api/client');
+        resetApiClient();
+
+        log.profile('All profiles deleted');
       },
 
       switchProfile: async (id) => {

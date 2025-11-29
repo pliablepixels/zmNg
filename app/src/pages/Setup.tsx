@@ -18,6 +18,7 @@ export default function Setup() {
 
   // Initialize with current profile data if available, otherwise use defaults
   // Use lazy initialization to avoid flash of default content
+  const [profileName, setProfileName] = useState(() => currentProfile?.name || '');
   const [portalUrl, setPortalUrl] = useState(() => currentProfile?.portalUrl || 'https://demo.zoneminder.com');
   const [username, setUsername] = useState(() => currentProfile?.username || '');
   const [password, setPassword] = useState(() => currentProfile?.password || '');
@@ -26,13 +27,21 @@ export default function Setup() {
   const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  // Manual URL entry mode
+  const [showManualUrls, setShowManualUrls] = useState(false);
+  const [manualApiUrl, setManualApiUrl] = useState(() => currentProfile?.apiUrl || '');
+  const [manualCgiUrl, setManualCgiUrl] = useState(() => currentProfile?.cgiUrl || '');
+
   // Update state if currentProfile changes (e.g. after switching profiles)
   useEffect(() => {
     if (currentProfile) {
       console.log('Loading profile data into form:', currentProfile.name);
+      setProfileName(currentProfile.name || '');
       setPortalUrl(currentProfile.portalUrl || 'https://demo.zoneminder.com');
       setUsername(currentProfile.username || '');
       setPassword(currentProfile.password || '');
+      setManualApiUrl(currentProfile.apiUrl || '');
+      setManualCgiUrl(currentProfile.cgiUrl || '');
     }
   }, [currentProfile]);
 
@@ -102,20 +111,42 @@ export default function Setup() {
         // Initialize API client with existing URL
         const client = createApiClient(apiUrl);
         setApiClient(client);
+      } else if (showManualUrls) {
+        // Manual URL entry mode
+        console.log('[Setup] Using manual URLs');
+        if (!manualApiUrl || !manualCgiUrl) {
+          throw new Error('Please enter both API URL and CGI URL');
+        }
+        apiUrl = manualApiUrl;
+        cgiUrl = manualCgiUrl;
+        console.log('[Setup]   - Manual API URL:', apiUrl);
+        console.log('[Setup]   - Manual CGI URL:', cgiUrl);
+
+        // Initialize API client with manual URL
+        const client = createApiClient(apiUrl);
+        setApiClient(client);
       } else {
         // New profile OR portal URL changed - discover URLs
-        if (portalUrlChanged) {
-          console.log('[Setup] Portal URL changed - discovering new URLs...');
-          console.log('[Setup]   - Old portal:', currentProfile?.portalUrl);
-          console.log('[Setup]   - New portal:', portalUrl);
-        } else {
-          console.log('[Setup] New profile - discovering URLs...');
+        try {
+          if (portalUrlChanged) {
+            console.log('[Setup] Portal URL changed - discovering new URLs...');
+            console.log('[Setup]   - Old portal:', currentProfile?.portalUrl);
+            console.log('[Setup]   - New portal:', portalUrl);
+          } else {
+            console.log('[Setup] New profile - discovering URLs...');
+          }
+          const discovered = await discoverUrls(portalUrl);
+          apiUrl = discovered.apiUrl;
+          cgiUrl = discovered.cgiUrl;
+          console.log('[Setup]   - Discovered API URL:', apiUrl);
+          console.log('[Setup]   - Discovered CGI URL:', cgiUrl);
+        } catch (discoveryError) {
+          // Discovery failed - offer manual entry
+          console.error('[Setup] URL discovery failed:', discoveryError);
+          throw new Error(
+            'Could not automatically discover API URLs. Please click "Enter URLs Manually" below to specify them.'
+          );
         }
-        const discovered = await discoverUrls(portalUrl);
-        apiUrl = discovered.apiUrl;
-        cgiUrl = discovered.cgiUrl;
-        console.log('[Setup]   - Discovered API URL:', apiUrl);
-        console.log('[Setup]   - Discovered CGI URL:', cgiUrl);
       }
 
       // If credentials are provided, try to login
@@ -150,14 +181,17 @@ export default function Setup() {
       } else {
         // Otherwise add new profile
         console.log('[Setup] Adding new profile');
-        const profileName = portalUrl.includes('demo.zoneminder.com')
-          ? 'Demo Server'
-          : portalUrl.includes('isaac')
-            ? 'Isaac Server'
-            : 'My ZoneMinder';
+        // Use provided profile name, or fall back to auto-generated name
+        const finalProfileName = profileName.trim() || (
+          portalUrl.includes('demo.zoneminder.com')
+            ? 'Demo Server'
+            : portalUrl.includes('isaac')
+              ? 'Isaac Server'
+              : 'My ZoneMinder'
+        );
 
         addProfile({
-          name: profileName,
+          name: finalProfileName,
           portalUrl,
           apiUrl,
           cgiUrl,
@@ -165,7 +199,7 @@ export default function Setup() {
           password: password || undefined,
           isDefault: true,
         });
-        console.log('[Setup]   - Created profile:', profileName);
+        console.log('[Setup]   - Created profile:', finalProfileName);
       }
 
       // Navigate to monitors after a short delay
@@ -198,6 +232,19 @@ export default function Setup() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="profileName" className="text-sm font-medium">Profile Name (optional)</Label>
+            <Input
+              id="profileName"
+              type="text"
+              placeholder="e.g., Home Server, Office Cameras"
+              value={profileName}
+              onChange={(e) => setProfileName(e.target.value)}
+              disabled={testing}
+              className="h-10 bg-background/50 border-input/50 focus:border-primary/50 transition-colors"
+            />
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="portal" className="text-sm font-medium">Server URL</Label>
             <div className="relative">
@@ -258,10 +305,71 @@ export default function Setup() {
             </div>
           </div>
 
+          {/* Manual URL Entry Fields */}
+          {showManualUrls && (
+            <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium">Manual URL Configuration</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowManualUrls(false)}
+                  className="h-7 text-xs"
+                >
+                  Use Auto-Discovery
+                </Button>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="manualApiUrl" className="text-sm font-medium">API URL*</Label>
+                <Input
+                  id="manualApiUrl"
+                  type="url"
+                  placeholder="https://zm.example.com/zm/api"
+                  value={manualApiUrl}
+                  onChange={(e) => setManualApiUrl(e.target.value)}
+                  disabled={testing}
+                  className="h-10 bg-background/50 border-input/50"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Usually: https://your-server/zm/api
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="manualCgiUrl" className="text-sm font-medium">CGI/ZMS URL*</Label>
+                <Input
+                  id="manualCgiUrl"
+                  type="url"
+                  placeholder="https://zm.example.com/cgi-bin"
+                  value={manualCgiUrl}
+                  onChange={(e) => setManualCgiUrl(e.target.value)}
+                  disabled={testing}
+                  className="h-10 bg-background/50 border-input/50"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Usually: https://your-server/cgi-bin or https://your-server/zm/cgi-bin
+                </p>
+              </div>
+            </div>
+          )}
+
           {error && (
-            <div className="p-3 bg-destructive/10 text-destructive text-sm rounded-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
-              {error}
+            <div className="space-y-3">
+              <div className="p-3 bg-destructive/10 text-destructive text-sm rounded-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
+                {error}
+              </div>
+              {error.includes('Enter URLs Manually') && !showManualUrls && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowManualUrls(true)}
+                  className="w-full"
+                >
+                  Enter URLs Manually
+                </Button>
+              )}
             </div>
           )}
 

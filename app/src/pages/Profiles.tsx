@@ -40,11 +40,13 @@ export default function Profiles() {
   const addProfile = useProfileStore((state) => state.addProfile);
   const updateProfile = useProfileStore((state) => state.updateProfile);
   const deleteProfile = useProfileStore((state) => state.deleteProfile);
+  const deleteAllProfiles = useProfileStore((state) => state.deleteAllProfiles);
   const switchProfile = useProfileStore((state) => state.switchProfile);
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(searchParams.get('action') === 'add-profile');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleteAllDialogOpen, setIsDeleteAllDialogOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [switchingProfileId, setSwitchingProfileId] = useState<string | null>(null);
@@ -52,6 +54,8 @@ export default function Profiles() {
   const [formData, setFormData] = useState({
     name: '',
     portalUrl: '',
+    apiUrl: '',
+    cgiUrl: '',
     username: '',
     password: '',
   });
@@ -59,18 +63,30 @@ export default function Profiles() {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleOpenAddDialog = () => {
-    setFormData({ name: '', portalUrl: '', username: '', password: '' });
+    setFormData({ name: '', portalUrl: '', apiUrl: '', cgiUrl: '', username: '', password: '' });
     setShowPassword(false);
     setIsAddDialogOpen(true);
   };
 
-  const handleOpenEditDialog = (profile: Profile) => {
+  const handleOpenEditDialog = async (profile: Profile) => {
     setSelectedProfile(profile);
+
+    // Decrypt password if it exists
+    let decryptedPassword = '';
+    if (profile.password === 'stored-securely') {
+      const getDecryptedPassword = useProfileStore.getState().getDecryptedPassword;
+      decryptedPassword = await getDecryptedPassword(profile.id) || '';
+    } else {
+      decryptedPassword = profile.password || '';
+    }
+
     setFormData({
       name: profile.name,
       portalUrl: profile.portalUrl,
+      apiUrl: profile.apiUrl,
+      cgiUrl: profile.cgiUrl,
       username: profile.username || '',
-      password: profile.password || '',
+      password: decryptedPassword,
     });
     setShowPassword(false);
     setIsEditDialogOpen(true);
@@ -112,7 +128,7 @@ export default function Profiles() {
       });
 
       setIsAddDialogOpen(false);
-      setFormData({ name: '', portalUrl: '', username: '', password: '' });
+      setFormData({ name: '', portalUrl: '', apiUrl: '', cgiUrl: '', username: '', password: '' });
     } catch (error) {
       toast({
         title: 'Error',
@@ -137,13 +153,12 @@ export default function Profiles() {
     setIsSaving(true);
     try {
       const portalUrl = formData.portalUrl.replace(/\/$/, '');
-      const { apiPatterns, cgiPatterns } = deriveZoneminderUrls(portalUrl);
 
       const updates: Partial<Profile> = {
         name: formData.name,
         portalUrl,
-        apiUrl: apiPatterns[0],
-        cgiUrl: cgiPatterns[0],
+        apiUrl: formData.apiUrl,
+        cgiUrl: formData.cgiUrl,
         username: formData.username || undefined,
         password: formData.password || undefined,
       };
@@ -202,6 +217,28 @@ export default function Profiles() {
     }
   };
 
+  const handleDeleteAllProfiles = async () => {
+    try {
+      await deleteAllProfiles();
+
+      toast({
+        title: 'Success',
+        description: 'All profiles deleted successfully',
+      });
+
+      setIsDeleteAllDialogOpen(false);
+
+      // Redirect to setup since no profiles exist
+      navigate('/setup');
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to delete all profiles',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleSwitchProfile = async (profileId: string) => {
     if (profileId === currentProfile?.id) return;
 
@@ -250,10 +287,22 @@ export default function Profiles() {
                     Add and manage multiple ZoneMinder servers
                   </CardDescription>
                 </div>
-                <Button onClick={handleOpenAddDialog} className="h-9 sm:h-10">
-                  <Plus className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Add Profile</span>
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button onClick={handleOpenAddDialog} className="h-9 sm:h-10">
+                    <Plus className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Add Profile</span>
+                  </Button>
+                  {profiles.length > 0 && (
+                    <Button
+                      onClick={() => setIsDeleteAllDialogOpen(true)}
+                      variant="destructive"
+                      className="h-9 sm:h-10"
+                    >
+                      <Trash2 className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Delete All</span>
+                    </Button>
+                  )}
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -460,6 +509,28 @@ export default function Profiles() {
               />
             </div>
             <div className="grid gap-2">
+              <Label htmlFor="edit-apiUrl">API URL*</Label>
+              <Input
+                id="edit-apiUrl"
+                value={formData.apiUrl}
+                onChange={(e) => setFormData({ ...formData, apiUrl: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Usually auto-derived from Portal URL, but can be manually overridden
+              </p>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-cgiUrl">CGI/ZMS URL*</Label>
+              <Input
+                id="edit-cgiUrl"
+                value={formData.cgiUrl}
+                onChange={(e) => setFormData({ ...formData, cgiUrl: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Usually auto-derived from Portal URL, but can be manually overridden
+              </p>
+            </div>
+            <div className="grid gap-2">
               <Label htmlFor="edit-username">Username (optional)</Label>
               <Input
                 id="edit-username"
@@ -507,10 +578,10 @@ export default function Profiles() {
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog >
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      < AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen} >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Profile</AlertDialogTitle>
@@ -522,6 +593,26 @@ export default function Profiles() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteProfile} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete All Profiles Confirmation Dialog */}
+      <AlertDialog open={isDeleteAllDialogOpen} onOpenChange={setIsDeleteAllDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete All Profiles</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete ALL {profiles.length} profile{profiles.length !== 1 ? 's' : ''}?
+              This will remove all server connections and credentials. This action cannot be undone.
+              You will be redirected to the setup screen.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteAllProfiles} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete All Profiles
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
