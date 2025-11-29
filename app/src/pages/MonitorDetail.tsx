@@ -13,10 +13,12 @@ import { cn } from '../lib/utils';
 import { useMonitorStore } from '../stores/monitors';
 import { toast } from 'sonner';
 import { downloadSnapshotFromElement } from '../lib/download';
+import { useTranslation } from 'react-i18next';
 
 export default function MonitorDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [scale, setScale] = useState(100);
   const [mode, setMode] = useState<'jpeg' | 'stream'>('jpeg');
 
@@ -117,10 +119,10 @@ export default function MonitorDetail() {
       <div className="p-8">
         <div className="p-4 bg-destructive/10 text-destructive rounded-lg flex items-center gap-2">
           <AlertTriangle className="h-5 w-5" />
-          Failed to load monitor
+          {t('monitor_detail.load_error')}
         </div>
         <Button onClick={() => navigate(-1)} className="mt-4">
-          Go Back
+          {t('common.go_back')}
         </Button>
       </div>
     );
@@ -131,7 +133,7 @@ export default function MonitorDetail() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-2 sm:p-3 border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="flex items-center gap-2 sm:gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Go back" className="h-8 w-8">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label={t('common.go_back')} className="h-8 w-8">
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
@@ -146,18 +148,18 @@ export default function MonitorDetail() {
           </div>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-          <Button variant="outline" size="sm" onClick={() => navigate(`/events?monitorId=${monitor.Monitor.Id}`)} className="h-8 sm:h-9" title="Events">
+          <Button variant="outline" size="sm" onClick={() => navigate(`/events?monitorId=${monitor.Monitor.Id}`)} className="h-8 sm:h-9" title={t('monitor_detail.events')}>
             <Video className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Events</span>
+            <span className="hidden sm:inline">{t('monitor_detail.events')}</span>
           </Button>
-          <Button variant="outline" size="sm" onClick={() => navigate(`/timeline?monitorId=${monitor.Monitor.Id}`)} className="h-8 sm:h-9" title="Timeline">
+          <Button variant="outline" size="sm" onClick={() => navigate(`/timeline?monitorId=${monitor.Monitor.Id}`)} className="h-8 sm:h-9" title={t('monitor_detail.timeline')}>
             <Clock className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Timeline</span>
+            <span className="hidden sm:inline">{t('monitor_detail.timeline')}</span>
           </Button>
           <Button variant="outline" size="sm" onClick={() => setMode(mode === 'jpeg' ? 'stream' : 'jpeg')} className="h-8 sm:h-9 text-xs">
             {mode === 'jpeg' ? 'MJPEG' : 'Stream'}
           </Button>
-          <Button variant="ghost" size="icon" aria-label="Monitor settings" className="h-8 w-8 sm:h-9 sm:w-9">
+          <Button variant="ghost" size="icon" aria-label={t('monitor_detail.settings')} className="h-8 w-8 sm:h-9 sm:w-9">
             <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
         </div>
@@ -178,7 +180,7 @@ export default function MonitorDetail() {
                 img.dataset.retrying = "true";
                 console.log(`[MonitorDetail] Stream failed, regenerating connkey...`);
                 regenerateConnKey(monitor.Monitor.Id);
-                toast.error(`Stream connection lost. Reconnecting...`);
+                toast.error(t('monitor_detail.stream_lost'));
 
                 setTimeout(() => {
                   delete img.dataset.retrying;
@@ -198,12 +200,12 @@ export default function MonitorDetail() {
                   onClick={() => {
                     if (imgRef.current) {
                       downloadSnapshotFromElement(imgRef.current, monitor.Monitor.Name)
-                        .then(() => toast.success(`Snapshot saved: ${monitor.Monitor.Name}`))
-                        .catch(() => toast.error('Failed to save snapshot'));
+                        .then(() => toast.success(t('monitor_detail.snapshot_saved', { name: monitor.Monitor.Name })))
+                        .catch(() => toast.error(t('monitor_detail.snapshot_failed')));
                     }
                   }}
-                  title="Save Snapshot"
-                  aria-label="Save snapshot"
+                  title={t('monitor_detail.save_snapshot')}
+                  aria-label={t('monitor_detail.save_snapshot')}
                 >
                   <Download className="h-5 w-5" />
                 </Button>
@@ -212,8 +214,8 @@ export default function MonitorDetail() {
                   size="icon"
                   className="text-white hover:bg-white/20"
                   onClick={() => navigate(`/events?monitorId=${monitor.Monitor.Id}`)}
-                  title="View Events"
-                  aria-label="View events"
+                  title={t('monitor_detail.view_events')}
+                  aria-label={t('monitor_detail.view_events')}
                 >
                   <Video className="h-5 w-5" />
                 </Button>
@@ -227,7 +229,7 @@ export default function MonitorDetail() {
                 >
                   {scale}%
                 </Button>
-                <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" aria-label="Maximize view">
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" aria-label={t('monitor_detail.maximize')}>
                   <Maximize2 className="h-5 w-5" />
                 </Button>
               </div>
@@ -238,7 +240,7 @@ export default function MonitorDetail() {
         {/* PTZ Controls (Placeholder) */}
         {monitor.Monitor.Controllable === '1' && (
           <div className="mt-8 p-4 bg-card rounded-xl border shadow-sm">
-            <p className="text-sm font-medium text-center mb-4 text-muted-foreground">PTZ Controls</p>
+            <p className="text-sm font-medium text-center mb-4 text-muted-foreground">{t('monitor_detail.ptz_controls')}</p>
             <div className="grid grid-cols-3 gap-2 w-48 mx-auto">
               <div />
               <Button variant="outline" size="icon" aria-label="Pan up">↑</Button>

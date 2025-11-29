@@ -23,6 +23,7 @@ import {
 import { cn } from '../../lib/utils';
 import { useState, useRef, useEffect } from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet';
+import { useTranslation } from 'react-i18next';
 
 interface SidebarContentProps {
   onMobileClose?: () => void;
@@ -34,6 +35,7 @@ function SidebarContent({ onMobileClose, isCollapsed }: SidebarContentProps) {
   const currentProfile = useProfileStore((state) => state.currentProfile());
   const logout = useAuthStore((state) => state.logout);
   const unreadCount = useNotificationStore((state) => state.unreadCount);
+  const { t } = useTranslation();
 
   const handleLogout = () => {
     logout();
@@ -41,15 +43,15 @@ function SidebarContent({ onMobileClose, isCollapsed }: SidebarContentProps) {
   };
 
   const navItems = [
-    { path: '/monitors', label: 'Cameras', icon: Camera },
-    { path: '/montage', label: 'Montage', icon: LayoutGrid },
-    { path: '/events', label: 'Events', icon: Video },
-    { path: '/event-montage', label: 'Event Montage', icon: Grid3x3 },
-    { path: '/timeline', label: 'Timeline', icon: Clock },
-    { path: '/notifications', label: 'Notifications', icon: Bell },
-    { path: '/profiles', label: 'Profiles', icon: Users },
-    { path: '/settings', label: 'Settings', icon: Settings },
-    { path: '/logs', label: 'Logs', icon: FileText },
+    { path: '/monitors', label: t('sidebar.monitors'), icon: Camera },
+    { path: '/montage', label: t('sidebar.montage'), icon: LayoutGrid },
+    { path: '/events', label: t('sidebar.events'), icon: Video },
+    { path: '/event-montage', label: t('sidebar.event_montage'), icon: Grid3x3 },
+    { path: '/timeline', label: t('sidebar.timeline'), icon: Clock },
+    { path: '/notifications', label: t('sidebar.notifications'), icon: Bell },
+    { path: '/profiles', label: t('sidebar.profiles'), icon: Users },
+    { path: '/settings', label: t('sidebar.settings'), icon: Settings },
+    { path: '/logs', label: t('sidebar.logs'), icon: FileText },
   ];
 
   return (
@@ -109,11 +111,11 @@ function SidebarContent({ onMobileClose, isCollapsed }: SidebarContentProps) {
         {!isCollapsed && (
           <>
             <div className="space-y-2">
-              <span className="text-xs font-medium text-muted-foreground px-1">Profile</span>
+              <span className="text-xs font-medium text-muted-foreground px-1">{t('sidebar.profile')}</span>
               <ProfileSwitcher />
             </div>
             <div className="flex items-center justify-between pt-2">
-              <span className="text-xs font-medium text-muted-foreground">Theme</span>
+              <span className="text-xs font-medium text-muted-foreground">{t('settings.theme')}</span>
               <ModeToggle />
             </div>
           </>
@@ -123,10 +125,10 @@ function SidebarContent({ onMobileClose, isCollapsed }: SidebarContentProps) {
           className={cn("text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-300", isCollapsed ? "w-auto p-2 h-auto" : "w-full justify-start")}
           size={isCollapsed ? "icon" : "default"}
           onClick={handleLogout}
-          title={isCollapsed ? "Logout" : undefined}
+          title={isCollapsed ? t('sidebar.logout') : undefined}
         >
           <LogOut className="h-4 w-4" />
-          {!isCollapsed && <span className="ml-2">Logout</span>}
+          {!isCollapsed && <span className="ml-2">{t('sidebar.logout')}</span>}
         </Button>
       </div>
     </div>
@@ -141,6 +143,7 @@ export default function AppLayout() {
   const dragStartWidth = useRef(0);
   const MIN_WIDTH = 60;
   const MAX_WIDTH = 256;
+  const { t } = useTranslation();
 
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
@@ -192,7 +195,7 @@ export default function AppLayout() {
           className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-5 h-12 bg-primary hover:bg-primary/90 rounded-full flex items-center justify-center cursor-col-resize shadow-lg z-50 transition-all duration-200 group-hover:w-6"
           onMouseDown={handleMouseDown}
           onClick={toggleSidebar}
-          title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={isCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
         >
           {isCollapsed ? (
             <ChevronRight className="h-4 w-4 text-primary-foreground" />

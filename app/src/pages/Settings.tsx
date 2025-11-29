@@ -63,9 +63,9 @@ export default function Settings() {
   return (
     <div className="p-3 sm:p-4 md:p-6 max-w-5xl mx-auto space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Settings</h1>
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">{t('settings.title')}</h1>
         <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 hidden sm:block">
-          Configure your viewing preferences and app behavior
+          {t('settings.subtitle')}
         </p>
       </div>
 
@@ -88,7 +88,7 @@ export default function Settings() {
                 onValueChange={(value) => i18n.changeLanguage(value)}
               >
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select language" />
+                  <SelectValue placeholder={t('settings.select_language')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="en">English</SelectItem>
@@ -104,10 +104,10 @@ export default function Settings() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <SettingsIcon className="h-5 w-5 text-primary" />
-              <CardTitle>Video Display Settings</CardTitle>
+              <CardTitle>{t('settings.video_display_settings')}</CardTitle>
             </div>
             <CardDescription>
-              Choose how monitor feeds are displayed throughout the app
+              {t('settings.video_display_desc')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -116,27 +116,27 @@ export default function Settings() {
               <div className="flex-1 space-y-1">
                 <div className="flex items-center gap-2">
                   <Label htmlFor="view-mode" className="text-base font-semibold">
-                    Streaming Mode
+                    {t('settings.streaming_mode')}
                   </Label>
                   {settings.viewMode === 'snapshot' && (
                     <Badge variant="secondary" className="text-xs">
-                      Recommended
+                      {t('settings.recommended')}
                     </Badge>
                   )}
                 </div>
                 <p className="text-sm text-muted-foreground">
                   {settings.viewMode === 'streaming'
-                    ? 'Using MJPEG streaming for live video'
-                    : 'Using snapshot mode for stable performance'}
+                    ? t('settings.streaming_mode_desc')
+                    : t('settings.snapshot_mode_desc')}
                 </p>
                 <p className="text-xs text-orange-600 dark:text-orange-400 mt-2">
-                  ⚠ Note: Snapshot mode is recommended due to browser limitations (6 concurrent connection limit)
+                  {t('settings.snapshot_warning')}
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2 text-sm">
                   <Image className="h-4 w-4" />
-                  <span className="font-medium">Snapshot</span>
+                  <span className="font-medium">{t('settings.snapshot')}</span>
                 </div>
                 <Switch
                   id="view-mode"
@@ -145,7 +145,7 @@ export default function Settings() {
                 />
                 <div className="flex items-center gap-2 text-sm">
                   <VideoIcon className="h-4 w-4" />
-                  <span className="font-medium">Streaming</span>
+                  <span className="font-medium">{t('settings.streaming')}</span>
                 </div>
               </div>
             </div>
@@ -155,10 +155,10 @@ export default function Settings() {
               <div className="space-y-3 p-4 rounded-lg border bg-muted/50">
                 <div>
                   <Label htmlFor="refresh-interval" className="text-base font-semibold">
-                    Snapshot Refresh Interval
+                    {t('settings.refresh_interval')}
                   </Label>
                   <p className="text-sm text-muted-foreground mt-1">
-                    How often to refresh camera snapshots (in seconds)
+                    {t('settings.refresh_interval_desc')}
                   </p>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4">
@@ -171,7 +171,7 @@ export default function Settings() {
                     onChange={(e) => handleRefreshIntervalChange(Number(e.target.value))}
                     className="w-24"
                   />
-                  <span className="text-sm text-muted-foreground">seconds</span>
+                  <span className="text-sm text-muted-foreground">{t('settings.seconds')}</span>
                   <div className="flex flex-wrap gap-2 sm:ml-auto">
                     <Button
                       variant="outline"
@@ -185,7 +185,7 @@ export default function Settings() {
                       size="sm"
                       onClick={() => handleRefreshIntervalChange(3)}
                     >
-                      3s (default)
+                      3s ({t('settings.default')})
                     </Button>
                     <Button
                       variant="outline"
@@ -206,10 +206,10 @@ export default function Settings() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Minimize2 className="h-5 w-5 text-primary" />
-              <CardTitle>Display Mode</CardTitle>
+              <CardTitle>{t('settings.display_mode')}</CardTitle>
             </div>
             <CardDescription>
-              Choose between normal and compact layouts to optimize screen space
+              {t('settings.display_mode_desc')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -217,19 +217,19 @@ export default function Settings() {
               <div className="flex-1 space-y-1">
                 <div className="flex items-center gap-2">
                   <Label htmlFor="display-mode" className="text-base font-semibold">
-                    Compact View
+                    {t('settings.compact_view')}
                   </Label>
                 </div>
                 <p className="text-sm text-muted-foreground">
                   {settings.displayMode === 'compact'
-                    ? 'Using compact layout with smaller fonts and tighter spacing'
-                    : 'Using normal layout with standard fonts and spacing'}
+                    ? t('settings.compact_view_desc')
+                    : t('settings.normal_view_desc')}
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2 text-sm">
                   <Maximize2 className="h-4 w-4" />
-                  <span className="font-medium">Normal</span>
+                  <span className="font-medium">{t('settings.normal')}</span>
                 </div>
                 <Switch
                   id="display-mode"
@@ -238,7 +238,7 @@ export default function Settings() {
                 />
                 <div className="flex items-center gap-2 text-sm">
                   <Minimize2 className="h-4 w-4" />
-                  <span className="font-medium">Compact</span>
+                  <span className="font-medium">{t('settings.compact')}</span>
                 </div>
               </div>
             </div>
@@ -250,20 +250,20 @@ export default function Settings() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <List className="h-5 w-5 text-primary" />
-              <CardTitle>Event List Settings</CardTitle>
+              <CardTitle>{t('settings.event_list_settings')}</CardTitle>
             </div>
             <CardDescription>
-              Configure how events are loaded and displayed in lists
+              {t('settings.event_list_desc')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-3 p-4 rounded-lg border bg-card">
               <div>
                 <Label htmlFor="event-limit" className="text-base font-semibold">
-                  Events Per Page
+                  {t('settings.events_per_page')}
                 </Label>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Number of events to load at a time in Events and Event Montage pages
+                  {t('settings.events_per_page_desc')}
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center gap-4">
@@ -277,7 +277,7 @@ export default function Settings() {
                   onChange={(e) => handleEventLimitChange(Number(e.target.value))}
                   className="w-28"
                 />
-                <span className="text-sm text-muted-foreground">events per page</span>
+                <span className="text-sm text-muted-foreground">{t('settings.events_per_page_suffix')}</span>
                 <div className="flex flex-wrap gap-2 sm:ml-auto">
                   <Button
                     variant="outline"
@@ -291,7 +291,7 @@ export default function Settings() {
                     size="sm"
                     onClick={() => handleEventLimitChange(300)}
                   >
-                    300 (default)
+                    300 ({t('settings.default')})
                   </Button>
                   <Button
                     variant="outline"
@@ -303,7 +303,7 @@ export default function Settings() {
                 </div>
               </div>
               <p className="text-xs text-muted-foreground">
-                Higher values load more events at once but may take longer. Lower values are faster but require more clicking.
+                {t('settings.event_limit_tip')}
               </p>
             </div>
           </CardContent>
@@ -314,24 +314,24 @@ export default function Settings() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Info className="h-5 w-5 text-primary" />
-              <CardTitle>System Information</CardTitle>
+              <CardTitle>{t('settings.system_info')}</CardTitle>
             </div>
             <CardDescription>
-              Version information for the application and server
+              {t('settings.system_info_desc')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-4 rounded-lg bg-muted/50 border">
-                <div className="text-sm font-medium text-muted-foreground">ZM Version</div>
-                <div className="text-2xl font-bold mt-1">{version || 'Unknown'}</div>
+                <div className="text-sm font-medium text-muted-foreground">{t('settings.zm_version')}</div>
+                <div className="text-2xl font-bold mt-1">{version || t('common.unknown')}</div>
               </div>
               <div className="p-4 rounded-lg bg-muted/50 border">
-                <div className="text-sm font-medium text-muted-foreground">API Version</div>
-                <div className="text-2xl font-bold mt-1">{apiVersion || 'Unknown'}</div>
+                <div className="text-sm font-medium text-muted-foreground">{t('settings.api_version')}</div>
+                <div className="text-2xl font-bold mt-1">{apiVersion || t('common.unknown')}</div>
               </div>
               <div className="p-4 rounded-lg bg-muted/50 border">
-                <div className="text-sm font-medium text-muted-foreground">App Version</div>
+                <div className="text-sm font-medium text-muted-foreground">{t('settings.app_version')}</div>
                 <div className="text-2xl font-bold mt-1">0.1.0</div>
               </div>
             </div>
@@ -343,16 +343,16 @@ export default function Settings() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Shield className="h-5 w-5 text-primary" />
-              <CardTitle>Account</CardTitle>
+              <CardTitle>{t('settings.account')}</CardTitle>
             </div>
             <CardDescription>
-              Manage your session
+              {t('settings.account_desc')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Button variant="destructive" onClick={handleLogout} className="w-full sm:w-auto">
               <LogOut className="h-4 w-4 mr-2" />
-              Logout & Clear Session
+              {t('settings.logout')}
             </Button>
           </CardContent>
         </Card>

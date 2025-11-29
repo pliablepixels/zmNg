@@ -14,10 +14,12 @@ import { downloadEventVideo, downloadEventImage } from '../lib/download';
 import { toast } from 'sonner';
 import { ZM_CONSTANTS } from '../lib/constants';
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function EventDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [useZmsFallback, setUseZmsFallback] = useState(false);
   const [showFallbackBadge, setShowFallbackBadge] = useState(false);
 
@@ -54,10 +56,10 @@ export default function EventDetail() {
       <div className="p-8">
         <div className="p-4 bg-destructive/10 text-destructive rounded-lg flex items-center gap-2">
           <AlertTriangle className="h-5 w-5" />
-          Failed to load event
+          {t('event_detail.load_error')}
         </div>
         <Button onClick={() => navigate(-1)} className="mt-4">
-          Go Back
+          {t('common.go_back')}
         </Button>
       </div>
     );
@@ -102,7 +104,7 @@ export default function EventDetail() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-2 sm:p-3 border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="flex items-center gap-2 sm:gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Go back" className="h-8 w-8">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label={t('common.go_back')} className="h-8 w-8">
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
@@ -111,22 +113,22 @@ export default function EventDetail() {
               <Badge variant="outline" className="text-[10px] h-4">
                 {event.Event.Cause}
               </Badge>
-              <span className="hidden sm:inline">Camera {event.Event.MonitorId}</span>
+              <span className="hidden sm:inline">{t('event_detail.camera')} {event.Event.MonitorId}</span>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-          <Button variant="outline" size="sm" className="gap-2 h-8 sm:h-9" onClick={() => navigate(`/monitors/${event.Event.MonitorId}`)} title="View Camera">
+          <Button variant="outline" size="sm" className="gap-2 h-8 sm:h-9" onClick={() => navigate(`/monitors/${event.Event.MonitorId}`)} title={t('event_detail.view_camera')}>
             <Video className="h-4 w-4" />
-            <span className="hidden sm:inline">View Camera</span>
+            <span className="hidden sm:inline">{t('event_detail.view_camera')}</span>
           </Button>
-          <Button variant="outline" size="sm" className="gap-2 h-8 sm:h-9" onClick={() => navigate(`/events?monitorId=${event.Event.MonitorId}`)} title="All Events">
+          <Button variant="outline" size="sm" className="gap-2 h-8 sm:h-9" onClick={() => navigate(`/events?monitorId=${event.Event.MonitorId}`)} title={t('event_detail.all_events')}>
             <ListVideo className="h-4 w-4" />
-            <span className="hidden sm:inline">All Events</span>
+            <span className="hidden sm:inline">{t('event_detail.all_events')}</span>
           </Button>
-          <Button variant="outline" size="sm" className="gap-2 h-8 sm:h-9" title="Archive">
+          <Button variant="outline" size="sm" className="gap-2 h-8 sm:h-9" title={t('event_detail.archive')}>
             <Archive className="h-4 w-4" />
-            <span className="hidden sm:inline">Archive</span>
+            <span className="hidden sm:inline">{t('event_detail.archive')}</span>
           </Button>
           {(hasVideo || hasJPEGs) && (
             <Button
@@ -141,25 +143,25 @@ export default function EventDetail() {
                     event.Event.Name,
                     accessToken || undefined
                   )
-                    .then(() => toast.success('Video download started'))
-                    .catch(() => toast.error('Failed to download video'));
+                    .then(() => toast.success(t('event_detail.video_download_started')))
+                    .catch(() => toast.error(t('event_detail.video_download_failed')));
                 } else if (hasJPEGs && imageUrl) {
                   downloadEventImage(imageUrl, event.Event.Id, event.Event.Name)
-                    .then(() => toast.success('Image downloaded'))
-                    .catch(() => toast.error('Failed to download image'));
+                    .then(() => toast.success(t('event_detail.image_downloaded')))
+                    .catch(() => toast.error(t('event_detail.image_download_failed')));
                 }
               }}
-              title={hasVideo ? 'Download Video' : 'Download Image'}
+              title={hasVideo ? t('event_detail.download_video') : t('event_detail.download_image')}
             >
               {hasVideo ? (
                 <>
                   <Download className="h-4 w-4" />
-                  <span className="hidden sm:inline">Download Video</span>
+                  <span className="hidden sm:inline">{t('event_detail.download_video')}</span>
                 </>
               ) : (
                 <>
                   <Image className="h-4 w-4" />
-                  <span className="hidden sm:inline">Download Image</span>
+                  <span className="hidden sm:inline">{t('event_detail.download_image')}</span>
                 </>
               )}
             </Button>
@@ -185,7 +187,7 @@ export default function EventDetail() {
                       <div className="absolute top-4 left-4 transition-opacity duration-500">
                         <Badge variant="secondary" className="gap-2 bg-blue-500/80 text-white hover:bg-blue-500">
                           <Info className="h-3 w-3" />
-                          Streaming via ZMS
+                          {t('event_detail.streaming_via_zms')}
                         </Badge>
                       </div>
                     )}
@@ -198,7 +200,7 @@ export default function EventDetail() {
                     autoPlay
                     onError={() => {
                       console.log('Video playback failed, falling back to ZMS stream');
-                      toast.error('Video playback failed, falling back to stream');
+                      toast.error(t('event_detail.video_playback_failed'));
                       setUseZmsFallback(true);
                     }}
                   />
@@ -217,7 +219,7 @@ export default function EventDetail() {
                   <div className="absolute top-4 left-4">
                     <Badge variant="secondary" className="gap-2">
                       <Image className="h-3 w-3" />
-                      JPEG Event (No Video)
+                      {t('event_detail.jpeg_event')}
                     </Badge>
                   </div>
                 </div>
@@ -225,7 +227,7 @@ export default function EventDetail() {
                 <div className="w-full h-full flex items-center justify-center text-muted-foreground">
                   <div className="text-center">
                     <AlertTriangle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No video or images available for this event</p>
+                    <p>{t('event_detail.no_media')}</p>
                   </div>
                 </div>
               )}
@@ -235,19 +237,19 @@ export default function EventDetail() {
           {/* Metadata Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="p-6 space-y-4">
-              <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Timing</h3>
+              <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">{t('event_detail.timing')}</h3>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
                   <Calendar className="h-5 w-5 text-primary" />
                   <div>
-                    <div className="text-sm font-medium">Date</div>
+                    <div className="text-sm font-medium">{t('event_detail.date')}</div>
                     <div className="text-sm text-muted-foreground">{format(startTime, 'MMMM d, yyyy')}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Clock className="h-5 w-5 text-primary" />
                   <div>
-                    <div className="text-sm font-medium">Time</div>
+                    <div className="text-sm font-medium">{t('event_detail.time')}</div>
                     <div className="text-sm text-muted-foreground">{format(startTime, 'HH:mm:ss')}</div>
                   </div>
                 </div>
@@ -256,49 +258,49 @@ export default function EventDetail() {
                     {event.Event.Length}s
                   </div>
                   <div>
-                    <div className="text-sm font-medium">Duration</div>
-                    <div className="text-sm text-muted-foreground">{event.Event.Length} seconds</div>
+                    <div className="text-sm font-medium">{t('event_detail.duration')}</div>
+                    <div className="text-sm text-muted-foreground">{event.Event.Length} {t('event_detail.seconds')}</div>
                   </div>
                 </div>
               </div>
             </Card>
 
             <Card className="p-6 space-y-4">
-              <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Details</h3>
+              <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">{t('event_detail.details')}</h3>
               <div className="space-y-3">
                 <div className="flex justify-between py-1 border-b border-border/50">
-                  <span className="text-sm text-muted-foreground">Event ID</span>
+                  <span className="text-sm text-muted-foreground">{t('event_detail.event_id')}</span>
                   <span className="text-sm font-medium">{event.Event.Id}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-border/50">
-                  <span className="text-sm text-muted-foreground">Frames</span>
-                  <span className="text-sm font-medium">{event.Event.Frames} ({event.Event.AlarmFrames} alarm)</span>
+                  <span className="text-sm text-muted-foreground">{t('event_detail.frames')}</span>
+                  <span className="text-sm font-medium">{event.Event.Frames} ({event.Event.AlarmFrames} {t('event_detail.alarm')})</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-border/50">
-                  <span className="text-sm text-muted-foreground">Score</span>
+                  <span className="text-sm text-muted-foreground">{t('event_detail.score')}</span>
                   <span className="text-sm font-medium">{event.Event.AvgScore} / {event.Event.MaxScore}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-border/50">
-                  <span className="text-sm text-muted-foreground">Resolution</span>
+                  <span className="text-sm text-muted-foreground">{t('event_detail.resolution')}</span>
                   <span className="text-sm font-medium">{event.Event.Width}x{event.Event.Height}</span>
                 </div>
               </div>
             </Card>
 
             <Card className="p-6 space-y-4">
-              <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Storage</h3>
+              <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">{t('event_detail.storage')}</h3>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
                   <HardDrive className="h-5 w-5 text-primary" />
                   <div>
-                    <div className="text-sm font-medium">Disk Usage</div>
+                    <div className="text-sm font-medium">{t('event_detail.disk_usage')}</div>
                     <div className="text-sm text-muted-foreground">{event.Event.DiskSpace || 'Unknown'}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Archive className="h-5 w-5 text-primary" />
                   <div>
-                    <div className="text-sm font-medium">Storage ID</div>
+                    <div className="text-sm font-medium">{t('event_detail.storage_id')}</div>
                     <div className="text-sm text-muted-foreground">{event.Event.StorageId || 'Default'}</div>
                   </div>
                 </div>

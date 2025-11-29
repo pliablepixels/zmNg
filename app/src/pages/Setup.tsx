@@ -10,9 +10,11 @@ import { getVersion } from '../api/auth';
 import { createApiClient, setApiClient } from '../api/client';
 import { deriveZoneminderUrls } from '../lib/urls';
 import { Video, Server, ShieldCheck, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function Setup() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const addProfile = useProfileStore((state) => state.addProfile);
   const currentProfile = useProfileStore((state) => state.currentProfile());
 
@@ -90,7 +92,7 @@ export default function Setup() {
     }
 
     if (!apiUrl) {
-      throw new Error('Could not discover API URL');
+      throw new Error(t('setup.discovery_failed'));
     }
 
     // For now, use the first CGI pattern - we'll validate this later
@@ -131,7 +133,7 @@ export default function Setup() {
         // Manual URL entry mode
         console.log('[Setup] Using manual URLs');
         if (!manualApiUrl || !manualCgiUrl) {
-          throw new Error('Please enter both API URL and CGI URL');
+          throw new Error(t('setup.enter_both_urls'));
         }
         apiUrl = manualApiUrl;
         cgiUrl = manualCgiUrl;
@@ -160,7 +162,7 @@ export default function Setup() {
           // Discovery failed - offer manual entry
           console.error('[Setup] URL discovery failed:', discoveryError);
           throw new Error(
-            'Could not automatically discover API URLs. Please click "Enter URLs Manually" below to specify them.'
+            t('setup.discovery_failed_manual')
           );
         }
       }
@@ -175,7 +177,7 @@ export default function Setup() {
           console.log('[Setup]   ✓ Login successful');
         } catch (loginError: unknown) {
           console.error('[Setup]   ✗ Login failed:', loginError);
-          throw new Error(`Connection successful, but login failed: ${(loginError as Error).message || 'Unknown error'}`);
+          throw new Error(t('setup.login_failed', { error: (loginError as Error).message || 'Unknown error' }));
         }
       }
 
@@ -229,7 +231,7 @@ export default function Setup() {
         navigate('/monitors');
       }, 1000);
     } catch (err: unknown) {
-      setError((err as Error).message || 'Failed to connect to ZoneMinder server');
+      setError((err as Error).message || t('setup.connection_failed'));
       setSuccess(false);
     } finally {
       setTesting(false);
@@ -248,18 +250,18 @@ export default function Setup() {
           <div className="mx-auto w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-4 ring-1 ring-primary/20">
             <Video className="w-8 h-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl font-bold tracking-tight">Welcome to zmNg</CardTitle>
+          <CardTitle className="text-2xl font-bold tracking-tight">{t('setup.welcome')}</CardTitle>
           <CardDescription className="text-base mt-2">
-            Connect to your ZoneMinder server to get started
+            {t('setup.subtitle')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="profileName" className="text-sm font-medium">Profile Name (optional)</Label>
+            <Label htmlFor="profileName" className="text-sm font-medium">{t('setup.profile_name')}</Label>
             <Input
               id="profileName"
               type="text"
-              placeholder="e.g., Home Server, Office Cameras"
+              placeholder={t('setup.profile_name_placeholder')}
               value={profileName}
               onChange={(e) => setProfileName(e.target.value)}
               disabled={testing}
@@ -268,7 +270,7 @@ export default function Setup() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="portal" className="text-sm font-medium">Server URL</Label>
+            <Label htmlFor="portal" className="text-sm font-medium">{t('setup.server_url')}</Label>
             <div className="relative">
               <Server className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -285,7 +287,7 @@ export default function Setup() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-sm font-medium">Username</Label>
+              <Label htmlFor="username" className="text-sm font-medium">{t('setup.username')}</Label>
               <Input
                 id="username"
                 type="text"
@@ -297,7 +299,7 @@ export default function Setup() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+              <Label htmlFor="password" className="text-sm font-medium">{t('setup.password')}</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -331,7 +333,7 @@ export default function Setup() {
           {showManualUrls && (
             <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
               <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium">Manual URL Configuration</Label>
+                <Label className="text-sm font-medium">{t('setup.manual_config')}</Label>
                 <Button
                   type="button"
                   variant="ghost"
@@ -339,11 +341,11 @@ export default function Setup() {
                   onClick={() => setShowManualUrls(false)}
                   className="h-7 text-xs"
                 >
-                  Use Auto-Discovery
+                  {t('setup.use_auto_discovery')}
                 </Button>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="manualApiUrl" className="text-sm font-medium">API URL*</Label>
+                <Label htmlFor="manualApiUrl" className="text-sm font-medium">{t('setup.api_url')}*</Label>
                 <Input
                   id="manualApiUrl"
                   type="url"
@@ -354,11 +356,11 @@ export default function Setup() {
                   className="h-10 bg-background/50 border-input/50"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Usually: https://your-server/zm/api
+                  {t('setup.api_url_hint')}
                 </p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="manualCgiUrl" className="text-sm font-medium">Streaming URL*</Label>
+                <Label htmlFor="manualCgiUrl" className="text-sm font-medium">{t('setup.cgi_url')}*</Label>
                 <Input
                   id="manualCgiUrl"
                   type="url"
@@ -369,7 +371,7 @@ export default function Setup() {
                   className="h-10 bg-background/50 border-input/50"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Usually: https://your-server/cgi-bin or https://your-server/zm/cgi-bin
+                  {t('setup.cgi_url_hint')}
                 </p>
               </div>
             </div>
@@ -381,7 +383,7 @@ export default function Setup() {
                 <div className="h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
                 {error}
               </div>
-              {error.includes('Enter URLs Manually') && !showManualUrls && (
+              {error.includes(t('setup.discovery_failed_manual')) && !showManualUrls && (
                 <Button
                   type="button"
                   variant="outline"
@@ -389,7 +391,7 @@ export default function Setup() {
                   onClick={() => setShowManualUrls(true)}
                   className="w-full"
                 >
-                  Enter URLs Manually
+                  {t('setup.enter_urls_manually')}
                 </Button>
               )}
             </div>
@@ -398,7 +400,7 @@ export default function Setup() {
           {success && (
             <div className="p-3 bg-green-500/10 text-green-600 dark:text-green-400 text-sm rounded-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
               <ShieldCheck className="h-4 w-4" />
-              Connection successful! Redirecting...
+              {t('setup.connection_success')}
             </div>
           )}
         </CardContent>
@@ -411,11 +413,11 @@ export default function Setup() {
             {testing ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Connecting...
+                {t('setup.connecting')}
               </>
             ) : (
               <>
-                Connect Server
+                {t('setup.connect_server')}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </>
             )}

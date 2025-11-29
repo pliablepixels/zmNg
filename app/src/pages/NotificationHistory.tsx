@@ -5,9 +5,11 @@ import { Badge } from '../components/ui/badge';
 import { Bell, Trash2, CheckCheck, ExternalLink } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export default function NotificationHistory() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { events, unreadCount, markEventRead, markAllRead, clearEvents } = useNotificationStore();
 
   const handleViewEvent = (eventId: number) => {
@@ -20,8 +22,8 @@ export default function NotificationHistory() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2">
-            <span className="hidden sm:inline">Notification History</span>
-            <span className="sm:hidden">Notifications</span>
+            <span className="hidden sm:inline">{t('notification_history.title')}</span>
+            <span className="sm:hidden">{t('notification_history.title_short')}</span>
             {unreadCount > 0 && (
               <Badge variant="destructive" className="text-[10px] sm:text-xs h-4 sm:h-5">
                 {unreadCount}
@@ -29,7 +31,7 @@ export default function NotificationHistory() {
             )}
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 hidden sm:block">
-            Recent alarm events from your monitors
+            {t('notification_history.subtitle')}
           </p>
         </div>
 
@@ -37,13 +39,13 @@ export default function NotificationHistory() {
           {unreadCount > 0 && (
             <Button variant="outline" onClick={markAllRead} size="sm" className="h-8 sm:h-10">
               <CheckCheck className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Mark All Read</span>
+              <span className="hidden sm:inline">{t('notification_history.mark_all_read')}</span>
             </Button>
           )}
           {events.length > 0 && (
             <Button variant="destructive" onClick={clearEvents} size="sm" className="h-8 sm:h-10">
               <Trash2 className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Clear All</span>
+              <span className="hidden sm:inline">{t('notification_history.clear_all')}</span>
             </Button>
           )}
         </div>
@@ -53,9 +55,9 @@ export default function NotificationHistory() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16">
             <Bell className="h-16 w-16 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No notifications yet</h3>
+            <h3 className="text-lg font-semibold mb-2">{t('notification_history.no_notifications')}</h3>
             <p className="text-sm text-muted-foreground text-center max-w-md">
-              When you receive alarm events from your monitors, they'll appear here
+              {t('notification_history.no_notifications_desc')}
             </p>
           </CardContent>
         </Card>
@@ -73,7 +75,7 @@ export default function NotificationHistory() {
                       <CardTitle className="text-lg">{event.MonitorName}</CardTitle>
                       {!event.read && (
                         <Badge variant="destructive" className="text-xs">
-                          New
+                          {t('notification_history.new')}
                         </Badge>
                       )}
                     </div>
@@ -87,7 +89,7 @@ export default function NotificationHistory() {
                     onClick={() => handleViewEvent(event.EventId)}
                   >
                     <ExternalLink className="h-4 w-4 mr-2" />
-                    View Event
+                    {t('notification_history.view_event')}
                   </Button>
                 </div>
               </CardHeader>
@@ -112,8 +114,8 @@ export default function NotificationHistory() {
                       <span className="text-sm font-medium">{event.Cause}</span>
                     </div>
                     <div className="text-xs text-muted-foreground space-y-1">
-                      <div>Event ID: {event.EventId}</div>
-                      <div>Monitor ID: {event.MonitorId}</div>
+                      <div>{t('notification_history.event_id')}: {event.EventId}</div>
+                      <div>{t('notification_history.monitor_id')}: {event.MonitorId}</div>
                     </div>
                     {!event.read && (
                       <Button
@@ -121,7 +123,7 @@ export default function NotificationHistory() {
                         size="sm"
                         onClick={() => markEventRead(event.EventId)}
                       >
-                        Mark as Read
+                        {t('notification_history.mark_read')}
                       </Button>
                     )}
                   </div>
@@ -134,7 +136,7 @@ export default function NotificationHistory() {
 
       {events.length > 0 && (
         <div className="text-center text-sm text-muted-foreground">
-          Showing {events.length} notification{events.length !== 1 ? 's' : ''} (last 100)
+          {t('notification_history.showing_count', { count: events.length })}
         </div>
       )}
     </div>

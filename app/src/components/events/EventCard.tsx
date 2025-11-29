@@ -6,15 +6,17 @@ import { Badge } from '../ui/badge';
 import { SecureImage } from '../ui/secure-image';
 import { Video, Calendar, Clock } from 'lucide-react';
 import type { EventCardProps } from '../../api/types';
+import { useTranslation } from 'react-i18next';
 
 function EventCardComponent({ event, monitorName, thumbnailUrl }: EventCardProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const startTime = new Date(event.StartDateTime.replace(' ', 'T'));
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.target as HTMLImageElement;
     img.src =
-      'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="160" height="120"%3E%3Crect fill="%231a1a1a" width="160" height="120"/%3E%3Ctext fill="%23666" x="50%" y="50%" text-anchor="middle" font-size="12"%3ENo Image%3C/text%3E%3C/svg%3E';
+      `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="160" height="120"%3E%3Crect fill="%231a1a1a" width="160" height="120"/%3E%3Ctext fill="%23666" x="50%" y="50%" text-anchor="middle" font-size="12"%3E${t('events.no_image')}%3C/text%3E%3C/svg%3E`;
   };
 
   return (
@@ -69,18 +71,18 @@ function EventCardComponent({ event, monitorName, thumbnailUrl }: EventCardProps
           </div>
 
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-2 text-[10px] sm:text-xs text-muted-foreground">
-            <span>{event.Frames} frames</span>
+            <span>{event.Frames} {t('events.frames')}</span>
             <span className="hidden sm:inline">•</span>
-            <span>{event.AlarmFrames} alarm</span>
+            <span>{event.AlarmFrames} {t('events.alarm')}</span>
             <span className="hidden sm:inline">•</span>
             <span className="hidden md:inline">
-              Score: {event.AvgScore}/{event.MaxScore}
+              {t('events.score')}: {event.AvgScore}/{event.MaxScore}
             </span>
             {event.Archived === '1' && (
               <>
                 <span className="hidden sm:inline">•</span>
                 <Badge variant="secondary" className="text-[10px] sm:text-xs h-4 sm:h-5">
-                  Archived
+                  {t('events.archived')}
                 </Badge>
               </>
             )}

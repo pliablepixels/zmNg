@@ -17,6 +17,7 @@ import { getEnabledMonitorIds, filterEnabledMonitors } from '../lib/filters';
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
 import { Checkbox } from '../components/ui/checkbox';
 import { EventCard } from '../components/events/EventCard';
+import { useTranslation } from 'react-i18next';
 
 export default function Events() {
   const currentProfile = useProfileStore((state) => state.currentProfile());
@@ -25,6 +26,7 @@ export default function Events() {
   );
   const accessToken = useAuthStore((state) => state.accessToken);
   const parentRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
 
   const {
     filters,
@@ -130,7 +132,7 @@ export default function Events() {
       <div className="p-8">
         <div className="p-4 bg-destructive/10 text-destructive rounded-lg flex items-center gap-2">
           <AlertCircle className="h-5 w-5" />
-          Failed to load events: {(error as Error).message}
+          {t('common.error')}: {(error as Error).message}
         </div>
       </div>
     );
@@ -141,8 +143,8 @@ export default function Events() {
       <div className="flex flex-col gap-3 sm:gap-4 mb-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Events</h1>
-            <p className="text-xs text-muted-foreground hidden sm:block">Review recorded footage</p>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{t('events.title')}</h1>
+            <p className="text-xs text-muted-foreground hidden sm:block">{t('events.subtitle')}</p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -152,7 +154,7 @@ export default function Events() {
                   variant={activeFilterCount > 0 ? 'default' : 'outline'}
                   size="icon"
                   className="relative"
-                  aria-label="Filter events"
+                  aria-label={t('events.filters')}
                 >
                   <Filter className="h-4 w-4" />
                   {activeFilterCount > 0 && (
@@ -163,16 +165,16 @@ export default function Events() {
               <PopoverContent className="w-[calc(100vw-2rem)] sm:w-80 max-w-sm">
                 <div className="grid gap-4">
                   <div className="space-y-2">
-                    <h4 className="text-sm sm:text-base font-medium leading-none">Filters</h4>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Refine your event search</p>
+                    <h4 className="text-sm sm:text-base font-medium leading-none">{t('events.filters')}</h4>
+                    <p className="text-xs sm:text-sm text-muted-foreground">{t('events.try_adjusting_filters')}</p>
                   </div>
                   <div className="grid gap-4">
                     <div className="grid gap-2">
-                      <Label>Cameras</Label>
+                      <Label>{t('events.select_monitor')}</Label>
                       <div className="border rounded-md max-h-48 overflow-y-auto p-2 space-y-2">
                         {enabledMonitors.length === 0 ? (
                           <p className="text-sm text-muted-foreground text-center py-2">
-                            No cameras available
+                            {t('monitors.no_monitors')}
                           </p>
                         ) : (
                           <>
@@ -192,7 +194,7 @@ export default function Events() {
                                 htmlFor="select-all"
                                 className="text-sm font-medium cursor-pointer"
                               >
-                                Select All
+                                {t('common.all')}
                               </label>
                             </div>
                             {enabledMonitors.map(({ Monitor }) => (
@@ -208,7 +210,7 @@ export default function Events() {
                                 >
                                   <span>{Monitor.Name}</span>
                                   <Badge variant="outline" className="text-[10px] ml-2">
-                                    ID: {Monitor.Id}
+                                    {t('events.id')}: {Monitor.Id}
                                   </Badge>
                                 </label>
                               </div>
@@ -218,7 +220,7 @@ export default function Events() {
                       </div>
                       {selectedMonitorIds.length > 0 && (
                         <div className="flex items-center gap-1 flex-wrap">
-                          <span className="text-xs text-muted-foreground">Selected:</span>
+                          <span className="text-xs text-muted-foreground">{t('common.selected')}:</span>
                           {selectedMonitorIds.map((id) => {
                             const monitor = enabledMonitors.find((m) => m.Monitor.Id === id);
                             return monitor ? (
@@ -238,7 +240,7 @@ export default function Events() {
                       )}
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="start-date">Start Date/Time</Label>
+                      <Label htmlFor="start-date">{t('events.date_range')} ({t('events.start')})</Label>
                       <Input
                         id="start-date"
                         type="datetime-local"
@@ -248,7 +250,7 @@ export default function Events() {
                       />
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="end-date">End Date/Time</Label>
+                      <Label htmlFor="end-date">{t('events.date_range')} ({t('events.end')})</Label>
                       <Input
                         id="end-date"
                         type="datetime-local"
@@ -259,10 +261,10 @@ export default function Events() {
                     </div>
                     <div className="flex gap-2">
                       <Button onClick={applyFilters} size="sm" className="flex-1">
-                        Apply Filters
+                        {t('common.filter')}
                       </Button>
                       <Button onClick={clearFilters} size="sm" variant="outline" className="flex-1">
-                        Clear
+                        {t('common.clear')}
                       </Button>
                     </div>
                   </div>
@@ -270,7 +272,7 @@ export default function Events() {
               </PopoverContent>
             </Popover>
 
-            <Button onClick={() => refetch()} variant="outline" size="icon" aria-label="Refresh events">
+            <Button onClick={() => refetch()} variant="outline" size="icon" aria-label={t('events.refresh')}>
               <RefreshCw className="h-4 w-4" />
             </Button>
           </div>
@@ -281,10 +283,10 @@ export default function Events() {
       {allEvents.length === 0 ? (
         <div className="text-center py-20 text-muted-foreground">
           <Video className="h-12 w-12 mx-auto mb-4 opacity-20" />
-          <p>No events found matching your criteria.</p>
+          <p>{t('events.no_events')}</p>
           {(filters.monitorId || filters.startDateTime || filters.endDateTime) && (
             <Button variant="link" onClick={clearFilters}>
-              Clear all filters
+              {t('events.clear_filters')}
             </Button>
           )}
         </div>
@@ -333,8 +335,8 @@ export default function Events() {
           {/* Results summary and load more */}
           <div className="text-center py-4 space-y-3">
             <div className="text-xs text-muted-foreground">
-              Showing {allEvents.length} event{allEvents.length !== 1 ? 's' : ''}
-              {allEvents.length >= eventLimit && ` (more available)`}
+              {t('events.showing_events', { count: allEvents.length })}
+              {allEvents.length >= eventLimit && ` (${t('events.more_available')})`}
             </div>
             {allEvents.length >= eventLimit && (
               <Button
@@ -347,10 +349,10 @@ export default function Events() {
                 {isLoadingMore ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Loading...
+                    {t('common.loading')}
                   </>
                 ) : (
-                  'Load More Events'
+                  t('events.load_more')
                 )}
               </Button>
             )}

@@ -4,8 +4,10 @@ import { AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { log } from '../lib/logger';
+import { withTranslation } from 'react-i18next';
+import type { WithTranslation } from 'react-i18next';
 
-interface Props {
+interface Props extends WithTranslation {
   children: ReactNode;
   fallback?: ReactNode;
 }
@@ -20,7 +22,7 @@ interface State {
  * Error Boundary component to catch React errors
  * Provides a fallback UI and error logging
  */
-export class ErrorBoundary extends Component<Props, State> {
+class ErrorBoundaryClass extends Component<Props, State> {
   public state: State = {
     hasError: false,
     error: null,
@@ -58,6 +60,7 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 
   public render(): ReactNode {
+    const { t } = this.props;
     if (this.state.hasError) {
       if (this.props.fallback) {
         return this.props.fallback;
@@ -68,13 +71,12 @@ export class ErrorBoundary extends Component<Props, State> {
           <Card className="max-w-2xl w-full p-8 space-y-6">
             <div className="flex items-center gap-3 text-destructive">
               <AlertCircle className="h-8 w-8" />
-              <h1 className="text-2xl font-bold">Something went wrong</h1>
+              <h1 className="text-2xl font-bold">{t('error.something_went_wrong')}</h1>
             </div>
 
             <div className="space-y-4">
               <p className="text-muted-foreground">
-                The application encountered an unexpected error. This has been logged for
-                investigation.
+                {t('error.unexpected_error_message')}
               </p>
 
               {this.state.error && (
@@ -88,7 +90,7 @@ export class ErrorBoundary extends Component<Props, State> {
               {import.meta.env.DEV && this.state.errorInfo && (
                 <details className="mt-4">
                   <summary className="cursor-pointer text-sm font-medium mb-2">
-                    Component Stack (Development Only)
+                    {t('error.component_stack')}
                   </summary>
                   <pre className="bg-muted p-4 rounded-lg overflow-auto text-xs">
                     {this.state.errorInfo.componentStack}
@@ -100,10 +102,10 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="flex gap-3">
               <Button onClick={this.handleReset} variant="outline" className="flex-1">
                 <RefreshCw className="h-4 w-4 mr-2" />
-                Try Again
+                {t('common.try_again')}
               </Button>
               <Button onClick={this.handleReload} className="flex-1">
-                Reload Application
+                {t('error.reload_application')}
               </Button>
             </div>
           </Card>
@@ -114,3 +116,5 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+
+export const ErrorBoundary = withTranslation()(ErrorBoundaryClass);

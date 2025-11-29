@@ -39,6 +39,7 @@ import type { Layout, Layouts } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -70,6 +71,7 @@ const getEffectiveCols = (width: number, requestedCols: number) => {
 
 export default function Montage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['monitors'],
     queryFn: getMonitors,
@@ -237,11 +239,11 @@ export default function Montage() {
   }, [isLayoutLoaded]);
 
   const handleResetLayout = () => {
-    if (confirm('Are you sure you want to reset the layout to default?')) {
+    if (confirm(t('montage.reset_confirm'))) {
       const defaultLayout = generateDefaultLayout(monitors);
       setLayouts(defaultLayout);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultLayout));
-      toast.success('Layout reset to default');
+      toast.success(t('montage.reset_success'));
     }
   };
 
@@ -265,11 +267,11 @@ export default function Montage() {
     // Check if actual columns match requested columns
     const effectiveCols = getEffectiveCols(currentWidthRef.current, cols);
     if (effectiveCols !== cols) {
-      toast.info(`Grid set to ${rows}x${cols}`, {
-        description: `Screen size limits display to ${effectiveCols} columns.`
+      toast.info(t('montage.grid_set', { rows, cols }), {
+        description: t('montage.screen_limit', { cols: effectiveCols })
       });
     } else {
-      toast.success(`Applied ${rows}x${cols} grid layout`);
+      toast.success(t('montage.grid_applied', { rows, cols }));
     }
   };
 
@@ -277,7 +279,7 @@ export default function Montage() {
     const cols = parseInt(customCols, 10);
 
     if (isNaN(cols) || cols < 1 || cols > 10) {
-      toast.error('Please enter a valid number between 1 and 10');
+      toast.error(t('montage.invalid_columns'));
       return;
     }
 
@@ -315,11 +317,11 @@ export default function Montage() {
     return (
       <div className="p-8">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold tracking-tight">Montage</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('montage.title')}</h1>
         </div>
         <div className="p-4 bg-destructive/10 text-destructive rounded-lg flex items-center gap-2">
           <AlertCircle className="h-5 w-5" />
-          Failed to load monitors: {(error as Error).message}
+          {t('common.error')}: {(error as Error).message}
         </div>
       </div>
     );
@@ -329,15 +331,15 @@ export default function Montage() {
     return (
       <div className="p-8">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold tracking-tight">Montage</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('montage.title')}</h1>
           <Button onClick={() => refetch()} variant="outline" size="sm">
             <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+            {t('common.refresh')}
           </Button>
         </div>
         <div className="text-center py-20 text-muted-foreground">
           <Video className="h-12 w-12 mx-auto mb-4 opacity-20" />
-          <p>No enabled cameras found.</p>
+          <p>{t('montage.no_monitors')}</p>
         </div>
       </div>
     );
@@ -352,66 +354,66 @@ export default function Montage() {
             <div>
               <h1 className="text-base sm:text-xl md:text-2xl font-bold tracking-tight flex items-center gap-2">
                 <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5" />
-                Live Montage
+                {t('montage.title')}
               </h1>
               <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">
-                {monitors.length} camera{monitors.length !== 1 ? 's' : ''}<span className="hidden md:inline"> • Drag to reorder • Resize corners</span>
+                {t('montage.cameras_count', { count: monitors.length })}<span className="hidden md:inline"> • {t('montage.drag_hint')}</span>
               </p>
             </div>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" title="Grid Layout" className="h-8 sm:h-9">
+                <Button variant="ghost" size="sm" title={t('montage.layout')} className="h-8 sm:h-9">
                   <LayoutDashboard className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">{gridCols} Column{gridCols !== 1 ? 's' : ''}</span>
+                  <span className="hidden sm:inline">{gridCols} {t('montage.columns_label')}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => handleApplyGridLayout(1, 1)}>
                   <LayoutGrid className="h-4 w-4 mr-2" />
-                  1 Column
+                  {t('montage.1col')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleApplyGridLayout(2, 2)}>
                   <Grid2x2 className="h-4 w-4 mr-2" />
-                  2 Columns
+                  {t('montage.2col')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleApplyGridLayout(3, 3)}>
                   <Grid3x3 className="h-4 w-4 mr-2" />
-                  3 Columns
+                  {t('montage.3col')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleApplyGridLayout(4, 4)}>
                   <LayoutGrid className="h-4 w-4 mr-2" />
-                  4 Columns
+                  {t('montage.4col')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleApplyGridLayout(5, 5)}>
                   <LayoutGrid className="h-4 w-4 mr-2" />
-                  5 Columns
+                  {t('montage.5col')}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setIsCustomGridDialogOpen(true)}>
                   <GripVertical className="h-4 w-4 mr-2" />
-                  Custom...
+                  {t('montage.custom')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button onClick={handleResetLayout} variant="ghost" size="sm" title="Reset Layout" className="h-8 sm:h-9">
+            <Button onClick={handleResetLayout} variant="ghost" size="sm" title={t('montage.reset_layout')} className="h-8 sm:h-9">
               <RotateCcw className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Reset Layout</span>
+              <span className="hidden sm:inline">{t('montage.reset_layout')}</span>
             </Button>
             <Button onClick={() => refetch()} variant="outline" size="sm" className="h-8 sm:h-9">
               <RefreshCw className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Refresh</span>
+              <span className="hidden sm:inline">{t('common.refresh')}</span>
             </Button>
             <Button
               onClick={() => handleToggleFullscreen(true)}
               variant="default"
               size="sm"
               className="h-8 sm:h-9"
-              title="Fullscreen Mode"
+              title={t('montage.fullscreen')}
             >
               <Maximize className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Fullscreen</span>
+              <span className="hidden sm:inline">{t('montage.fullscreen')}</span>
             </Button>
           </div>
         </div>
@@ -423,7 +425,7 @@ export default function Montage() {
           <div className="flex items-center justify-between p-2 sm:p-3 flex-wrap gap-2">
             <h2 className="text-white font-semibold flex items-center gap-2 text-sm sm:text-base">
               <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5" />
-              Live Montage
+              {t('montage.title')}
             </h2>
             <div className="flex items-center gap-1 sm:gap-2">
               <Button onClick={() => refetch()} variant="ghost" size="sm" className="text-white hover:bg-white/10 h-8 sm:h-9">
@@ -434,10 +436,10 @@ export default function Montage() {
                 variant="default"
                 size="sm"
                 className="bg-red-600 hover:bg-red-700 text-white h-8 sm:h-9"
-                title="Exit Fullscreen"
+                title={t('montage.exit_fullscreen')}
               >
                 <Minimize className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Exit</span>
+                <span className="hidden sm:inline">{t('montage.exit')}</span>
               </Button>
               {window.innerWidth >= 768 && (
                 <Button
@@ -507,14 +509,14 @@ export default function Montage() {
       <Dialog open={isCustomGridDialogOpen} onOpenChange={setIsCustomGridDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Custom Grid Columns</DialogTitle>
+            <DialogTitle>{t('montage.custom_grid_title')}</DialogTitle>
             <DialogDescription>
-              Enter the number of columns for your custom grid layout (1-10).
+              {t('montage.custom_grid_desc')}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="custom-cols">Columns</Label>
+              <Label htmlFor="custom-cols">{t('montage.columns_label')}</Label>
               <Input
                 id="custom-cols"
                 type="number"
@@ -532,9 +534,9 @@ export default function Montage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCustomGridDialogOpen(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
-            <Button onClick={handleCustomGridSubmit}>Apply</Button>
+            <Button onClick={handleCustomGridSubmit}>{t('montage.apply')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -557,6 +559,7 @@ function MontageMonitor({
   navigate: NavigateFunction,
   isFullscreen?: boolean
 }) {
+  const { t } = useTranslation();
   const isRunning = status?.Status === 'Connected';
   const regenerateConnKey = useMonitorStore((state) => state.regenerateConnKey);
   const settings = useSettingsStore(
@@ -679,7 +682,7 @@ function MontageMonitor({
               img.dataset.retrying = "true";
               console.log(`[Montage] Stream failed for ${monitor.Name}, regenerating connkey...`);
               regenerateConnKey(monitor.Id);
-              toast.error(`Stream connection lost for ${monitor.Name}. Reconnecting...`);
+              toast.error(t('montage.stream_lost_reconnecting', { name: monitor.Name }));
 
               // Reset retry flag after a delay
               setTimeout(() => {
@@ -701,12 +704,12 @@ function MontageMonitor({
               e.stopPropagation();
               if (imgRef.current) {
                 downloadSnapshotFromElement(imgRef.current, monitor.Name)
-                  .then(() => toast.success(`Snapshot saved: ${monitor.Name}`))
-                  .catch(() => toast.error('Failed to save snapshot'));
+                  .then(() => toast.success(t('montage.snapshot_saved', { name: monitor.Name })))
+                  .catch(() => toast.error(t('montage.snapshot_failed')));
               }
             }}
-            title="Save Snapshot"
-            aria-label="Save snapshot"
+            title={t('montage.save_snapshot')}
+            aria-label={t('montage.save_snapshot')}
           >
             <Download className="h-3 w-3" />
           </Button>
@@ -718,8 +721,8 @@ function MontageMonitor({
               e.stopPropagation();
               navigate(`/events?monitorId=${monitor.Id}`);
             }}
-            title="Events"
-            aria-label="View events"
+            title={t('common.events')}
+            aria-label={t('monitors.view_events')}
           >
             <Video className="h-3 w-3" />
           </Button>
@@ -731,8 +734,8 @@ function MontageMonitor({
               e.stopPropagation();
               navigate(`/timeline?monitorId=${monitor.Id}`);
             }}
-            title="Timeline"
-            aria-label="View timeline"
+            title={t('sidebar.timeline')}
+            aria-label={t('sidebar.timeline')}
           >
             <Clock className="h-3 w-3" />
           </Button>
@@ -744,8 +747,8 @@ function MontageMonitor({
               e.stopPropagation();
               navigate(`/monitors/${monitor.Id}`);
             }}
-            title="Maximize"
-            aria-label="Maximize monitor view"
+            title={t('monitor_detail.maximize')}
+            aria-label={t('monitor_detail.maximize')}
           >
             <Maximize2 className="h-3 w-3" />
           </Button>

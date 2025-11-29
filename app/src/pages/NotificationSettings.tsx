@@ -28,9 +28,11 @@ import {
 import { toast } from 'sonner';
 import { Capacitor } from '@capacitor/core';
 import { getPushService } from '../services/pushNotifications';
+import { useTranslation } from 'react-i18next';
 
 export default function NotificationSettings() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const currentProfile = useProfileStore((state) => state.currentProfile());
   const getDecryptedPassword = useProfileStore((state) => state.getDecryptedPassword);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -86,23 +88,23 @@ export default function NotificationSettings() {
       await handleConnect();
     } else {
       disconnect();
-      toast.info('Notifications disabled');
+      toast.info(t('notification_settings.notifications_disabled'));
     }
   };
 
   const handleConnect = async () => {
     if (!currentProfile) {
-      toast.error('No profile selected');
+      toast.error(t('notification_settings.no_profile'));
       return;
     }
 
     if (!settings.host) {
-      toast.error('Please enter notification server host');
+      toast.error(t('notification_settings.enter_host'));
       return;
     }
 
     if (!currentProfile.username || !currentProfile.password) {
-      toast.error('Profile must have username and password for notifications');
+      toast.error(t('notification_settings.profile_credentials_required'));
       return;
     }
 
@@ -116,7 +118,7 @@ export default function NotificationSettings() {
       }
 
       await connect(currentProfile.username, password);
-      toast.success('Connected to notification server');
+      toast.success(t('notification_settings.connected_success'));
 
       // Initialize push on mobile
       if (Capacitor.isNativePlatform()) {
@@ -126,13 +128,13 @@ export default function NotificationSettings() {
           const platform = Capacitor.getPlatform() as 'ios' | 'android';
           if (token) {
             await useNotificationStore.getState().registerPushToken(token, platform);
-            toast.success('Registered for push notifications');
+            toast.success(t('notification_settings.push_registered'));
           }
         }
       }
     } catch (error) {
       console.error('Connection failed:', error);
-      toast.error(`Failed to connect: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(t('notification_settings.connect_failed', { error: error instanceof Error ? error.message : 'Unknown error' }));
     } finally {
       setIsConnecting(false);
     }
@@ -140,7 +142,7 @@ export default function NotificationSettings() {
 
   const handleDisconnect = () => {
     disconnect();
-    toast.info('Disconnected from notification server');
+    toast.info(t('notification_settings.disconnected'));
   };
 
   const handleMonitorToggle = (monitorId: number, enabled: boolean) => {
@@ -164,7 +166,7 @@ export default function NotificationSettings() {
         return (
           <Badge variant="default" className="gap-1.5">
             <CheckCircle className="h-3 w-3" />
-            Connected
+            {t('notification_settings.status_connected')}
           </Badge>
         );
       case 'connecting':
@@ -172,21 +174,21 @@ export default function NotificationSettings() {
         return (
           <Badge variant="secondary" className="gap-1.5">
             <Loader2 className="h-3 w-3 animate-spin" />
-            Connecting...
+            {t('notification_settings.status_connecting')}
           </Badge>
         );
       case 'error':
         return (
           <Badge variant="destructive" className="gap-1.5">
             <XCircle className="h-3 w-3" />
-            Error
+            {t('notification_settings.status_error')}
           </Badge>
         );
       default:
         return (
           <Badge variant="outline" className="gap-1.5">
             <WifiOff className="h-3 w-3" />
-            Disconnected
+            {t('notification_settings.status_disconnected')}
           </Badge>
         );
     }
@@ -196,9 +198,9 @@ export default function NotificationSettings() {
     <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Notifications</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('notification_settings.title')}</h1>
           <p className="text-muted-foreground mt-1">
-            Configure real-time event notifications from your ZoneMinder server
+            {t('notification_settings.subtitle')}
           </p>
         </div>
         <Button
@@ -207,7 +209,7 @@ export default function NotificationSettings() {
           className="relative"
         >
           <History className="h-4 w-4 mr-2" />
-          View History
+          {t('notification_settings.view_history')}
           {unreadCount > 0 && (
             <Badge
               variant="destructive"
@@ -230,22 +232,22 @@ export default function NotificationSettings() {
                 ) : (
                   <BellOff className="h-5 w-5 text-muted-foreground" />
                 )}
-                <CardTitle>Notification Status</CardTitle>
+                <CardTitle>{t('notification_settings.status_title')}</CardTitle>
               </div>
               {getConnectionBadge()}
             </div>
             <CardDescription>
-              Enable real-time notifications for alarm events from your monitors
+              {t('notification_settings.status_desc')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between p-4 rounded-lg border bg-card">
               <div className="flex-1 space-y-1">
                 <Label htmlFor="enable-notifications" className="text-base font-semibold">
-                  Enable Notifications
+                  {t('notification_settings.enable_notifications')}
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  Receive real-time alerts when motion or events are detected
+                  {t('notification_settings.enable_notifications_desc')}
                 </p>
               </div>
               <Switch
@@ -259,7 +261,7 @@ export default function NotificationSettings() {
               <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/10 border border-primary/20">
                 <AlertCircle className="h-4 w-4 text-primary" />
                 <span className="text-sm font-medium">
-                  You have {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
+                  {t('notification_settings.unread_count', { count: unreadCount })}
                 </span>
               </div>
             )}
@@ -272,17 +274,17 @@ export default function NotificationSettings() {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Server className="h-5 w-5 text-primary" />
-                <CardTitle>Event Notification Server</CardTitle>
+                <CardTitle>{t('notification_settings.server_config_title')}</CardTitle>
               </div>
               <CardDescription>
-                Configure connection to ZoneMinder event notification server (zmeventnotification)
+                {t('notification_settings.server_config_desc')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Host */}
               <div className="space-y-2">
                 <Label htmlFor="host" className="text-base font-semibold">
-                  Server Host
+                  {t('notification_settings.server_host')}
                 </Label>
                 <Input
                   id="host"
@@ -293,7 +295,7 @@ export default function NotificationSettings() {
                   disabled={isConnected}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Hostname or IP address of your ZoneMinder server
+                  {t('notification_settings.server_host_desc')}
                 </p>
               </div>
 
@@ -304,7 +306,7 @@ export default function NotificationSettings() {
                   size="sm"
                   onClick={() => setShowAdvanced(!showAdvanced)}
                 >
-                  {showAdvanced ? 'Hide' : 'Show'} Advanced Settings
+                  {showAdvanced ? t('notification_settings.hide_advanced') : t('notification_settings.show_advanced')}
                 </Button>
 
                 {showAdvanced && (
@@ -312,7 +314,7 @@ export default function NotificationSettings() {
                     {/* Port */}
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="port">Port</Label>
+                        <Label htmlFor="port">{t('notification_settings.port')}</Label>
                         <Input
                           id="port"
                           type="number"
@@ -320,14 +322,14 @@ export default function NotificationSettings() {
                           onChange={(e) => updateSettings({ port: Number(e.target.value) })}
                           disabled={isConnected}
                         />
-                        <p className="text-xs text-muted-foreground">Default: 9000</p>
+                        <p className="text-xs text-muted-foreground">{t('notification_settings.default_port')}</p>
                       </div>
 
                       {/* SSL */}
                       <div className="space-y-2">
                         <Label htmlFor="ssl" className="flex items-center gap-2">
                           <Shield className="h-4 w-4" />
-                          Use SSL (wss://)
+                          {t('notification_settings.use_ssl')}
                         </Label>
                         <div className="flex items-center h-10">
                           <Switch
@@ -338,7 +340,7 @@ export default function NotificationSettings() {
                           />
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          Recommended for secure connections
+                          {t('notification_settings.ssl_desc')}
                         </p>
                       </div>
                     </div>
@@ -349,10 +351,10 @@ export default function NotificationSettings() {
                       <div className="flex items-center justify-between">
                         <div className="space-y-1">
                           <Label htmlFor="show-toasts" className="text-sm">
-                            Show Toast Notifications
+                            {t('notification_settings.show_toasts')}
                           </Label>
                           <p className="text-xs text-muted-foreground">
-                            Display popup notifications
+                            {t('notification_settings.show_toasts_desc')}
                           </p>
                         </div>
                         <Switch
@@ -365,9 +367,9 @@ export default function NotificationSettings() {
                       <div className="flex items-center justify-between">
                         <div className="space-y-1">
                           <Label htmlFor="play-sound" className="text-sm">
-                            Play Sound
+                            {t('notification_settings.play_sound')}
                           </Label>
-                          <p className="text-xs text-muted-foreground">Sound alerts</p>
+                          <p className="text-xs text-muted-foreground">{t('notification_settings.play_sound_desc')}</p>
                         </div>
                         <Switch
                           id="play-sound"
@@ -386,7 +388,7 @@ export default function NotificationSettings() {
                   <>
                     <Button variant="outline" onClick={handleDisconnect} className="flex-1">
                       <WifiOff className="h-4 w-4 mr-2" />
-                      Disconnect
+                      {t('notification_settings.disconnect')}
                     </Button>
                     <Button
                       variant="secondary"
@@ -399,7 +401,7 @@ export default function NotificationSettings() {
                       ) : (
                         <Wifi className="h-4 w-4 mr-2" />
                       )}
-                      Reconnect
+                      {t('notification_settings.reconnect')}
                     </Button>
                   </>
                 ) : (
@@ -413,7 +415,7 @@ export default function NotificationSettings() {
                     ) : (
                       <Wifi className="h-4 w-4 mr-2" />
                     )}
-                    Connect
+                    {t('notification_settings.connect')}
                   </Button>
                 )}
               </div>
@@ -425,9 +427,9 @@ export default function NotificationSettings() {
         {settings.enabled && monitors.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>Monitor Filters</CardTitle>
+              <CardTitle>{t('notification_settings.monitor_filters_title')}</CardTitle>
               <CardDescription>
-                Choose which monitors send notifications and how often to check for events
+                {t('notification_settings.monitor_filters_desc')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -453,7 +455,7 @@ export default function NotificationSettings() {
                           {monitorData.Name}
                         </Label>
                         <p className="text-sm text-muted-foreground mt-0.5">
-                          Monitor ID: {monitorData.Id} • Function: {monitorData.Function}
+                          {t('notification_settings.monitor_id')}: {monitorData.Id} • {t('notification_settings.function')}: {monitorData.Function}
                         </p>
                       </div>
                       <Switch
@@ -468,7 +470,7 @@ export default function NotificationSettings() {
                     {isEnabled && (
                       <div className="flex items-center gap-4 ml-6 pt-2 border-t">
                         <Label htmlFor={`interval-${monitorData.Id}`} className="text-sm">
-                          Check Interval:
+                          {t('notification_settings.check_interval')}:
                         </Label>
                         <div className="flex items-center gap-2">
                           <Input
@@ -486,7 +488,7 @@ export default function NotificationSettings() {
                             }
                             className="w-24"
                           />
-                          <span className="text-sm text-muted-foreground">seconds</span>
+                          <span className="text-sm text-muted-foreground">{t('notification_settings.seconds')}</span>
                           <div className="flex gap-1 ml-auto">
                             <Button
                               variant="outline"
@@ -525,7 +527,7 @@ export default function NotificationSettings() {
 
               {monitors.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
-                  No monitors available. Add monitors in ZoneMinder first.
+                  {t('notification_settings.no_monitors')}
                 </div>
               )}
             </CardContent>
@@ -536,16 +538,16 @@ export default function NotificationSettings() {
         {Capacitor.isNativePlatform() && settings.enabled && (
           <Card>
             <CardHeader>
-              <CardTitle>Mobile Platform</CardTitle>
+              <CardTitle>{t('notification_settings.mobile_platform')}</CardTitle>
               <CardDescription>
-                Push notifications are enabled for background delivery
+                {t('notification_settings.push_enabled')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/10 border border-primary/20">
                 <CheckCircle className="h-4 w-4 text-primary" />
                 <span className="text-sm">
-                  Running on {Capacitor.getPlatform()} - FCM push notifications active
+                  {t('notification_settings.running_on', { platform: Capacitor.getPlatform() })}
                 </span>
               </div>
             </CardContent>

@@ -8,9 +8,11 @@ import { Capacitor } from '@capacitor/core';
 import { Share } from '@capacitor/share';
 import { useToast } from '../hooks/use-toast';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 function LogCodeBlock({ content }: { content: string }) {
     const [isExpanded, setIsExpanded] = useState(false);
+    const { t } = useTranslation();
     const lines = content.split('\n');
     const shouldTruncate = lines.length > 30;
     const displayContent = shouldTruncate && !isExpanded
@@ -30,12 +32,12 @@ function LogCodeBlock({ content }: { content: string }) {
                     {isExpanded ? (
                         <>
                             <ChevronUp className="h-3 w-3" />
-                            Show less
+                            {t('logs.show_less')}
                         </>
                     ) : (
                         <>
                             <ChevronDown className="h-3 w-3" />
-                            Show {lines.length - 30} more lines
+                            {t('logs.show_more', { count: lines.length - 30 })}
                         </>
                     )}
                 </button>
@@ -48,6 +50,7 @@ export default function Logs() {
     const logs = useLogStore((state) => state.logs);
     const clearLogs = useLogStore((state) => state.clearLogs);
     const { toast } = useToast();
+    const { t } = useTranslation();
     const isNative = Capacitor.isNativePlatform();
 
     const exportLogsAsText = () => {
@@ -76,7 +79,7 @@ export default function Logs() {
             return text;
         }).join('\n\n');
 
-        return logText || 'No logs available';
+        return logText || t('logs.no_logs_available');
     };
 
     const handleSaveLogs = () => {
@@ -92,8 +95,8 @@ export default function Logs() {
         URL.revokeObjectURL(url);
 
         toast({
-            title: 'Success',
-            description: 'Logs saved successfully',
+            title: t('common.success'),
+            description: t('logs.logs_saved'),
         });
     };
 
@@ -102,14 +105,14 @@ export default function Logs() {
 
         try {
             await Share.share({
-                title: 'zmNg Application Logs',
+                title: t('logs.share_title'),
                 text: logText,
-                dialogTitle: 'Share Logs',
+                dialogTitle: t('logs.share_dialog_title'),
             });
         } catch (error) {
             toast({
-                title: 'Error',
-                description: 'Failed to share logs',
+                title: t('common.error'),
+                description: t('logs.share_failed'),
                 variant: 'destructive',
             });
         }
@@ -129,9 +132,9 @@ export default function Logs() {
         <div className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6 h-[calc(100vh-4rem)] flex flex-col">
             <div className="flex items-center justify-between shrink-0">
                 <div>
-                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Application Logs</h1>
+                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">{t('logs.title')}</h1>
                     <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                        View and manage application logs for debugging
+                        {t('logs.subtitle')}
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -143,7 +146,7 @@ export default function Logs() {
                             disabled={logs.length === 0}
                         >
                             <Share2 className="h-4 w-4 mr-2" />
-                            Share
+                            {t('logs.share')}
                         </Button>
                     ) : (
                         <Button
@@ -153,7 +156,7 @@ export default function Logs() {
                             disabled={logs.length === 0}
                         >
                             <Download className="h-4 w-4 mr-2" />
-                            Save
+                            {t('logs.save')}
                         </Button>
                     )}
                     <Button
@@ -163,7 +166,7 @@ export default function Logs() {
                         disabled={logs.length === 0}
                     >
                         <Trash2 className="h-4 w-4 mr-2" />
-                        Clear Logs
+                        {t('logs.clear_logs')}
                     </Button>
                 </div>
             </div>
@@ -172,14 +175,14 @@ export default function Logs() {
                 <CardHeader className="py-3 px-4 border-b shrink-0">
                     <div className="flex items-center gap-2">
                         <ScrollText className="h-5 w-5 text-primary" />
-                        <CardTitle className="text-base">Log Entries ({logs.length})</CardTitle>
+                        <CardTitle className="text-base">{t('logs.log_entries', { count: logs.length })}</CardTitle>
                     </div>
                 </CardHeader>
                 <CardContent className="p-0 flex-1 overflow-y-auto font-mono text-xs sm:text-sm">
                     {logs.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8">
                             <ScrollText className="h-12 w-12 mb-4 opacity-20" />
-                            <p>No logs available</p>
+                            <p>{t('logs.no_logs_available')}</p>
                         </div>
                     ) : (
                         <div className="divide-y">

@@ -2,8 +2,10 @@ import { Component, type ReactNode } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { Button } from './ui/button';
 import { log } from '../lib/logger';
+import { withTranslation } from 'react-i18next';
+import type { WithTranslation } from 'react-i18next';
 
-interface Props {
+interface Props extends WithTranslation {
   children: ReactNode;
   routePath: string;
 }
@@ -17,7 +19,7 @@ interface State {
  * Route-level error boundary
  * Prevents a single route error from crashing the entire app
  */
-export class RouteErrorBoundary extends Component<Props, State> {
+class RouteErrorBoundaryClass extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -43,6 +45,7 @@ export class RouteErrorBoundary extends Component<Props, State> {
   };
 
   render() {
+    const { t } = this.props;
     if (this.state.hasError) {
       return (
         <div className="flex min-h-screen items-center justify-center p-4 bg-background">
@@ -50,9 +53,9 @@ export class RouteErrorBoundary extends Component<Props, State> {
             <div className="flex justify-center">
               <AlertCircle className="h-16 w-16 text-destructive" />
             </div>
-            <h1 className="text-2xl font-bold">Page Error</h1>
+            <h1 className="text-2xl font-bold">{t('error.page_error')}</h1>
             <p className="text-muted-foreground">
-              Something went wrong while loading this page.
+              {t('error.page_error_message')}
             </p>
             {this.state.error && import.meta.env.DEV && (
               <div className="p-4 bg-muted rounded-md text-left">
@@ -67,9 +70,9 @@ export class RouteErrorBoundary extends Component<Props, State> {
               </div>
             )}
             <div className="flex gap-2 justify-center">
-              <Button onClick={this.handleReset}>Go to Home</Button>
+              <Button onClick={this.handleReset}>{t('error.go_to_home')}</Button>
               <Button variant="outline" onClick={() => window.location.reload()}>
-                Reload Page
+                {t('error.reload_page')}
               </Button>
             </div>
           </div>
@@ -80,3 +83,5 @@ export class RouteErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+
+export const RouteErrorBoundary = withTranslation()(RouteErrorBoundaryClass);

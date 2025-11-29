@@ -29,11 +29,13 @@ import type { Profile } from '../api/types';
 import { useToast } from '../hooks/use-toast';
 import { toast as sonnerToast } from 'sonner';
 import { deriveZoneminderUrls } from '../lib/urls';
+import { useTranslation } from 'react-i18next';
 
 export default function Profiles() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const profiles = useProfileStore((state) => state.profiles);
   const currentProfile = useProfileStore((state) => state.currentProfile());
@@ -100,8 +102,8 @@ export default function Profiles() {
   const handleAddProfile = async () => {
     if (!formData.name || !formData.portalUrl) {
       toast({
-        title: 'Error',
-        description: 'Name and Portal URL are required',
+        title: t('common.error'),
+        description: t('profiles.name_url_required'),
         variant: 'destructive',
       });
       return;
@@ -129,16 +131,16 @@ export default function Profiles() {
       });
 
       toast({
-        title: 'Success',
-        description: 'Profile added successfully',
+        title: t('common.success'),
+        description: t('profiles.add_success'),
       });
 
       setIsAddDialogOpen(false);
       setFormData({ name: '', portalUrl: '', apiUrl: '', cgiUrl: '', username: '', password: '' });
     } catch (error) {
       toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to add profile',
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : t('profiles.add_error'),
         variant: 'destructive',
       });
     } finally {
@@ -149,8 +151,8 @@ export default function Profiles() {
   const handleUpdateProfile = async () => {
     if (!selectedProfile || !formData.name || !formData.portalUrl) {
       toast({
-        title: 'Error',
-        description: 'Name and Portal URL are required',
+        title: t('common.error'),
+        description: t('profiles.name_url_required'),
         variant: 'destructive',
       });
       return;
@@ -188,8 +190,8 @@ export default function Profiles() {
       await updateProfile(selectedProfile.id, updates);
 
       toast({
-        title: 'Success',
-        description: 'Profile updated successfully. Refreshing...',
+        title: t('common.success'),
+        description: t('profiles.update_success'),
       });
 
       setIsEditDialogOpen(false);
@@ -203,8 +205,8 @@ export default function Profiles() {
       }
     } catch (error) {
       toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to update profile',
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : t('profiles.update_error'),
         variant: 'destructive',
       });
     } finally {
@@ -219,8 +221,8 @@ export default function Profiles() {
       deleteProfile(selectedProfile.id);
 
       toast({
-        title: 'Success',
-        description: 'Profile deleted successfully',
+        title: t('common.success'),
+        description: t('profiles.delete_success'),
       });
 
       setIsDeleteDialogOpen(false);
@@ -232,8 +234,8 @@ export default function Profiles() {
       }
     } catch (error) {
       toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to delete profile',
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : t('profiles.delete_error'),
         variant: 'destructive',
       });
     }
@@ -244,8 +246,8 @@ export default function Profiles() {
       await deleteAllProfiles();
 
       toast({
-        title: 'Success',
-        description: 'All profiles deleted successfully',
+        title: t('common.success'),
+        description: t('profiles.delete_all_success'),
       });
 
       setIsDeleteAllDialogOpen(false);
@@ -254,8 +256,8 @@ export default function Profiles() {
       navigate('/setup');
     } catch (error) {
       toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to delete all profiles',
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : t('profiles.delete_all_error'),
         variant: 'destructive',
       });
     }
@@ -268,19 +270,19 @@ export default function Profiles() {
     if (!profile) return;
 
     setSwitchingProfileId(profileId);
-    const loadingToast = sonnerToast.loading(`Switching to ${profile.name}...`);
+    const loadingToast = sonnerToast.loading(t('profiles.switching', { name: profile.name }));
 
     try {
       await switchProfile(profileId);
 
       sonnerToast.dismiss(loadingToast);
-      sonnerToast.success(`Switched to ${profile.name}`);
+      sonnerToast.success(t('profiles.switched_to', { name: profile.name }));
 
       // Navigate to monitors to show the new server's data
       navigate('/monitors');
     } catch {
       sonnerToast.dismiss(loadingToast);
-      sonnerToast.error('Failed to switch profile');
+      sonnerToast.error(t('profiles.switch_failed'));
       setSwitchingProfileId(null);
     }
   };
@@ -289,9 +291,9 @@ export default function Profiles() {
     <>
       <div className="p-3 sm:p-4 md:p-6 max-w-5xl mx-auto space-y-4 sm:space-y-6">
         <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Profiles</h1>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">{t('profiles.title')}</h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 hidden sm:block">
-            Manage your ZoneMinder server connections
+            {t('profiles.subtitle')}
           </p>
         </div>
 
@@ -303,16 +305,16 @@ export default function Profiles() {
                 <div>
                   <div className="flex items-center gap-2">
                     <Server className="h-5 w-5 text-primary" />
-                    <CardTitle className="text-lg sm:text-xl">Server Connections</CardTitle>
+                    <CardTitle className="text-lg sm:text-xl">{t('profiles.server_connections')}</CardTitle>
                   </div>
                   <CardDescription className="mt-1 text-xs sm:text-sm">
-                    Add and manage multiple ZoneMinder servers
+                    {t('profiles.manage_servers')}
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
                   <Button onClick={handleOpenAddDialog} className="h-9 sm:h-10">
                     <Plus className="h-4 w-4 sm:mr-2" />
-                    <span className="hidden sm:inline">Add Profile</span>
+                    <span className="hidden sm:inline">{t('profiles.add_profile')}</span>
                   </Button>
                   {profiles.length > 0 && (
                     <Button
@@ -321,7 +323,7 @@ export default function Profiles() {
                       className="h-9 sm:h-10"
                     >
                       <Trash2 className="h-4 w-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Delete All</span>
+                      <span className="hidden sm:inline">{t('profiles.delete_all')}</span>
                     </Button>
                   )}
                 </div>
@@ -342,32 +344,32 @@ export default function Profiles() {
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-medium">{profile.name}</span>
                           {profile.isDefault && (
-                            <Badge variant="secondary" className="text-xs">Default</Badge>
+                            <Badge variant="secondary" className="text-xs">{t('profiles.default')}</Badge>
                           )}
                           {profile.username && profile.password ? (
                             <Badge variant="outline" className="text-xs text-green-600 dark:text-green-400 border-green-600 dark:border-green-400">
-                              ✓ Credentials
+                              ✓ {t('profiles.credentials')}
                             </Badge>
                           ) : (
                             <Badge variant="outline" className="text-xs text-orange-600 dark:text-orange-400 border-orange-600 dark:border-orange-400">
-                              ⚠ No Credentials
+                              ⚠ {t('profiles.no_credentials')}
                             </Badge>
                           )}
                         </div>
                         <div className="space-y-1 text-xs font-mono">
                           <p className="text-muted-foreground break-all">
-                            <span className="font-sans font-medium text-foreground">Portal:</span> {profile.portalUrl}
+                            <span className="font-sans font-medium text-foreground">{t('profiles.portal')}:</span> {profile.portalUrl}
                           </p>
                           <p className="text-muted-foreground break-all">
-                            <span className="font-sans font-medium text-foreground">API:</span> {profile.apiUrl}
+                            <span className="font-sans font-medium text-foreground">{t('profiles.api')}:</span> {profile.apiUrl}
                           </p>
                           <p className="text-muted-foreground break-all">
-                            <span className="font-sans font-medium text-foreground">Streaming:</span> {profile.cgiUrl}
+                            <span className="font-sans font-medium text-foreground">{t('profiles.streaming')}:</span> {profile.cgiUrl}
                           </p>
                         </div>
                         {!(profile.username && profile.password) && (
                           <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
-                            Click Edit to add username and password for authentication
+                            {t('profiles.add_creds_hint')}
                           </p>
                         )}
                       </div>
@@ -383,10 +385,10 @@ export default function Profiles() {
                           {switchingProfileId === profile.id ? (
                             <>
                               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Switching...
+                              {t('profiles.switching')}
                             </>
                           ) : (
-                            'Switch'
+                            t('profiles.switch')
                           )}
                         </Button>
                       )}
@@ -395,7 +397,7 @@ export default function Profiles() {
                         size="icon"
                         onClick={() => handleOpenEditDialog(profile)}
                         disabled={!!switchingProfileId}
-                        aria-label="Edit profile"
+                        aria-label={t('common.edit')}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -406,7 +408,7 @@ export default function Profiles() {
                           onClick={() => handleOpenDeleteDialog(profile)}
                           className="text-destructive hover:text-destructive"
                           disabled={!!switchingProfileId}
-                          aria-label="Delete profile"
+                          aria-label={t('common.delete')}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -424,14 +426,14 @@ export default function Profiles() {
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Add New Profile</DialogTitle>
+            <DialogTitle>{t('profiles.add_dialog_title')}</DialogTitle>
             <DialogDescription>
-              Add a new ZoneMinder server connection profile
+              {t('profiles.add_dialog_desc')}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="name">Profile Name*</Label>
+              <Label htmlFor="name">{t('profiles.name')}*</Label>
               <Input
                 id="name"
                 placeholder="e.g., Home Server"
@@ -440,7 +442,7 @@ export default function Profiles() {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="portalUrl">Portal URL*</Label>
+              <Label htmlFor="portalUrl">{t('profiles.portal_url')}*</Label>
               <Input
                 id="portalUrl"
                 placeholder="https://zm.example.com"
@@ -448,11 +450,11 @@ export default function Profiles() {
                 onChange={(e) => setFormData({ ...formData, portalUrl: e.target.value })}
               />
               <p className="text-xs text-muted-foreground">
-                API and Streaming URLs will be derived automatically
+                {t('profiles.url_hint')}
               </p>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="username">Username (optional)</Label>
+              <Label htmlFor="username">{t('profiles.username')}</Label>
               <Input
                 id="username"
                 placeholder="admin"
@@ -461,7 +463,7 @@ export default function Profiles() {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="password">Password (optional)</Label>
+              <Label htmlFor="password">{t('profiles.password')}</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -490,10 +492,10 @@ export default function Profiles() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button onClick={handleAddProfile} disabled={isSaving}>
-              {isSaving ? 'Adding...' : 'Add Profile'}
+              {isSaving ? t('common.saving') : t('profiles.add')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -503,19 +505,19 @@ export default function Profiles() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Edit Profile</DialogTitle>
+            <DialogTitle>{t('profiles.edit_title')}</DialogTitle>
             <DialogDescription>
-              Update profile settings and credentials
+              {t('profiles.edit_desc')}
             </DialogDescription>
             {selectedProfile && !(selectedProfile.username && selectedProfile.password) && (
               <div className="mt-2 p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg text-sm text-orange-600 dark:text-orange-400">
-                ⚠ This profile has no stored credentials. Add username and password below to enable auto-login.
+                ⚠ {t('profiles.no_creds_warning')}
               </div>
             )}
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="edit-name">Profile Name*</Label>
+              <Label htmlFor="edit-name">{t('profiles.name')}*</Label>
               <Input
                 id="edit-name"
                 value={formData.name}
@@ -523,7 +525,7 @@ export default function Profiles() {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="edit-portalUrl">Portal URL*</Label>
+              <Label htmlFor="edit-portalUrl">{t('profiles.portal_url')}*</Label>
               <Input
                 id="edit-portalUrl"
                 value={formData.portalUrl}
@@ -531,29 +533,29 @@ export default function Profiles() {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="edit-apiUrl">API URL*</Label>
+              <Label htmlFor="edit-apiUrl">{t('profiles.api_url')}*</Label>
               <Input
                 id="edit-apiUrl"
                 value={formData.apiUrl}
                 onChange={(e) => setFormData({ ...formData, apiUrl: e.target.value })}
               />
               <p className="text-xs text-muted-foreground">
-                Usually auto-derived from Portal URL, but can be manually overridden
+                {t('profiles.manual_override_hint')}
               </p>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="edit-cgiUrl">Streaming URL*</Label>
+              <Label htmlFor="edit-cgiUrl">{t('profiles.streaming_url')}*</Label>
               <Input
                 id="edit-cgiUrl"
                 value={formData.cgiUrl}
                 onChange={(e) => setFormData({ ...formData, cgiUrl: e.target.value })}
               />
               <p className="text-xs text-muted-foreground">
-                Usually auto-derived from Portal URL, but can be manually overridden
+                {t('profiles.manual_override_hint')}
               </p>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="edit-username">Username (optional)</Label>
+              <Label htmlFor="edit-username">{t('profiles.username')}</Label>
               <Input
                 id="edit-username"
                 value={formData.username}
@@ -561,12 +563,12 @@ export default function Profiles() {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="edit-password">Password</Label>
+              <Label htmlFor="edit-password">{t('profiles.password')}</Label>
               <div className="relative">
                 <Input
                   id="edit-password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter password"
+                  placeholder={t('profiles.enter_password')}
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="pr-10"
@@ -587,16 +589,16 @@ export default function Profiles() {
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Click the eye icon to show/hide password
+                {t('profiles.password_hint')}
               </p>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button onClick={handleUpdateProfile} disabled={isSaving}>
-              {isSaving ? 'Saving...' : 'Save Changes'}
+              {isSaving ? t('common.saving') : t('common.save_changes')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -606,15 +608,15 @@ export default function Profiles() {
       < AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen} >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Profile</AlertDialogTitle>
+            <AlertDialogTitle>{t('profiles.delete_confirm_title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{selectedProfile?.name}"? This action cannot be undone.
+              {t('profiles.delete_confirm_desc', { name: selectedProfile?.name })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteProfile} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
+              {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -624,17 +626,15 @@ export default function Profiles() {
       <AlertDialog open={isDeleteAllDialogOpen} onOpenChange={setIsDeleteAllDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete All Profiles</AlertDialogTitle>
+            <AlertDialogTitle>{t('profiles.delete_all_confirm_title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete ALL {profiles.length} profile{profiles.length !== 1 ? 's' : ''}?
-              This will remove all server connections and credentials. This action cannot be undone.
-              You will be redirected to the setup screen.
+              {t('profiles.delete_all_confirm_desc', { count: profiles.length })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteAllProfiles} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete All Profiles
+              {t('profiles.delete_all_btn')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

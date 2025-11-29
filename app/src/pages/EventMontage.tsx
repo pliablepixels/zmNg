@@ -48,9 +48,11 @@ import { filterEnabledMonitors } from '../lib/filters';
 import { ZM_CONSTANTS } from '../lib/constants';
 import { downloadEventVideo, downloadEventImage } from '../lib/download';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 export default function EventMontage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const currentProfile = useProfileStore((state) => state.currentProfile());
   const accessToken = useAuthStore((state) => state.accessToken);
   const settings = useSettingsStore(
@@ -229,14 +231,14 @@ export default function EventMontage() {
       eventMontageGridCols: cols,
     });
 
-    toast.success(`Applied ${cols} column grid layout`);
+    toast.success(t('eventMontage.grid_layout_applied', { cols }));
   };
 
   const handleCustomGridSubmit = () => {
     const cols = parseInt(customCols, 10);
 
     if (isNaN(cols) || cols < 1 || cols > 10) {
-      toast.error('Please enter a valid number between 1 and 10');
+      toast.error(t('eventMontage.invalid_columns'));
       return;
     }
 
@@ -279,11 +281,11 @@ export default function EventMontage() {
     return (
       <div className="p-8">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold tracking-tight">Event Montage</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('eventMontage.title')}</h1>
         </div>
         <div className="p-4 bg-destructive/10 text-destructive rounded-lg flex items-center gap-2">
           <AlertCircle className="h-5 w-5" />
-          Failed to load events: {(error as Error).message}
+          {t('eventMontage.load_error')}: {(error as Error).message}
         </div>
       </div>
     );
@@ -296,51 +298,51 @@ export default function EventMontage() {
         <div>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2">
             <LayoutGrid className="h-5 w-5 sm:h-6 sm:w-6" />
-            Event Montage
+            {t('eventMontage.title')}
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 hidden sm:block">
-            {events.length} event{events.length !== 1 ? 's' : ''} found
+            {t('eventMontage.events_found', { count: events.length })}
           </p>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" title="Grid Layout" className="h-8 sm:h-9">
+              <Button variant="ghost" size="sm" title={t('eventMontage.grid_layout')} className="h-8 sm:h-9">
                 <LayoutGrid className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">{gridCols} Column{gridCols !== 1 ? 's' : ''}</span>
+                <span className="hidden sm:inline">{t('eventMontage.columns', { count: gridCols })}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => handleApplyGridLayout(1)}>
                 <LayoutGrid className="h-4 w-4 mr-2" />
-                1 Column
+                {t('eventMontage.columns', { count: 1 })}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleApplyGridLayout(2)}>
                 <Grid2x2 className="h-4 w-4 mr-2" />
-                2 Columns
+                {t('eventMontage.columns', { count: 2 })}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleApplyGridLayout(3)}>
                 <Grid3x3 className="h-4 w-4 mr-2" />
-                3 Columns
+                {t('eventMontage.columns', { count: 3 })}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleApplyGridLayout(4)}>
                 <LayoutGrid className="h-4 w-4 mr-2" />
-                4 Columns
+                {t('eventMontage.columns', { count: 4 })}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleApplyGridLayout(5)}>
                 <LayoutGrid className="h-4 w-4 mr-2" />
-                5 Columns
+                {t('eventMontage.columns', { count: 5 })}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setIsCustomGridDialogOpen(true)}>
                 <GripVertical className="h-4 w-4 mr-2" />
-                Custom...
+                {t('eventMontage.custom')}...
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <Button onClick={() => refetch()} variant="outline" size="sm" className="h-8 sm:h-9">
             <RefreshCw className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Refresh</span>
+            <span className="hidden sm:inline">{t('common.refresh')}</span>
           </Button>
         </div>
       </div>
@@ -352,14 +354,15 @@ export default function EventMontage() {
             <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-accent/50 transition-colors">
               <div className="flex items-center gap-2">
                 <Filter className="h-5 w-5 text-primary" />
-                <span className="font-semibold">Filters</span>
+                <span className="font-semibold">{t('eventMontage.filters')}</span>
                 {hasActiveFilters && (
                   <Badge variant="secondary" className="ml-2">
-                    {selectedMonitorIds.length +
-                      (selectedCause !== 'all' ? 1 : 0) +
-                      (startDate ? 1 : 0) +
-                      (endDate ? 1 : 0)}{' '}
-                    active
+                    {t('eventMontage.active_filters', {
+                      count: selectedMonitorIds.length +
+                        (selectedCause !== 'all' ? 1 : 0) +
+                        (startDate ? 1 : 0) +
+                        (endDate ? 1 : 0)
+                    })}
                   </Badge>
                 )}
               </div>
@@ -374,7 +377,7 @@ export default function EventMontage() {
                     }}
                   >
                     <X className="h-4 w-4 mr-1" />
-                    Clear All
+                    {t('eventMontage.clear_all')}
                   </Button>
                 )}
                 <ChevronDown
@@ -391,9 +394,9 @@ export default function EventMontage() {
               {/* Camera Filter */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-base font-semibold">Cameras</Label>
+                  <Label className="text-base font-semibold">{t('eventMontage.cameras')}</Label>
                   <Button variant="ghost" size="sm" onClick={handleSelectAllMonitors}>
-                    {selectedMonitorIds.length === monitors.length ? 'Deselect All' : 'Select All'}
+                    {selectedMonitorIds.length === monitors.length ? t('eventMontage.deselect_all') : t('eventMontage.select_all')}
                   </Button>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
@@ -415,14 +418,14 @@ export default function EventMontage() {
               {/* Cause Filter */}
               <div className="space-y-2">
                 <Label htmlFor="cause-filter" className="text-base font-semibold">
-                  Event Cause
+                  {t('eventMontage.event_cause')}
                 </Label>
                 <Select value={selectedCause} onValueChange={setSelectedCause}>
                   <SelectTrigger id="cause-filter">
-                    <SelectValue placeholder="All causes" />
+                    <SelectValue placeholder={t('eventMontage.all_causes')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Causes</SelectItem>
+                    <SelectItem value="all">{t('eventMontage.all_causes')}</SelectItem>
                     {uniqueCauses.map((cause) => (
                       <SelectItem key={cause} value={cause}>
                         {cause}
@@ -437,7 +440,7 @@ export default function EventMontage() {
                 <div className="space-y-2">
                   <Label htmlFor="start-date" className="text-base font-semibold flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
-                    Start Date
+                    {t('eventMontage.start_date')}
                   </Label>
                   <Input
                     id="start-date"
@@ -449,7 +452,7 @@ export default function EventMontage() {
                 <div className="space-y-2">
                   <Label htmlFor="end-date" className="text-base font-semibold flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
-                    End Date
+                    {t('eventMontage.end_date')}
                   </Label>
                   <Input
                     id="end-date"
@@ -468,7 +471,7 @@ export default function EventMontage() {
       {events.length === 0 && !isLoading ? (
         <div className="text-center py-20 text-muted-foreground">
           <Video className="h-12 w-12 mx-auto mb-4 opacity-20" />
-          <p>No events found with the current filters.</p>
+          <p>{t('eventMontage.no_events')}</p>
         </div>
       ) : (
         <>
@@ -528,25 +531,25 @@ export default function EventMontage() {
                                 event.Name,
                                 accessToken || undefined
                               )
-                                .then(() => toast.success('Video download started'))
-                                .catch(() => toast.error('Failed to download video'));
+                                .then(() => toast.success(t('eventMontage.video_download_started')))
+                                .catch(() => toast.error(t('eventMontage.video_download_failed')));
                             } else if (hasJPEGs) {
                               downloadEventImage(imageUrl, event.Id, event.Name)
-                                .then(() => toast.success('Image downloaded'))
-                                .catch(() => toast.error('Failed to download image'));
+                                .then(() => toast.success(t('eventMontage.image_downloaded')))
+                                .catch(() => toast.error(t('eventMontage.image_download_failed')));
                             }
                           }}
-                          title={hasVideo ? 'Download Video' : 'Download Image'}
+                          title={hasVideo ? t('eventMontage.download_video') : t('eventMontage.download_image')}
                         >
                           {hasVideo ? (
                             <>
                               <Video className="h-4 w-4" />
-                              Download Video
+                              {t('eventMontage.download_video')}
                             </>
                           ) : (
                             <>
                               <Image className="h-4 w-4" />
-                              Download Image
+                              {t('eventMontage.download_image')}
                             </>
                           )}
                         </Button>
@@ -577,8 +580,8 @@ export default function EventMontage() {
           {/* Results summary and load more */}
           <div className="text-center py-4 space-y-3">
             <div className="text-xs text-muted-foreground">
-              Showing {events.length} event{events.length !== 1 ? 's' : ''}
-              {events.length >= eventLimit && ` (more available)`}
+              {t('eventMontage.showing_events', { count: events.length })}
+              {events.length >= eventLimit && ` (${t('eventMontage.more_available')})`}
             </div>
             {events.length >= eventLimit && (
               <Button
@@ -591,10 +594,10 @@ export default function EventMontage() {
                 {isLoadingMore ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Loading...
+                    {t('common.loading')}
                   </>
                 ) : (
-                  'Load More Events'
+                  t('eventMontage.load_more')
                 )}
               </Button>
             )}
@@ -606,14 +609,14 @@ export default function EventMontage() {
       <Dialog open={isCustomGridDialogOpen} onOpenChange={setIsCustomGridDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Custom Grid Columns</DialogTitle>
+            <DialogTitle>{t('eventMontage.custom_grid_title')}</DialogTitle>
             <DialogDescription>
-              Enter the number of columns for your custom grid layout (1-10).
+              {t('eventMontage.custom_grid_desc')}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="custom-cols">Columns</Label>
+              <Label htmlFor="custom-cols">{t('eventMontage.columns_label')}</Label>
               <Input
                 id="custom-cols"
                 type="number"
@@ -631,9 +634,9 @@ export default function EventMontage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCustomGridDialogOpen(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
-            <Button onClick={handleCustomGridSubmit}>Apply</Button>
+            <Button onClick={handleCustomGridSubmit}>{t('common.apply')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -11,10 +11,12 @@ import { useProfileStore } from '../stores/profile';
 import { toast } from 'sonner';
 import { Bell } from 'lucide-react';
 import { log } from '../lib/logger';
+import { useTranslation } from 'react-i18next';
 
 export function NotificationHandler() {
   const currentProfile = useProfileStore((state) => state.currentProfile());
   const getDecryptedPassword = useProfileStore((state) => state.getDecryptedPassword);
+  const { t } = useTranslation();
 
   const {
     settings,
@@ -104,7 +106,7 @@ export function NotificationHandler() {
             <div className="font-semibold text-sm">{latestEvent.MonitorName}</div>
             <div className="text-sm text-muted-foreground mt-0.5">{latestEvent.Cause}</div>
             <div className="text-xs text-muted-foreground mt-1">
-              Event ID: {latestEvent.EventId}
+              {t('events.event_id')}: {latestEvent.EventId}
             </div>
           </div>
         </div>,
@@ -112,7 +114,7 @@ export function NotificationHandler() {
           duration: 5000,
           action: latestEvent.EventId
             ? {
-                label: 'View',
+                label: t('common.view'),
                 onClick: () => {
                   // Navigate to event detail
                   window.location.href = `/events/${latestEvent.EventId}`;
@@ -133,7 +135,7 @@ export function NotificationHandler() {
         eventId: latestEvent.EventId,
       });
     }
-  }, [events, settings.showToasts, settings.playSound]);
+  }, [events, settings.showToasts, settings.playSound, t]);
 
   // This component doesn't render anything
   return null;

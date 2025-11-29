@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { useMonitorStream } from '../../hooks/useMonitorStream';
 import type { MonitorCardProps } from '../../api/types';
 import { log } from '../../lib/logger';
+import { useTranslation } from 'react-i18next';
 
 interface MonitorCardComponentProps extends MonitorCardProps {
   onShowSettings: (monitor: MonitorCardProps['monitor']) => void;
@@ -22,6 +23,7 @@ function MonitorCardComponent({
   onShowSettings,
 }: MonitorCardComponentProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const isRunning = status?.Status === 'Connected';
 
   const {
@@ -44,7 +46,7 @@ function MonitorCardComponent({
         component: 'MonitorCard',
       });
       regenerateConnection();
-      toast.error(`Stream connection lost for ${monitor.Name}. Reconnecting...`);
+      toast.error(t('monitors.stream_connection_lost', { name: monitor.Name }));
 
       setTimeout(() => {
         if (img) {
@@ -53,7 +55,7 @@ function MonitorCardComponent({
       }, 5000);
     } else {
       img.src =
-        'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="320" height="240"%3E%3Crect fill="%231a1a1a" width="320" height="240"/%3E%3Ctext fill="%23444" x="50%" y="50%" text-anchor="middle" font-family="sans-serif"%3ENo Signal%3C/text%3E%3C/svg%3E';
+        `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="320" height="240"%3E%3Crect fill="%231a1a1a" width="320" height="240"/%3E%3Ctext fill="%23444" x="50%" y="50%" text-anchor="middle" font-family="sans-serif"%3E${t('monitors.no_signal')}%3C/text%3E%3C/svg%3E`;
     }
   };
 
@@ -62,10 +64,10 @@ function MonitorCardComponent({
     if (imgRef.current) {
       try {
         await downloadSnapshotFromElement(imgRef.current, monitor.Name);
-        toast.success('Snapshot downloaded');
+        toast.success(t('monitors.snapshot_downloaded'));
       } catch (error) {
         log.error('Failed to download snapshot', { component: 'MonitorCard' }, error);
-        toast.error('Failed to download snapshot');
+        toast.error(t('monitors.snapshot_failed'));
       }
     }
   };
@@ -101,19 +103,19 @@ function MonitorCardComponent({
                 : 'bg-red-500/90 hover:bg-red-500'
             )}
           >
-            {isRunning ? 'Live' : 'Offline'}
+            {isRunning ? t('monitors.live') : t('monitors.offline')}
           </Badge>
         </div>
 
         {/* Quick View Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-between p-4">
-          <span className="text-white text-sm font-medium">Click to view live</span>
+          <span className="text-white text-sm font-medium">{t('monitors.click_to_view')}</span>
           <Button
             variant="secondary"
             size="icon"
             className="h-8 w-8 shrink-0"
             onClick={handleDownloadSnapshot}
-            title="Download Snapshot"
+            title={t('monitors.download_snapshot')}
           >
             <Download className="h-4 w-4" />
           </Button>
@@ -144,7 +146,7 @@ function MonitorCardComponent({
 
         {/* Function Selector */}
         <div className="flex items-center justify-between py-2 border-t">
-          <span className="text-sm font-medium text-muted-foreground">Function</span>
+          <span className="text-sm font-medium text-muted-foreground">{t('monitors.function')}</span>
           <Badge
             variant={monitor.Function === 'None' ? 'outline' : 'secondary'}
             className="font-mono text-xs"
@@ -162,7 +164,7 @@ function MonitorCardComponent({
             onClick={() => navigate(`/events?monitorId=${monitor.Id}`)}
           >
             <Video className="h-3 w-3 mr-1" />
-            Events
+            {t('sidebar.events')}
             {eventCount !== undefined && eventCount > 0 && (
               <Badge
                 variant="destructive"
@@ -179,7 +181,7 @@ function MonitorCardComponent({
             onClick={handleShowSettings}
           >
             <Settings className="h-3 w-3 mr-1" />
-            Settings
+            {t('sidebar.settings')}
           </Button>
         </div>
 
@@ -188,7 +190,7 @@ function MonitorCardComponent({
           <div className="pt-2 border-t">
             <div className="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400">
               <Activity className="h-3 w-3" />
-              <span>PTZ Capable</span>
+              <span>{t('monitors.ptz_capable')}</span>
             </div>
           </div>
         )}

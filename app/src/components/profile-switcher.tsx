@@ -13,9 +13,11 @@ import { Button } from './ui/button';
 import { Check, ChevronDown, Server, Plus, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { log } from '../lib/logger';
+import { useTranslation } from 'react-i18next';
 
 export function ProfileSwitcher() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const profiles = useProfileStore((state) => state.profiles);
   const currentProfile = useProfileStore((state) => state.currentProfile());
   const switchProfile = useProfileStore((state) => state.switchProfile);
@@ -34,7 +36,7 @@ export function ProfileSwitcher() {
       toId: profileId
     });
     setIsLoading(true);
-    const loadingToast = toast.loading(`Switching to ${profile.name}...`);
+    const loadingToast = toast.loading(t('profiles.switching_to', { name: profile.name }));
 
     try {
       await switchProfile(profileId);
@@ -42,7 +44,7 @@ export function ProfileSwitcher() {
       // Success!
       log.profile('Profile switch successful', { profileName: profile.name, profileId });
       toast.dismiss(loadingToast);
-      toast.success(`Switched to ${profile.name}`);
+      toast.success(t('profiles.switched_to', { name: profile.name }));
 
       setIsLoading(false);
 
@@ -56,8 +58,8 @@ export function ProfileSwitcher() {
       }, error);
 
       toast.dismiss(loadingToast);
-      toast.error('Failed to switch profile', {
-        description: error?.message || 'An unknown error occurred.',
+      toast.error(t('profiles.switch_failed'), {
+        description: error?.message || t('common.unknown_error'),
       });
 
       setIsLoading(false);
@@ -86,13 +88,13 @@ export function ProfileSwitcher() {
             ) : (
               <Server className="h-4 w-4" />
             )}
-            <span className="truncate">{currentProfile?.name || 'Select Profile'}</span>
+            <span className="truncate">{currentProfile?.name || t('profiles.select_profile')}</span>
           </div>
           {!isLoading && <ChevronDown className="h-4 w-4 opacity-50" />}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[250px]">
-        <DropdownMenuLabel>Switch Profile</DropdownMenuLabel>
+        <DropdownMenuLabel>{t('profiles.switch_profile')}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {profiles.map((profile) => (
           <DropdownMenuItem
@@ -120,7 +122,7 @@ export function ProfileSwitcher() {
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleAddProfile} className="cursor-pointer">
           <Plus className="h-4 w-4 mr-2" />
-          Add New Profile
+          {t('profiles.add_new_profile')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

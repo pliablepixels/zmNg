@@ -23,6 +23,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "../components/ui/popover";
+import { useTranslation } from 'react-i18next';
 
 interface TimelineGroup {
   id: string;
@@ -32,6 +33,7 @@ interface TimelineGroup {
 
 export default function Timeline() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const timelineRef = useRef<HTMLDivElement>(null);
   const timelineInstance = useRef<VisTimeline | null>(null);
 
@@ -230,9 +232,9 @@ export default function Timeline() {
   if (error) {
     return (
       <div className="p-8">
-        <h1 className="text-3xl font-bold mb-6">Timeline</h1>
+        <h1 className="text-3xl font-bold mb-6">{t('timeline.title')}</h1>
         <div className="p-4 bg-destructive/10 text-destructive rounded-md">
-          Failed to load timeline: {(error as Error).message}
+          {t('timeline.load_error')}: {(error as Error).message}
         </div>
       </div>
     );
@@ -242,16 +244,16 @@ export default function Timeline() {
     <div className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Timeline</h1>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">{t('timeline.title')}</h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 hidden sm:block">
-            <span className="hidden sm:inline">Visual timeline of events</span>
-            {selectedMonitorIds.length > 0 && ` (${selectedMonitorIds.length} camera${selectedMonitorIds.length > 1 ? 's' : ''} selected)`}
+            <span className="hidden sm:inline">{t('timeline.subtitle')}</span>
+            {selectedMonitorIds.length > 0 && ` (${t('timeline.cameras_selected', { count: selectedMonitorIds.length })})`}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Button onClick={() => refetch()} variant="outline" size="sm" className="h-8 sm:h-9">
             <RefreshCw className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Refresh</span>
+            <span className="hidden sm:inline">{t('common.refresh')}</span>
           </Button>
         </div>
       </div>
@@ -261,7 +263,7 @@ export default function Timeline() {
         <CardContent className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="startDate">Start Date</Label>
+              <Label htmlFor="startDate">{t('timeline.start_date')}</Label>
               <Input
                 id="startDate"
                 type="date"
@@ -270,7 +272,7 @@ export default function Timeline() {
               />
             </div>
             <div>
-              <Label htmlFor="endDate">End Date</Label>
+              <Label htmlFor="endDate">{t('timeline.end_date')}</Label>
               <Input
                 id="endDate"
                 type="date"
@@ -279,28 +281,28 @@ export default function Timeline() {
               />
             </div>
             <div>
-              <Label>Monitors</Label>
+              <Label>{t('timeline.monitors')}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-between">
                     {selectedMonitorIds.length === 0
-                      ? 'All Monitors'
-                      : `${selectedMonitorIds.length} selected`}
+                      ? t('timeline.all_monitors')
+                      : t('timeline.monitors_selected', { count: selectedMonitorIds.length })}
                     <Filter className="h-4 w-4 ml-2" />
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-[calc(100vw-2rem)] sm:w-80 max-w-sm">
                   <div className="grid gap-4">
                     <div className="space-y-2">
-                      <h4 className="text-sm sm:text-base font-medium leading-none">Select Monitors</h4>
+                      <h4 className="text-sm sm:text-base font-medium leading-none">{t('timeline.select_monitors')}</h4>
                       <p className="text-xs sm:text-sm text-muted-foreground">
-                        Filter timeline by monitors
+                        {t('timeline.filter_by_monitors')}
                       </p>
                     </div>
                     <div className="border rounded-md max-h-64 overflow-y-auto p-2 space-y-2">
                       {enabledMonitors.length === 0 ? (
                         <p className="text-sm text-muted-foreground text-center py-2">
-                          No monitors available
+                          {t('timeline.no_monitors')}
                         </p>
                       ) : (
                         <>
@@ -317,7 +319,7 @@ export default function Timeline() {
                               }}
                             />
                             <label htmlFor="select-all-timeline" className="text-sm font-medium cursor-pointer">
-                              {selectedMonitorIds.length === enabledMonitors.length ? 'Deselect All' : 'Select All'}
+                              {selectedMonitorIds.length === enabledMonitors.length ? t('timeline.deselect_all') : t('timeline.select_all')}
                             </label>
                           </div>
                           {enabledMonitors.map(({ Monitor }) => (
@@ -343,7 +345,7 @@ export default function Timeline() {
                     </div>
                     {selectedMonitorIds.length > 0 && (
                       <div className="flex items-center gap-1 flex-wrap pt-2 border-t">
-                        <span className="text-xs text-muted-foreground">Selected:</span>
+                        <span className="text-xs text-muted-foreground">{t('timeline.selected')}:</span>
                         {selectedMonitorIds.map(id => {
                           const monitor = enabledMonitors.find(m => m.Monitor.Id === id);
                           return monitor ? (
@@ -375,22 +377,22 @@ export default function Timeline() {
           {isLoading ? (
             <div className="flex flex-col items-center justify-center h-[600px] gap-4">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-              <div className="text-muted-foreground">Loading timeline...</div>
+              <div className="text-muted-foreground">{t('timeline.loading')}</div>
             </div>
           ) : data?.events && data.events.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-[600px] text-muted-foreground gap-4">
               <Video className="h-16 w-16 opacity-20" />
-              <div className="text-lg">No events found in this date range.</div>
-              <p className="text-sm">Try adjusting your filters or date range</p>
+              <div className="text-lg">{t('timeline.no_events_found')}</div>
+              <p className="text-sm">{t('timeline.adjust_filters')}</p>
             </div>
           ) : (
             <div className="p-6">
               <div className="mb-4 flex items-center justify-between">
                 <div className="text-sm text-muted-foreground">
-                  Showing <strong>{data?.events.length}</strong> events
+                  {t('timeline.showing_events', { count: data?.events.length })}
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  💡 Tip: Click and drag to pan • Scroll to zoom • Click events for details
+                  {t('timeline.tip')}
                 </div>
               </div>
               <div
@@ -416,7 +418,7 @@ export default function Timeline() {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-3xl font-bold text-blue-600">{data.events.length}</div>
-                  <p className="text-xs text-muted-foreground mt-1 font-medium">Total Events</p>
+                  <p className="text-xs text-muted-foreground mt-1 font-medium">{t('timeline.total_events')}</p>
                 </div>
                 <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
                   <Video className="h-6 w-6 text-blue-600" />
@@ -431,7 +433,7 @@ export default function Timeline() {
                   <div className="text-3xl font-bold text-green-600">
                     {new Set(data.events.map(e => e.Event.MonitorId)).size}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1 font-medium">Active Monitors</p>
+                  <p className="text-xs text-muted-foreground mt-1 font-medium">{t('timeline.active_monitors')}</p>
                 </div>
                 <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
                   <Activity className="h-6 w-6 text-green-600" />
@@ -446,7 +448,7 @@ export default function Timeline() {
                   <div className="text-3xl font-bold text-amber-600">
                     {data.events.reduce((sum, e) => sum + parseInt(e.Event.AlarmFrames || '0'), 0).toLocaleString()}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1 font-medium">Alarm Frames</p>
+                  <p className="text-xs text-muted-foreground mt-1 font-medium">{t('timeline.alarm_frames')}</p>
                 </div>
                 <div className="h-12 w-12 rounded-full bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center">
                   <AlertCircle className="h-6 w-6 text-amber-600" />
@@ -461,7 +463,7 @@ export default function Timeline() {
                   <div className="text-3xl font-bold text-purple-600">
                     {Math.round(data.events.reduce((sum, e) => sum + parseFloat(e.Event.Length || '0'), 0) / 60)}m
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1 font-medium">Total Duration</p>
+                  <p className="text-xs text-muted-foreground mt-1 font-medium">{t('timeline.total_duration')}</p>
                 </div>
                 <div className="h-12 w-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
                   <Clock className="h-6 w-6 text-purple-600" />
