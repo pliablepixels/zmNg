@@ -40,7 +40,7 @@ export const ZM_CONSTANTS = {
 
   // Grid layout
   gridRowHeight: 100,
-  gridMargin: 16,
+  gridMargin: 8,
 
   // Timeline
   timelineZoomMin: 60000, // 1 minute

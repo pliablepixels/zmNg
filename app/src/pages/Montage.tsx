@@ -29,7 +29,7 @@ import {
 } from '../components/ui/dialog';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { RefreshCw, Video, Clock, Settings2, Maximize2, AlertCircle, LayoutDashboard, RotateCcw, Download, Grid2x2, Grid3x3, GripVertical, Maximize, Minimize, X } from 'lucide-react';
+import { RefreshCw, Video, Clock, Settings2, Maximize2, AlertCircle, LayoutDashboard, RotateCcw, Download, Grid2x2, Grid3x3, GripVertical, Maximize, Minimize, X, LayoutGrid } from 'lucide-react';
 import { filterEnabledMonitors } from '../lib/filters';
 import { cn } from '../lib/utils';
 import { ZM_CONSTANTS } from '../lib/constants';
@@ -90,7 +90,6 @@ export default function Montage() {
   const [gridRows, setGridRows] = useState<number>(settings.montageGridRows);
   const [gridCols, setGridCols] = useState<number>(settings.montageGridCols);
   const [isCustomGridDialogOpen, setIsCustomGridDialogOpen] = useState(false);
-  const [customRows, setCustomRows] = useState<string>(settings.montageGridRows.toString());
   const [customCols, setCustomCols] = useState<string>(settings.montageGridCols.toString());
 
   // Track container width for toast notifications
@@ -114,7 +113,6 @@ export default function Montage() {
   useEffect(() => {
     setGridRows(settings.montageGridRows);
     setGridCols(settings.montageGridCols);
-    setCustomRows(settings.montageGridRows.toString());
     setCustomCols(settings.montageGridCols.toString());
   }, [currentProfile?.id, settings.montageGridRows, settings.montageGridCols]);
 
@@ -135,9 +133,9 @@ export default function Montage() {
     const itemsPerRow = {
       lg: cols,
       md: Math.min(cols, 6), // Cap md at 6 to avoid tiny streams
-      sm: 2,
-      xs: 1,
-      xxs: 1
+      sm: Math.min(cols, 2), // Respect user selection, max 2 on small screens
+      xs: Math.min(cols, 2), // Respect user selection, max 2 on mobile
+      xxs: Math.min(cols, 2) // Respect user selection, max 2 on smallest screens
     };
 
     const newLayouts: Layouts = {};
@@ -155,9 +153,9 @@ export default function Montage() {
       newLayouts[breakpoint] = monitorList.map(({ Monitor }, index) => ({
         i: Monitor.Id,
         x: (index % perRow) * width,
-        y: Math.floor(index / perRow) * 3,
+        y: Math.floor(index / perRow) * 2,
         w: width,
-        h: 3,
+        h: 2,
         // Min width should be reasonable. 
         // For 60 cols, maybe 1/6th (10) or 1/12th (5). Let's say 5 (small but visible).
         // For 12 cols, maybe 2.
@@ -275,15 +273,14 @@ export default function Montage() {
   };
 
   const handleCustomGridSubmit = () => {
-    const rows = parseInt(customRows, 10);
     const cols = parseInt(customCols, 10);
 
-    if (isNaN(rows) || isNaN(cols) || rows < 1 || cols < 1 || rows > 10 || cols > 10) {
-      toast.error('Please enter valid numbers between 1 and 10');
+    if (isNaN(cols) || cols < 1 || cols > 10) {
+      toast.error('Please enter a valid number between 1 and 10');
       return;
     }
 
-    handleApplyGridLayout(rows, cols);
+    handleApplyGridLayout(cols, cols);
     setIsCustomGridDialogOpen(false);
   };
 
@@ -337,64 +334,72 @@ export default function Montage() {
       {/* Header - Hidden in fullscreen mode */}
       {!isFullscreen && (
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-2 sm:p-3 border-b bg-card/50 backdrop-blur-sm shrink-0 z-10">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div>
-            <h1 className="text-base sm:text-xl md:text-2xl font-bold tracking-tight flex items-center gap-2">
-              <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5" />
-              Live Montage
-            </h1>
-            <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">
-              {monitors.length} camera{monitors.length !== 1 ? 's' : ''}<span className="hidden md:inline"> • Drag to reorder • Resize corners</span>
-            </p>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div>
+              <h1 className="text-base sm:text-xl md:text-2xl font-bold tracking-tight flex items-center gap-2">
+                <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5" />
+                Live Montage
+              </h1>
+              <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">
+                {monitors.length} camera{monitors.length !== 1 ? 's' : ''}<span className="hidden md:inline"> • Drag to reorder • Resize corners</span>
+              </p>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" title="Grid Layout" className="h-8 sm:h-9">
-                <LayoutDashboard className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">{gridRows}x{gridCols} Grid</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleApplyGridLayout(2, 2)}>
-                <Grid2x2 className="h-4 w-4 mr-2" />
-                2x2 Grid
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleApplyGridLayout(3, 3)}>
-                <Grid3x3 className="h-4 w-4 mr-2" />
-                3x3 Grid
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleApplyGridLayout(4, 4)}>
-                <LayoutDashboard className="h-4 w-4 mr-2" />
-                4x4 Grid
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setIsCustomGridDialogOpen(true)}>
-                <GripVertical className="h-4 w-4 mr-2" />
-                Custom Size...
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button onClick={handleResetLayout} variant="ghost" size="sm" title="Reset Layout" className="h-8 sm:h-9">
-            <RotateCcw className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Reset Layout</span>
-          </Button>
-          <Button onClick={() => refetch()} variant="outline" size="sm" className="h-8 sm:h-9">
-            <RefreshCw className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Refresh</span>
-          </Button>
-          <Button
-            onClick={() => setIsFullscreen(true)}
-            variant="default"
-            size="sm"
-            className="h-8 sm:h-9"
-            title="Fullscreen Mode"
-          >
-            <Maximize className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Fullscreen</span>
-          </Button>
-        </div>
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" title="Grid Layout" className="h-8 sm:h-9">
+                  <LayoutDashboard className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">{gridCols} Column{gridCols !== 1 ? 's' : ''}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleApplyGridLayout(1, 1)}>
+                  <LayoutGrid className="h-4 w-4 mr-2" />
+                  1 Column
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleApplyGridLayout(2, 2)}>
+                  <Grid2x2 className="h-4 w-4 mr-2" />
+                  2 Columns
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleApplyGridLayout(3, 3)}>
+                  <Grid3x3 className="h-4 w-4 mr-2" />
+                  3 Columns
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleApplyGridLayout(4, 4)}>
+                  <LayoutGrid className="h-4 w-4 mr-2" />
+                  4 Columns
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleApplyGridLayout(5, 5)}>
+                  <LayoutGrid className="h-4 w-4 mr-2" />
+                  5 Columns
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setIsCustomGridDialogOpen(true)}>
+                  <GripVertical className="h-4 w-4 mr-2" />
+                  Custom...
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button onClick={handleResetLayout} variant="ghost" size="sm" title="Reset Layout" className="h-8 sm:h-9">
+              <RotateCcw className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Reset Layout</span>
+            </Button>
+            <Button onClick={() => refetch()} variant="outline" size="sm" className="h-8 sm:h-9">
+              <RefreshCw className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Refresh</span>
+            </Button>
+            <Button
+              onClick={() => setIsFullscreen(true)}
+              variant="default"
+              size="sm"
+              className="h-8 sm:h-9"
+              title="Fullscreen Mode"
+            >
+              <Maximize className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Fullscreen</span>
+            </Button>
+          </div>
         </div>
       )}
 
@@ -489,45 +494,27 @@ export default function Montage() {
       <Dialog open={isCustomGridDialogOpen} onOpenChange={setIsCustomGridDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Custom Grid Size</DialogTitle>
+            <DialogTitle>Custom Grid Columns</DialogTitle>
             <DialogDescription>
-              Enter the number of rows and columns for your custom grid layout (1-10).
+              Enter the number of columns for your custom grid layout (1-10).
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="custom-rows">Rows</Label>
-                <Input
-                  id="custom-rows"
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={customRows}
-                  onChange={(e) => setCustomRows(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleCustomGridSubmit();
-                    }
-                  }}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="custom-cols">Columns</Label>
-                <Input
-                  id="custom-cols"
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={customCols}
-                  onChange={(e) => setCustomCols(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleCustomGridSubmit();
-                    }
-                  }}
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="custom-cols">Columns</Label>
+              <Input
+                id="custom-cols"
+                type="number"
+                min="1"
+                max="10"
+                value={customCols}
+                onChange={(e) => setCustomCols(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleCustomGridSubmit();
+                  }
+                }}
+              />
             </div>
           </div>
           <DialogFooter>

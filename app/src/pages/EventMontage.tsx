@@ -253,6 +253,10 @@ export default function EventMontage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleApplyGridLayout(1)}>
+                <LayoutGrid className="h-4 w-4 mr-2" />
+                1 Column
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleApplyGridLayout(2)}>
                 <Grid2x2 className="h-4 w-4 mr-2" />
                 2 Columns
