@@ -12,7 +12,7 @@ import { Card } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Activity, Settings, Download, Video } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import { cn, formatEventCount } from '../../lib/utils';
 import { downloadSnapshotFromElement } from '../../lib/download';
 import { toast } from 'sonner';
 import { useMonitorStream } from '../../hooks/useMonitorStream';
@@ -197,7 +197,7 @@ function MonitorCardComponent({
                 variant="destructive"
                 className="ml-1 px-1 py-0 text-[10px] h-4 min-w-4"
               >
-                {eventCount}
+                {formatEventCount(eventCount)}
               </Badge>
             )}
           </Button>
