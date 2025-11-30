@@ -94,7 +94,7 @@ export function createApiClient(baseURL: string): AxiosInstance {
     // On native platforms, use custom adapter that uses CapacitorHttp
     ...((isNative || isTauriApp) && {
       adapter: async (config): Promise<AdapterResponse> => {
-        log.api(`[${isNative ? 'Native' : 'Tauri'} HTTP] Request: ${config.method} ${config.url}`);
+        log.api(`[${isNative ? 'Native' : 'Tauri'} HTTP] Request: ${config.method} ${config.url}`, {});
 
         try {
           const fullUrl = config.url?.startsWith('http')
@@ -116,13 +116,13 @@ export function createApiClient(baseURL: string): AxiosInstance {
               headers: (config.headers as Record<string, string>) || {},
               data: config.data,
               // Map axios responseType to CapacitorHttp responseType
-              responseType: config.responseType === 'blob' 
-                ? 'blob' 
-                : config.responseType === 'arraybuffer' 
-                  ? 'arraybuffer' 
+              responseType: config.responseType === 'blob'
+                ? 'blob'
+                : config.responseType === 'arraybuffer'
+                  ? 'arraybuffer'
                   : undefined,
             });
-            
+
             // Handle blob response type - CapacitorHttp returns base64 string for blob
             if (config.responseType === 'blob' && typeof response.data === 'string') {
               try {
@@ -193,7 +193,7 @@ export function createApiClient(baseURL: string): AxiosInstance {
             }
           }
 
-          log.api(`[${isNative ? 'Native' : 'Tauri'} HTTP] Response: ${responseStatus} ${fullUrl}`);
+          log.api(`[${isNative ? 'Native' : 'Tauri'} HTTP] Response: ${responseStatus} ${fullUrl}`, {});
 
           return {
             data: responseData,
