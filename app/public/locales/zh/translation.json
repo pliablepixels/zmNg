@@ -20,7 +20,8 @@
     "unknown": "未知",
     "try_again": "重试",
     "events": "事件",
-    "save_changes": "保存更改"
+    "save_changes": "保存更改",
+    "success": "成功"
   },
   "monitors": {
     "title": "监控",

@@ -20,7 +20,8 @@
     "unknown": "Unknown",
     "try_again": "Try Again",
     "events": "Events",
-    "save_changes": "Save Changes"
+    "save_changes": "Save Changes",
+    "success": "Success"
   },
   "monitors": {
     "title": "Monitors",

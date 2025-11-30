@@ -20,7 +20,8 @@
     "unknown": "Unbekannt",
     "try_again": "Erneut versuchen",
     "events": "Ereignisse",
-    "save_changes": "Änderungen speichern"
+    "save_changes": "Änderungen speichern",
+    "success": "Erfolg"
   },
   "monitors": {
     "title": "Kameras",

@@ -66,6 +66,21 @@ export default function Logs() {
         });
     };
 
+    // Map log level strings to numeric values for filtering
+    const logLevelValue = (level: string): number => {
+        switch (level) {
+            case 'DEBUG': return LogLevel.DEBUG;
+            case 'INFO': return LogLevel.INFO;
+            case 'WARN': return LogLevel.WARN;
+            case 'ERROR': return LogLevel.ERROR;
+            default: return LogLevel.DEBUG;
+        }
+    };
+
+    // Filter logs based on selected level
+    const currentLevel = parseInt(logLevel, 10);
+    const filteredLogs = logs.filter(log => logLevelValue(log.level) >= currentLevel);
+
     const exportLogsAsText = () => {
         const logText = logs.map(log => {
             let text = `[${log.timestamp}] [${log.level}]`;
@@ -199,18 +214,18 @@ export default function Logs() {
                 <CardHeader className="py-3 px-4 border-b shrink-0">
                     <div className="flex items-center gap-2">
                         <ScrollText className="h-5 w-5 text-primary" />
-                        <CardTitle className="text-base">{t('logs.log_entries', { count: logs.length })}</CardTitle>
+                        <CardTitle className="text-base">{t('logs.log_entries', { count: filteredLogs.length })}</CardTitle>
                     </div>
                 </CardHeader>
                 <CardContent className="p-0 flex-1 overflow-y-auto font-mono text-xs sm:text-sm">
-                    {logs.length === 0 ? (
+                    {filteredLogs.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8">
                             <ScrollText className="h-12 w-12 mb-4 opacity-20" />
                             <p>{t('logs.no_logs_available')}</p>
                         </div>
                     ) : (
                         <div className="divide-y">
-                            {logs.map((log) => (
+                            {filteredLogs.map((log) => (
                                 <div key={log.id} className="p-2 sm:p-3 hover:bg-muted/50 transition-colors">
                                     <div className="flex items-start gap-2 sm:gap-3">
                                         <div className="shrink-0 pt-0.5">
