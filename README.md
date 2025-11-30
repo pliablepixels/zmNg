@@ -9,7 +9,7 @@ A modern web and mobile application for ZoneMinder home surveillance systems, pr
 Watch a video of the demo [HERE](https://youtu.be/ces_2ap-htc)
 
 ### Screenshots
-<sub><sup>frames courtest [appleframer](https://appleframer.com/)</sup></sub>
+<sub><sup>frames courtesy [appleframer](https://appleframer.com/)</sup></sub>
 
 <p align="center">
   <img src="images/1.png" width="32%" />
