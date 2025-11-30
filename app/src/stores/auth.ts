@@ -55,9 +55,10 @@ export const useAuthStore = create<AuthState>()(
         try {
           const response = await apiLogin({ user: username, pass: password });
           get().setTokens(response);
+          const state = get();
           log.auth('Login successful', {
-            accessTokenExpires: new Date(get().accessTokenExpires!).toLocaleString(),
-            refreshTokenExpires: new Date(get().refreshTokenExpires!).toLocaleString(),
+            accessTokenExpires: state.accessTokenExpires ? new Date(state.accessTokenExpires).toLocaleString() : 'N/A',
+            refreshTokenExpires: state.refreshTokenExpires ? new Date(state.refreshTokenExpires).toLocaleString() : 'N/A',
             zmVersion: response.version,
             apiVersion: response.apiversion,
           });
@@ -112,15 +113,22 @@ export const useAuthStore = create<AuthState>()(
       setTokens: (response: LoginResponse) => {
         const now = Date.now();
         const currentState = get();
+
+        // Handle case where server returns success but no tokens (no auth required)
+        const accessToken = response.access_token || null;
+        const accessTokenExpires = response.access_token_expires
+          ? now + response.access_token_expires * 1000
+          : null;
+
         set({
-          accessToken: response.access_token,
+          accessToken,
           refreshToken: response.refresh_token || currentState.refreshToken,
-          accessTokenExpires: now + response.access_token_expires * 1000,
+          accessTokenExpires,
           refreshTokenExpires: response.refresh_token_expires
             ? now + response.refresh_token_expires * 1000
             : currentState.refreshTokenExpires,
-          version: response.version,
-          apiVersion: response.apiversion,
+          version: response.version || currentState.version,
+          apiVersion: response.apiversion || currentState.apiVersion,
           isAuthenticated: true,
         });
       },

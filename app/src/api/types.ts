@@ -2,8 +2,8 @@ import { z } from 'zod';
 
 // Authentication types
 export const LoginResponseSchema = z.object({
-  access_token: z.string(),
-  access_token_expires: z.number(),
+  access_token: z.string().optional(),
+  access_token_expires: z.number().optional(),
   refresh_token: z.string().optional(),
   refresh_token_expires: z.number().optional(),
   credentials: z.string().optional(),
