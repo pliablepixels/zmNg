@@ -368,6 +368,78 @@ export default function Timeline() {
               </Popover>
             </div>
           </div>
+
+          {/* Quick Date Ranges */}
+          <div className="space-y-2 mt-4">
+            <Label className="text-sm text-muted-foreground">{t('events.quick_ranges')}</Label>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs"
+                onClick={() => {
+                  const end = new Date();
+                  const start = new Date(end.getTime() - 24 * 60 * 60 * 1000);
+                  setStartDate(format(start, 'yyyy-MM-dd'));
+                  setEndDate(format(end, 'yyyy-MM-dd'));
+                }}
+              >
+                {t('events.past_24_hours')}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs"
+                onClick={() => {
+                  const end = new Date();
+                  const start = new Date(end.getTime() - 48 * 60 * 60 * 1000);
+                  setStartDate(format(start, 'yyyy-MM-dd'));
+                  setEndDate(format(end, 'yyyy-MM-dd'));
+                }}
+              >
+                {t('events.past_48_hours')}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs"
+                onClick={() => {
+                  const end = new Date();
+                  const start = new Date(end.getTime() - 7 * 24 * 60 * 60 * 1000);
+                  setStartDate(format(start, 'yyyy-MM-dd'));
+                  setEndDate(format(end, 'yyyy-MM-dd'));
+                }}
+              >
+                {t('events.past_week')}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs"
+                onClick={() => {
+                  const end = new Date();
+                  const start = new Date(end.getTime() - 14 * 24 * 60 * 60 * 1000);
+                  setStartDate(format(start, 'yyyy-MM-dd'));
+                  setEndDate(format(end, 'yyyy-MM-dd'));
+                }}
+              >
+                {t('events.past_2_weeks')}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs"
+                onClick={() => {
+                  const end = new Date();
+                  const start = new Date(end.getTime() - 30 * 24 * 60 * 60 * 1000);
+                  setStartDate(format(start, 'yyyy-MM-dd'));
+                  setEndDate(format(end, 'yyyy-MM-dd'));
+                }}
+              >
+                {t('events.past_month')}
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
 

@@ -93,8 +93,14 @@ export async function getEvents(filters: EventFilters = {}): Promise<EventsRespo
     }
   }
 
+  // Deduplicate events based on ID to handle pagination shifts with live data
+  // This prevents "duplicate key" errors in React when new events shift pagination boundaries
+  const uniqueEvents = Array.from(
+    new Map(allEvents.map(event => [event.Event.Id, event])).values()
+  );
+
   // Return only the requested number of events
-  const finalEvents = allEvents.slice(0, desiredLimit);
+  const finalEvents = uniqueEvents.slice(0, desiredLimit);
 
   // Warn if we hit the max pages limit
   if (currentPage > maxPages && allEvents.length < desiredLimit) {

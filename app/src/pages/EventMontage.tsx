@@ -67,6 +67,16 @@ export default function EventMontage() {
   );
   const updateSettings = useSettingsStore((state) => state.updateProfileSettings);
 
+  // Helper to format date in local timezone for datetime-local input
+  const formatLocalDateTime = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
   // Filter state
   // Filter state - load from settings
   const [selectedMonitorIds, setSelectedMonitorIds] = useState<string[]>(settings.eventMontageFilters.monitorIds);
@@ -467,6 +477,78 @@ export default function EventMontage() {
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                   />
+                </div>
+              </div>
+
+              {/* Quick Date Ranges */}
+              <div className="space-y-2">
+                <Label className="text-sm text-muted-foreground">{t('events.quick_ranges')}</Label>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                    onClick={() => {
+                      const end = new Date();
+                      const start = new Date(end.getTime() - 24 * 60 * 60 * 1000);
+                      setStartDate(formatLocalDateTime(start));
+                      setEndDate(formatLocalDateTime(end));
+                    }}
+                  >
+                    {t('events.past_24_hours')}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                    onClick={() => {
+                      const end = new Date();
+                      const start = new Date(end.getTime() - 48 * 60 * 60 * 1000);
+                      setStartDate(formatLocalDateTime(start));
+                      setEndDate(formatLocalDateTime(end));
+                    }}
+                  >
+                    {t('events.past_48_hours')}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                    onClick={() => {
+                      const end = new Date();
+                      const start = new Date(end.getTime() - 7 * 24 * 60 * 60 * 1000);
+                      setStartDate(formatLocalDateTime(start));
+                      setEndDate(formatLocalDateTime(end));
+                    }}
+                  >
+                    {t('events.past_week')}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                    onClick={() => {
+                      const end = new Date();
+                      const start = new Date(end.getTime() - 14 * 24 * 60 * 60 * 1000);
+                      setStartDate(formatLocalDateTime(start));
+                      setEndDate(formatLocalDateTime(end));
+                    }}
+                  >
+                    {t('events.past_2_weeks')}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                    onClick={() => {
+                      const end = new Date();
+                      const start = new Date(end.getTime() - 30 * 24 * 60 * 60 * 1000);
+                      setStartDate(formatLocalDateTime(start));
+                      setEndDate(formatLocalDateTime(end));
+                    }}
+                  >
+                    {t('events.past_month')}
+                  </Button>
                 </div>
               </div>
             </div>

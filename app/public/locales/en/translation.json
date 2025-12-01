@@ -87,7 +87,13 @@
     "select_monitor": "Select Monitor",
     "no_image": "No Image",
     "start": "Start",
-    "end": "End"
+    "end": "End",
+    "quick_ranges": "Quick Ranges",
+    "past_24_hours": "Past 24 Hours",
+    "past_48_hours": "Past 48 Hours",
+    "past_week": "Past Week",
+    "past_2_weeks": "Past 2 Weeks",
+    "past_month": "Past Month"
   },
   "event_detail": {
     "event_id": "Event ID",

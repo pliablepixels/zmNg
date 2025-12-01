@@ -35,6 +35,16 @@ export default function Events() {
   const parentRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
 
+  // Helper to format date in local timezone for datetime-local input
+  const formatLocalDateTime = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
   const {
     filters,
     selectedMonitorIds,
@@ -265,6 +275,76 @@ export default function Events() {
                         onChange={(e) => setEndDateInput(e.target.value)}
                         step="1"
                       />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label className="text-xs text-muted-foreground">{t('events.quick_ranges')}</Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs h-8"
+                          onClick={() => {
+                            const end = new Date();
+                            const start = new Date(end.getTime() - 24 * 60 * 60 * 1000);
+                            setStartDateInput(formatLocalDateTime(start));
+                            setEndDateInput(formatLocalDateTime(end));
+                          }}
+                        >
+                          {t('events.past_24_hours')}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs h-8"
+                          onClick={() => {
+                            const end = new Date();
+                            const start = new Date(end.getTime() - 48 * 60 * 60 * 1000);
+                            setStartDateInput(formatLocalDateTime(start));
+                            setEndDateInput(formatLocalDateTime(end));
+                          }}
+                        >
+                          {t('events.past_48_hours')}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs h-8"
+                          onClick={() => {
+                            const end = new Date();
+                            const start = new Date(end.getTime() - 7 * 24 * 60 * 60 * 1000);
+                            setStartDateInput(formatLocalDateTime(start));
+                            setEndDateInput(formatLocalDateTime(end));
+                          }}
+                        >
+                          {t('events.past_week')}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs h-8"
+                          onClick={() => {
+                            const end = new Date();
+                            const start = new Date(end.getTime() - 14 * 24 * 60 * 60 * 1000);
+                            setStartDateInput(formatLocalDateTime(start));
+                            setEndDateInput(formatLocalDateTime(end));
+                          }}
+                        >
+                          {t('events.past_2_weeks')}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs h-8 md:col-span-2"
+                          onClick={() => {
+                            const end = new Date();
+                            const start = new Date(end.getTime() - 30 * 24 * 60 * 60 * 1000);
+                            setStartDateInput(formatLocalDateTime(start));
+                            setEndDateInput(formatLocalDateTime(end));
+                          }}
+                        >
+                          {t('events.past_month')}
+                        </Button>
+                      </div>
                     </div>
                     <div className="flex gap-2">
                       <Button onClick={applyFilters} size="sm" className="flex-1">

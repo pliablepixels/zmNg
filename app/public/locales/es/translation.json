@@ -87,7 +87,13 @@
     "select_monitor": "Seleccionar Monitor",
     "no_image": "Sin Imagen",
     "start": "Inicio",
-    "end": "Fin"
+    "end": "Fin",
+    "quick_ranges": "Rangos Rápidos",
+    "past_24_hours": "Últimas 24 Horas",
+    "past_48_hours": "Últimas 48 Horas",
+    "past_week": "Última Semana",
+    "past_2_weeks": "Últimas 2 Semanas",
+    "past_month": "Último Mes"
   },
   "event_detail": {
     "event_id": "ID de Evento",

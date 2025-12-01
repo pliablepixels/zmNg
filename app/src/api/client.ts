@@ -94,8 +94,6 @@ export function createApiClient(baseURL: string): AxiosInstance {
     // On native platforms, use custom adapter that uses CapacitorHttp
     ...((isNative || isTauriApp) && {
       adapter: async (config): Promise<AdapterResponse> => {
-        log.api(`[${isNative ? 'Native' : 'Tauri'} HTTP] Request: ${config.method} ${config.url}`, {});
-
         try {
           const fullUrl = config.url?.startsWith('http')
             ? config.url
@@ -104,6 +102,8 @@ export function createApiClient(baseURL: string): AxiosInstance {
           // Build query string from params
           const params = new URLSearchParams(config.params || {}).toString();
           const urlWithParams = params ? `${fullUrl}?${params}` : fullUrl;
+
+          log.api(`[${isNative ? 'Native' : 'Tauri'} HTTP] Request: ${config.method?.toUpperCase() || 'GET'} ${urlWithParams}`, {});
 
           let responseData;
           let responseStatus;

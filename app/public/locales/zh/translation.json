@@ -84,10 +84,16 @@
     "score": "评分",
     "frames": "帧数",
     "id": "ID",
-    "select_monitor": "选择监控",
+    "select_monitor": "选择监视器",
     "no_image": "无图像",
     "start": "开始",
-    "end": "结束"
+    "end": "结束",
+    "quick_ranges": "快速范围",
+    "past_24_hours": "过去24小时",
+    "past_48_hours": "过去48小时",
+    "past_week": "过去一周",
+    "past_2_weeks": "过去两周",
+    "past_month": "过去一个月"
   },
   "event_detail": {
     "event_id": "事件 ID",
