@@ -10,6 +10,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useProfileStore } from '../../stores/profile';
 import { useAuthStore } from '../../stores/auth';
 import { useNotificationStore } from '../../stores/notifications';
+import { useShallow } from 'zustand/react/shallow';
 import { Button } from '../ui/button';
 import { ModeToggle } from '../mode-toggle';
 import { ProfileSwitcher } from '../profile-switcher';
@@ -27,7 +28,8 @@ import {
   ChevronLeft,
   ChevronRight,
   FileText,
-  Globe
+  Globe,
+  LayoutDashboard
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useState, useRef, useEffect } from 'react';
@@ -99,7 +101,12 @@ function LanguageSwitcher({ collapsed = false }: { collapsed?: boolean }) {
  */
 function SidebarContent({ onMobileClose, isCollapsed }: SidebarContentProps) {
   const location = useLocation();
-  const currentProfile = useProfileStore((state) => state.currentProfile());
+  const currentProfile = useProfileStore(
+    useShallow((state) => {
+      const { profiles, currentProfileId } = state;
+      return profiles.find((p) => p.id === currentProfileId) || null;
+    })
+  );
   const logout = useAuthStore((state) => state.logout);
   const unreadCount = useNotificationStore((state) => state.unreadCount);
   const { t } = useTranslation();
@@ -110,6 +117,7 @@ function SidebarContent({ onMobileClose, isCollapsed }: SidebarContentProps) {
   };
 
   const navItems = [
+    { path: '/dashboard', label: t('sidebar.dashboard'), icon: LayoutDashboard },
     { path: '/monitors', label: t('sidebar.monitors'), icon: Camera },
     { path: '/montage', label: t('sidebar.montage'), icon: LayoutGrid },
     { path: '/events', label: t('sidebar.events'), icon: Video },

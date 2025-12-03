@@ -29,6 +29,28 @@
     "filter": "Filtrer",
     "clear": "Effacer"
   },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "add_widget": "Ajouter un widget",
+    "edit_layout": "Modifier la disposition",
+    "done": "Terminé",
+    "empty_title": "Votre tableau de bord est vide",
+    "empty_desc": "Ajoutez des widgets pour surveiller vos caméras et événements en un seul endroit.",
+    "widget_monitor": "Flux de moniteur",
+    "widget_events": "Événements récents",
+    "widget_timeline": "Chronologie",
+    "widget_title": "Titre du widget (Facultatif)",
+    "widget_title_placeholder": "Mon Widget",
+    "select_monitor": "Sélectionner un moniteur",
+    "select_monitors": "Sélectionner des moniteurs",
+    "all_monitors": "Tous les moniteurs (événements uniquement)",
+    "monitor_required": "Veuillez sélectionner au moins un moniteur.",
+    "cancel": "Annuler",
+    "add": "Ajouter un widget",
+    "no_monitors_selected": "Aucun moniteur sélectionné",
+    "offline": "Hors ligne",
+    "no_recent_events": "Aucun événement récent"
+  },
   "monitors": {
     "title": "Caméras",
     "count_one": "{{count}} caméra",

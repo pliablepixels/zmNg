@@ -22,6 +22,7 @@ import { log } from './lib/logger';
 
 // Lazy load route components for code splitting
 const Setup = lazy(() => import('./pages/Setup'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Monitors = lazy(() => import('./pages/Monitors'));
 const MonitorDetail = lazy(() => import('./pages/MonitorDetail'));
 const Montage = lazy(() => import('./pages/Montage'));
@@ -120,7 +121,7 @@ function AppRoutes() {
           path="/"
           element={
             currentProfile ? (
-              <Navigate to="/monitors" replace />
+              <Navigate to="/dashboard" replace />
             ) : (
               <Navigate to="/setup" replace />
             )
@@ -136,8 +137,17 @@ function AppRoutes() {
         />
 
         <Route element={<AppLayout />}>
+          <Route index element={<Navigate to="/dashboard" replace />} />
           <Route
-            path="/monitors"
+            path="dashboard"
+            element={
+              <RouteErrorBoundary routePath="/dashboard">
+                <Dashboard />
+              </RouteErrorBoundary>
+            }
+          />
+          <Route
+            path="monitors"
             element={
               <RouteErrorBoundary routePath="/monitors">
                 <Monitors />

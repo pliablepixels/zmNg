@@ -25,7 +25,7 @@ Overall, zmNinja was a massive monolith with repeated code that grew over time. 
 zmNinja is a reasonably complex app. It handles video streams (MJPEG, HLS, other formats), deals with goofy ZoneMinder nuances (CakePHP API) , has to deal with multi-profile cache/state management, does multi-channel notifications, has multiple views with drag&drop and more. ZoneMinder itself is a full featured NVR system that handles multi-server situations that requires clients to adapt. Further, MJPEG and Single Page Apps (SPAs) have a painful memory management issue where streams continue to operate when views change, causing memory build up. 
 
 So here is what I did:
-- I wrote up a [instruction set](CLAUDE.md) to get it started, which essentially described the problems with zmNinja
+- I wrote up a [instruction set](ORIGINAL_CLAUDE.md) to get it started, which essentially described the problems with zmNinja
 - I also downloaded the [ZM API documents](https://zoneminder.readthedocs.io/en/latest/api.html), and the old[zmNinja code](https://github.com/ZoneMinder/zmNinja)
 - I then asked the agent to refactor and asked it to make its own tech stack choice. I was quite happy with the choices (reactive/capacitor)
 - Finally, given this (very) complex restructure, I wasn't going to wait around hitting 'y' to every prompt. I ran AG in 'agent first' mode and Claude using `claude --dangerously-skip-permissions`

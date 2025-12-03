@@ -29,6 +29,28 @@
     "filter": "筛选",
     "clear": "清除"
   },
+  "dashboard": {
+    "title": "仪表板",
+    "add_widget": "添加小部件",
+    "edit_layout": "编辑布局",
+    "done": "完成",
+    "empty_title": "您的仪表板为空",
+    "empty_desc": "添加小部件以在一个地方监控您的摄像头和事件。",
+    "widget_monitor": "监控流",
+    "widget_events": "最近事件",
+    "widget_timeline": "时间线",
+    "widget_title": "小部件标题（可选）",
+    "widget_title_placeholder": "我的小部件",
+    "select_monitor": "选择监控",
+    "select_monitors": "选择监控",
+    "all_monitors": "所有监控（仅事件）",
+    "monitor_required": "请至少选择一个监控。",
+    "cancel": "取消",
+    "add": "添加小部件",
+    "no_monitors_selected": "未选择监控",
+    "offline": "离线",
+    "no_recent_events": "没有最近的事件"
+  },
   "monitors": {
     "title": "监控",
     "count_one": "{{count}} 个监控",

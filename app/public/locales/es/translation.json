@@ -29,6 +29,28 @@
     "filter": "Filtrar",
     "clear": "Limpiar"
   },
+  "dashboard": {
+    "title": "Panel de Control",
+    "add_widget": "Agregar Widget",
+    "edit_layout": "Editar Diseño",
+    "done": "Hecho",
+    "empty_title": "Tu panel está vacío",
+    "empty_desc": "Agrega widgets para monitorear tus cámaras y eventos en un solo lugar.",
+    "widget_monitor": "Transmisión de Monitor",
+    "widget_events": "Eventos Recientes",
+    "widget_timeline": "Línea de Tiempo",
+    "widget_title": "Título del Widget (Opcional)",
+    "widget_title_placeholder": "Mi Widget",
+    "select_monitor": "Seleccionar Monitor",
+    "select_monitors": "Seleccionar Monitores",
+    "all_monitors": "Todos los Monitores (Solo eventos)",
+    "monitor_required": "Por favor selecciona al menos un monitor.",
+    "cancel": "Cancelar",
+    "add": "Agregar Widget",
+    "no_monitors_selected": "No hay monitores seleccionados",
+    "offline": "Desconectado",
+    "no_recent_events": "No hay eventos recientes"
+  },
   "monitors": {
     "title": "Cámaras",
     "count_one": "{{count}} cámara",

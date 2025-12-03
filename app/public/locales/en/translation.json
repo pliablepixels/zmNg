@@ -27,6 +27,28 @@
     "clear": "Clear",
     "go_back": "Go Back"
   },
+  "dashboard": {
+    "title": "Dashboard",
+    "add_widget": "Add Widget",
+    "edit_layout": "Edit Layout",
+    "done": "Done",
+    "empty_title": "Your dashboard is empty",
+    "empty_desc": "Add widgets to monitor your cameras and events in one place.",
+    "widget_monitor": "Monitor Stream",
+    "widget_events": "Recent Events",
+    "widget_timeline": "Timeline",
+    "widget_title": "Widget Title (Optional)",
+    "widget_title_placeholder": "My Widget",
+    "select_monitor": "Select Monitor",
+    "select_monitors": "Select Monitors",
+    "all_monitors": "All Monitors (Events only)",
+    "monitor_required": "Please select at least one monitor.",
+    "cancel": "Cancel",
+    "add": "Add Widget",
+    "no_monitors_selected": "No monitors selected",
+    "offline": "Offline",
+    "no_recent_events": "No recent events"
+  },
   "monitors": {
     "title": "Monitors",
     "count_one": "{{count}} monitor",

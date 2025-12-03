@@ -29,6 +29,28 @@
     "filter": "Filtern",
     "clear": "Leeren"
   },
+  "dashboard": {
+    "title": "Dashboard",
+    "add_widget": "Widget hinzufügen",
+    "edit_layout": "Layout bearbeiten",
+    "done": "Fertig",
+    "empty_title": "Ihr Dashboard ist leer",
+    "empty_desc": "Fügen Sie Widgets hinzu, um Ihre Kameras und Ereignisse an einem Ort zu überwachen.",
+    "widget_monitor": "Monitor-Stream",
+    "widget_events": "Neueste Ereignisse",
+    "widget_timeline": "Zeitachse",
+    "widget_title": "Widget-Titel (Optional)",
+    "widget_title_placeholder": "Mein Widget",
+    "select_monitor": "Monitor auswählen",
+    "select_monitors": "Monitore auswählen",
+    "all_monitors": "Alle Monitore (nur Ereignisse)",
+    "monitor_required": "Bitte wählen Sie mindestens einen Monitor aus.",
+    "cancel": "Abbrechen",
+    "add": "Widget hinzufügen",
+    "no_monitors_selected": "Keine Monitore ausgewählt",
+    "offline": "Offline",
+    "no_recent_events": "Keine aktuellen Ereignisse"
+  },
   "monitors": {
     "title": "Kameras",
     "count_one": "{{count}} Kamera",

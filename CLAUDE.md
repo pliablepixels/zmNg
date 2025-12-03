@@ -1,0 +1,11 @@
+Global Rules
+-------------
+- All text needs to be internationlized. Always make sure all language files are in sync and updated with each change
+- Write reusable, high quality code
+- Keep code simple
+- Remember all code needs to work on iOS, Android and Desktop
+- Every setting you add MUST be linked to the current profile and not global
+- Never keep legacy files or code - remove them
+- When you make changes that may be breaking (such as changes in layout profile), always avoid the app crashing. Feel free to prompt the user to reset the profile if that happens instead of the app crashing
+- For all functionality, add test cases 
+- Write high quality documentation
