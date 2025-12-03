@@ -28,6 +28,7 @@ export default function MonitorDetail() {
   const { t } = useTranslation();
   const [scale, setScale] = useState(100);
   const [mode, setMode] = useState<'jpeg' | 'stream'>('jpeg');
+  const [corsAllowed, setCorsAllowed] = useState(true);
 
   const { data: monitor, isLoading, error } = useQuery({
     queryKey: ['monitor', id],
@@ -50,6 +51,11 @@ export default function MonitorDetail() {
   const pipLoopRef = useRef<number | null>(null);
 
   const togglePip = async () => {
+    if (!corsAllowed) {
+      toast.error(t('monitor_detail.pip_needs_cors'));
+      return;
+    }
+
     try {
       if (document.pictureInPictureElement) {
         await document.exitPictureInPicture();
@@ -229,11 +235,21 @@ export default function MonitorDetail() {
         <Card className="relative w-full max-w-5xl aspect-video bg-black overflow-hidden shadow-2xl border-0 ring-1 ring-border/20">
           <img
             ref={imgRef}
+            crossOrigin={corsAllowed ? "anonymous" : undefined}
             src={displayedImageUrl || streamUrl}
             alt={monitor.Monitor.Name}
             className="w-full h-full object-contain"
             onError={(e) => {
               const img = e.target as HTMLImageElement;
+
+              // Check for CORS failure first
+              if (corsAllowed) {
+                console.warn("[MonitorDetail] Image load failed with CORS enabled. Disabling CORS and retrying.");
+                setCorsAllowed(false);
+                setCacheBuster(Date.now()); // Force reload
+                return;
+              }
+
               // Only retry if we haven't retried too recently
               if (!img.dataset.retrying) {
                 img.dataset.retrying = "true";

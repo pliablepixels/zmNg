@@ -65,6 +65,7 @@
     "snapshot_downloaded": "Schnappschuss heruntergeladen",
     "snapshot_failed": "Schnappschuss fehlgeschlagen",
     "stream_connection_lost": "Stream-Verbindung verloren",
+    "pip_needs_cors": "Bild-in-Bild erfordert CORS-Header auf dem ZoneMinder-Server",
     "ptz_capable": "PTZ-fähig",
     "view_events": "Ereignisse ansehen",
     "offline": "Offline"

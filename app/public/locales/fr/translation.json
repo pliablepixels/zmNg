@@ -65,6 +65,7 @@
     "snapshot_downloaded": "Instantané téléchargé",
     "snapshot_failed": "Échec de l'instantané",
     "stream_connection_lost": "Connexion au flux perdue",
+    "pip_needs_cors": "L'image dans l'image nécessite des en-têtes CORS sur le serveur ZoneMinder",
     "ptz_capable": "Compatible PTZ",
     "view_events": "Voir les événements",
     "offline": "Hors ligne"

@@ -65,6 +65,7 @@
     "snapshot_downloaded": "快照已下载",
     "snapshot_failed": "快照失败",
     "stream_connection_lost": "流连接丢失",
+    "pip_needs_cors": "画中画需要在 ZoneMinder 服务器上配置 CORS 头",
     "ptz_capable": "支持 PTZ",
     "view_events": "查看事件",
     "offline": "离线"

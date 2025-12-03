@@ -24,7 +24,8 @@
     "success": "Success",
     "all": "All",
     "filter": "Filter",
-    "clear": "Clear"
+    "clear": "Clear",
+    "go_back": "Go Back"
   },
   "monitors": {
     "title": "Monitors",
@@ -197,8 +198,11 @@
     "snapshot_saved": "Snapshot saved",
     "snapshot_failed": "Snapshot failed",
     "stream_lost": "Stream connection lost",
+    "pip_needs_cors": "Picture-in-Picture requires CORS headers on the ZoneMinder server",
     "load_error": "Error loading monitor",
-    "maximize": "Maximize"
+    "maximize": "Maximize",
+    "pip": "Picture in Picture",
+    "pip_failed": "Failed to enter Picture-in-Picture mode"
   },
   "montage": {
     "title": "Montage",
