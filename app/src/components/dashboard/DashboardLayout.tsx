@@ -17,6 +17,7 @@ import { DashboardWidget } from './DashboardWidget';
 import { MonitorWidget } from './widgets/MonitorWidget';
 import { EventsWidget } from './widgets/EventsWidget';
 import { TimelineWidget } from './widgets/TimelineWidget';
+import { HeatmapWidget } from './widgets/HeatmapWidget';
 import { Responsive, WidthProvider } from 'react-grid-layout';
 import type { Layout } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
@@ -166,6 +167,9 @@ export function DashboardLayout() {
                             )}
                             {widget.type === 'timeline' && (
                                 <TimelineWidget />
+                            )}
+                            {widget.type === 'heatmap' && (
+                                <HeatmapWidget title={widget.title} />
                             )}
                         </DashboardWidget>
                     </div>

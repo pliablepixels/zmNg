@@ -42,6 +42,7 @@ import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { usePinchZoom } from '../hooks/usePinchZoom';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -102,6 +103,14 @@ export default function Montage() {
   // Fullscreen mode state - load from settings
   const [isFullscreen, setIsFullscreen] = useState(settings.montageIsFullscreen);
   const [showFullscreenOverlay, setShowFullscreenOverlay] = useState(false);
+
+  // Pinch-to-zoom functionality
+  const pinchZoom = usePinchZoom({
+    minScale: 0.5,
+    maxScale: 3,
+    initialScale: 1,
+    enabled: true,
+  });
 
   // Auto-hide overlay after 5 seconds (only on desktop)
   useEffect(() => {
@@ -447,8 +456,9 @@ export default function Montage() {
 
       {/* Grid Content */}
       <div
+        {...pinchZoom.bind()}
         className={cn(
-          "flex-1 overflow-auto bg-muted/10",
+          "flex-1 overflow-auto bg-muted/10 touch-none",
           isFullscreen ? "p-0" : "p-2 sm:p-3 md:p-4"
         )}
         onClick={() => {
@@ -458,7 +468,14 @@ export default function Montage() {
         }}
       >
         {isLayoutLoaded && (
-          <ResponsiveGridLayout
+          <div
+            style={{
+              transform: `scale(${pinchZoom.scale})`,
+              transformOrigin: 'top left',
+              transition: pinchZoom.isPinching ? 'none' : 'transform 0.2s ease-out',
+            }}
+          >
+            <ResponsiveGridLayout
             key={`${gridRows}-${gridCols}`}
             className="layout"
             layouts={layouts}
@@ -491,6 +508,7 @@ export default function Montage() {
               </div>
             ))}
           </ResponsiveGridLayout>
+          </div>
         )}
       </div>
 

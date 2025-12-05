@@ -37,6 +37,7 @@
     "widget_monitor": "Monitor-Stream",
     "widget_events": "Neueste Ereignisse",
     "widget_timeline": "Zeitachse",
+    "widget_heatmap": "Ereignis-Heatmap",
     "widget_title": "Widget-Titel (Optional)",
     "widget_title_placeholder": "Mein Widget",
     "select_monitor": "Monitor auswählen",

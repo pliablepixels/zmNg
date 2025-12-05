@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type WidgetType = 'monitor' | 'events' | 'timeline';
+export type WidgetType = 'monitor' | 'events' | 'timeline' | 'heatmap';
 
 export interface WidgetLayout {
     i: string; // Unique ID for the widget (matches DashboardWidget.id)

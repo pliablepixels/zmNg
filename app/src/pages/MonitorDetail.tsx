@@ -8,19 +8,21 @@
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
 import { useQuery } from '@tanstack/react-query';
-import { getMonitor, getStreamUrl } from '../api/monitors';
+import { getMonitor, getStreamUrl, getMonitors } from '../api/monitors';
 import { useProfileStore } from '../stores/profile';
 import { useAuthStore } from '../stores/auth';
 import { useSettingsStore } from '../stores/settings';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { ArrowLeft, Settings, Maximize2, Video, AlertTriangle, Clock, Download, PictureInPicture } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { cn } from '../lib/utils';
 import { useMonitorStore } from '../stores/monitors';
 import { toast } from 'sonner';
 import { downloadSnapshotFromElement } from '../lib/download';
 import { useTranslation } from 'react-i18next';
+import { useSwipeNavigation } from '../hooks/useSwipeNavigation';
+import { filterEnabledMonitors } from '../lib/filters';
 
 export default function MonitorDetail() {
   const { id } = useParams<{ id: string }>();
@@ -37,6 +39,45 @@ export default function MonitorDetail() {
     queryKey: ['monitor', id],
     queryFn: () => getMonitor(id!),
     enabled: !!id,
+  });
+
+  // Fetch all monitors for swipe navigation
+  const { data: monitorsData } = useQuery({
+    queryKey: ['monitors'],
+    queryFn: getMonitors,
+  });
+
+  // Get enabled monitors list and find current monitor index
+  const { enabledMonitors, currentIndex, hasPrev, hasNext } = useMemo(() => {
+    if (!monitorsData?.monitors || !id) {
+      return { enabledMonitors: [], currentIndex: -1, hasPrev: false, hasNext: false };
+    }
+    const enabled = filterEnabledMonitors(monitorsData.monitors);
+    const idx = enabled.findIndex((m) => m.Monitor.Id === id);
+    return {
+      enabledMonitors: enabled,
+      currentIndex: idx,
+      hasPrev: idx > 0,
+      hasNext: idx < enabled.length - 1,
+    };
+  }, [monitorsData?.monitors, id]);
+
+  // Swipe navigation between monitors
+  const swipeNavigation = useSwipeNavigation({
+    onSwipeLeft: () => {
+      if (hasNext) {
+        const nextMonitor = enabledMonitors[currentIndex + 1];
+        navigate(`/monitor/${nextMonitor.Monitor.Id}`, { state: { from: location.pathname } });
+      }
+    },
+    onSwipeRight: () => {
+      if (hasPrev) {
+        const prevMonitor = enabledMonitors[currentIndex - 1];
+        navigate(`/monitor/${prevMonitor.Monitor.Id}`, { state: { from: location.pathname } });
+      }
+    },
+    threshold: 80,
+    enabled: enabledMonitors.length > 1,
   });
 
   const currentProfile = useProfileStore((state) => state.currentProfile());
@@ -242,7 +283,9 @@ export default function MonitorDetail() {
 
       {/* Main Content */}
       <div className="flex-1 p-2 sm:p-3 md:p-4 flex flex-col items-center justify-center bg-muted/10">
-        <Card className="relative w-full max-w-5xl aspect-video bg-black overflow-hidden shadow-2xl border-0 ring-1 ring-border/20">
+        <Card
+          {...swipeNavigation.bind()}
+          className="relative w-full max-w-5xl aspect-video bg-black overflow-hidden shadow-2xl border-0 ring-1 ring-border/20 touch-none">
           <img
             ref={imgRef}
             crossOrigin={corsAllowed ? "anonymous" : undefined}

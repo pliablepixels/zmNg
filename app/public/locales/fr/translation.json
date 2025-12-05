@@ -37,6 +37,7 @@
     "widget_monitor": "Flux de moniteur",
     "widget_events": "Événements récents",
     "widget_timeline": "Chronologie",
+    "widget_heatmap": "Carte de Chaleur d'Événements",
     "widget_title": "Titre du widget (Facultatif)",
     "widget_title_placeholder": "Mon Widget",
     "select_monitor": "Sélectionner un moniteur",

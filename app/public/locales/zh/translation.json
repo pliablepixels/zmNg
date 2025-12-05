@@ -37,6 +37,7 @@
     "widget_monitor": "监控流",
     "widget_events": "最近事件",
     "widget_timeline": "时间线",
+    "widget_heatmap": "事件热图",
     "widget_title": "小部件标题（可选）",
     "widget_title_placeholder": "我的小部件",
     "select_monitor": "选择监控",

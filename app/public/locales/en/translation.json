@@ -37,6 +37,7 @@
     "widget_monitor": "Monitor Stream",
     "widget_events": "Recent Events",
     "widget_timeline": "Timeline",
+    "widget_heatmap": "Event Heatmap",
     "widget_title": "Widget Title (Optional)",
     "widget_title_placeholder": "My Widget",
     "select_monitor": "Select Monitor",

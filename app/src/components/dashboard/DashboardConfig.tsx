@@ -3,7 +3,7 @@
  *
  * Provides a dialog for adding new widgets to the dashboard.
  * Features:
- * - Widget type selection (monitor, events, timeline)
+ * - Widget type selection (monitor, events, timeline, heatmap)
  * - Monitor selection for monitor widgets
  * - Custom widget titles
  * - Form validation
@@ -13,7 +13,7 @@
 import { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { Button } from '../ui/button';
-import { Plus, LayoutGrid, List, Activity } from 'lucide-react';
+import { Plus, LayoutGrid, List, Activity, TrendingUp } from 'lucide-react';
 import type { WidgetType } from '../../stores/dashboard';
 import { useDashboardStore } from '../../stores/dashboard';
 import { useProfileStore } from '../../stores/profile';
@@ -64,6 +64,8 @@ export function DashboardConfig() {
                 return t('dashboard.widget_events');
             case 'timeline':
                 return t('dashboard.widget_timeline');
+            case 'heatmap':
+                return t('dashboard.widget_heatmap');
             default:
                 return '';
         }
@@ -77,6 +79,8 @@ export function DashboardConfig() {
             case 'monitor':
                 return { w: 2, h: 1 };
             case 'timeline':
+                return { w: 4, h: 2 };
+            case 'heatmap':
                 return { w: 4, h: 2 };
             case 'events':
             default:
@@ -152,7 +156,7 @@ export function DashboardConfig() {
                 </DialogHeader>
 
                 <div className="space-y-4 py-4">
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                         <div
                             className={`p-4 border rounded-lg cursor-pointer hover:bg-muted/50 flex flex-col items-center gap-2 ${selectedType === 'monitor' ? 'border-primary bg-primary/5' : ''}`}
                             onClick={() => setSelectedType('monitor')}
@@ -173,6 +177,13 @@ export function DashboardConfig() {
                         >
                             <Activity className="h-8 w-8" />
                             <span className="font-medium text-xs text-center">{t('dashboard.widget_timeline')}</span>
+                        </div>
+                        <div
+                            className={`p-4 border rounded-lg cursor-pointer hover:bg-muted/50 flex flex-col items-center gap-2 ${selectedType === 'heatmap' ? 'border-primary bg-primary/5' : ''}`}
+                            onClick={() => setSelectedType('heatmap')}
+                        >
+                            <TrendingUp className="h-8 w-8" />
+                            <span className="font-medium text-xs text-center">{t('dashboard.widget_heatmap')}</span>
                         </div>
                     </div>
 

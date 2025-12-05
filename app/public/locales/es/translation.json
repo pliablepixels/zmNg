@@ -37,6 +37,7 @@
     "widget_monitor": "Transmisión de Monitor",
     "widget_events": "Eventos Recientes",
     "widget_timeline": "Línea de Tiempo",
+    "widget_heatmap": "Mapa de Calor de Eventos",
     "widget_title": "Título del Widget (Opcional)",
     "widget_title_placeholder": "Mi Widget",
     "select_monitor": "Seleccionar Monitor",
