@@ -122,7 +122,7 @@ export function HeatmapWidget({ title }: HeatmapWidgetProps) {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col min-h-0">
+      <CardContent className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {/* Time range selector */}
         <div className="flex flex-wrap gap-2 mb-4 flex-shrink-0">
           {timeRangeButtons.map((btn) => (
@@ -131,7 +131,7 @@ export function HeatmapWidget({ title }: HeatmapWidgetProps) {
               variant={timeRange === btn.value ? 'default' : 'outline'}
               size="sm"
               onClick={() => setTimeRange(btn.value)}
-              className="text-xs"
+              className="text-xs flex-shrink-0"
             >
               {btn.label}
             </Button>
@@ -139,7 +139,7 @@ export function HeatmapWidget({ title }: HeatmapWidgetProps) {
         </div>
 
         {/* Heatmap or loading state */}
-        <div className="flex-1 min-h-0">
+        <div className="flex-1 min-h-0 overflow-auto">
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

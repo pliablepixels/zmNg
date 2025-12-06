@@ -297,6 +297,22 @@ describe('Dashboard Store', () => {
             addWidget(profileId, {
                 type: 'monitor',
                 settings: {},
+                layout: { w: 6, h: 2, minW: 4, minH: 2 },
+            });
+
+            const { widgets } = useDashboardStore.getState();
+            const widget = widgets[profileId][0];
+            expect(widget.layout.minW).toBe(4);
+            expect(widget.layout.minH).toBe(2);
+        });
+
+        it('should default minimum dimensions to 1 if not provided', () => {
+            const profileId = 'test-profile';
+            const { addWidget } = useDashboardStore.getState();
+
+            addWidget(profileId, {
+                type: 'events',
+                settings: {},
                 layout: { w: 2, h: 1 },
             });
 

@@ -60,9 +60,18 @@ export const useDashboardStore = create<DashboardState>()(
                         i: id,
                         x: 0,
                         y,
-                        minW: 1,
-                        minH: 1
+                        // Respect minW/minH from widget.layout, or default to 1
+                        minW: widget.layout.minW || 1,
+                        minH: widget.layout.minH || 1
                     };
+
+                    log.info('Adding dashboard widget', {
+                        component: 'Dashboard',
+                        profileId,
+                        widgetType: widget.type,
+                        minW: initialLayout.minW,
+                        minH: initialLayout.minH
+                    });
 
                     return {
                         widgets: {

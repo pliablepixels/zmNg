@@ -73,18 +73,23 @@ export function DashboardConfig() {
 
     /**
      * Get default layout dimensions for a widget type
+     * Includes minimum width/height constraints to prevent content overflow
      */
-    const getDefaultLayout = (type: WidgetType) => {
+    const getDefaultLayout = (type: WidgetType, monitorCount: number = 1) => {
         switch (type) {
             case 'monitor':
-                return { w: 2, h: 1 };
+                // Monitor widgets need more width for multiple monitors
+                // 1 monitor: 4 cols min, 2-4 monitors: 6 cols min, 5+ monitors: 8 cols min
+                const monitorMinW = monitorCount === 1 ? 4 : monitorCount <= 4 ? 6 : 8;
+                return { w: monitorMinW, h: 2, minW: monitorMinW, minH: 2 };
             case 'timeline':
-                return { w: 4, h: 2 };
+                return { w: 6, h: 3, minW: 6, minH: 3 };
             case 'heatmap':
-                return { w: 4, h: 2 };
+                // Heatmap needs wider space for time range buttons and chart
+                return { w: 8, h: 3, minW: 6, minH: 3 };
             case 'events':
             default:
-                return { w: 1, h: 1 };
+                return { w: 4, h: 2, minW: 3, minH: 2 };
         }
     };
 
@@ -117,7 +122,7 @@ export function DashboardConfig() {
             type: selectedType,
             title: title || getDefaultTitle(selectedType),
             settings: getWidgetSettings(selectedType, selectedMonitors),
-            layout: getDefaultLayout(selectedType),
+            layout: getDefaultLayout(selectedType, selectedMonitors.length),
         });
 
         setOpen(false);
