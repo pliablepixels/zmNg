@@ -510,13 +510,19 @@
     "move_up_left": "左上",
     "move_up": "上",
     "move_up_right": "右上",
-    "move_left": "左",
-    "home": "主位",
+    "move_left": "向左移动",
+    "stop": "停止",
+    "home": "主页",
     "move_right": "右",
     "move_down_left": "左下",
     "move_down": "下",
     "move_down_right": "右下",
     "zoom_in": "放大",
-    "zoom_out": "缩小"
+    "zoom_out": "缩小",
+    "reset": "重置",
+    "presets": "预设",
+    "show_controls": "显示控制",
+    "hide_controls": "隐藏控制",
+    "continuous_movement": "连续移动"
   }
 }

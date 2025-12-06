@@ -6,8 +6,8 @@
  */
 
 import { getApiClient } from './client';
-import type { MonitorsResponse, MonitorData } from './types';
-import { MonitorsResponseSchema, MonitorDataSchema } from './types';
+import type { MonitorsResponse, MonitorData, ControlData } from './types';
+import { MonitorsResponseSchema, MonitorDataSchema, ControlDataSchema } from './types';
 import { Platform } from '../lib/platform';
 
 /**
@@ -37,6 +37,18 @@ export async function getMonitor(monitorId: string): Promise<MonitorData> {
   const response = await client.get<{ monitor: MonitorData }>(`/monitors/${monitorId}.json`);
   // Validate and coerce types (e.g. Controllable number -> string)
   return MonitorDataSchema.parse(response.data.monitor);
+}
+
+/**
+ * Get control capabilities for a monitor.
+ * 
+ * @param controlId - The ID of the control profile
+ * @returns Promise resolving to ControlData
+ */
+export async function getControl(controlId: string): Promise<ControlData> {
+  const client = getApiClient();
+  const response = await client.get(`/controls/${controlId}.json`);
+  return ControlDataSchema.parse(response.data);
 }
 
 /**

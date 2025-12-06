@@ -173,7 +173,76 @@ export type MonitorStatus = z.infer<typeof MonitorStatusSchema>;
 export type MonitorData = z.infer<typeof MonitorDataSchema>;
 export type MonitorsResponse = z.infer<typeof MonitorsResponseSchema>;
 
+export const ZMControlSchema = z.object({
+  Id: z.coerce.string(),
+  Name: z.string(),
+  Type: z.string(),
+  Protocol: z.string().nullable(),
+  CanWake: z.coerce.string().optional(),
+  CanSleep: z.coerce.string().optional(),
+  CanReset: z.coerce.string().optional(),
+  CanReboot: z.coerce.string().optional(),
+  CanZoom: z.coerce.string().optional(),
+  CanAutoZoom: z.coerce.string().optional(),
+  CanZoomAbs: z.coerce.string().optional(),
+  CanZoomRel: z.coerce.string().optional(),
+  CanZoomCon: z.coerce.string().optional(),
+  HasZoomSpeed: z.coerce.string().optional(),
+  CanFocus: z.coerce.string().optional(),
+  CanAutoFocus: z.coerce.string().optional(),
+  CanFocusAbs: z.coerce.string().optional(),
+  CanFocusRel: z.coerce.string().optional(),
+  CanFocusCon: z.coerce.string().optional(),
+  HasFocusSpeed: z.coerce.string().optional(),
+  CanIris: z.coerce.string().optional(),
+  CanAutoIris: z.coerce.string().optional(),
+  CanIrisAbs: z.coerce.string().optional(),
+  CanIrisRel: z.coerce.string().optional(),
+  CanIrisCon: z.coerce.string().optional(),
+  HasIrisSpeed: z.coerce.string().optional(),
+  CanGain: z.coerce.string().optional(),
+  CanAutoGain: z.coerce.string().optional(),
+  CanGainAbs: z.coerce.string().optional(),
+  CanGainRel: z.coerce.string().optional(),
+  CanGainCon: z.coerce.string().optional(),
+  HasGainSpeed: z.coerce.string().optional(),
+  CanWhite: z.coerce.string().optional(),
+  CanAutoWhite: z.coerce.string().optional(),
+  CanWhiteAbs: z.coerce.string().optional(),
+  CanWhiteRel: z.coerce.string().optional(),
+  CanWhiteCon: z.coerce.string().optional(),
+  HasWhiteSpeed: z.coerce.string().optional(),
+  HasPresets: z.coerce.string().optional(),
+  NumPresets: z.coerce.string().optional(),
+  HasHomePreset: z.coerce.string().optional(),
+  CanSetPresets: z.coerce.string().optional(),
+  CanMove: z.coerce.string().optional(),
+  CanMoveDiag: z.coerce.string().optional(),
+  CanMoveMap: z.coerce.string().optional(),
+  CanMoveAbs: z.coerce.string().optional(),
+  CanMoveRel: z.coerce.string().optional(),
+  CanMoveCon: z.coerce.string().optional(),
+  CanPan: z.coerce.string().optional(),
+  HasPanSpeed: z.coerce.string().optional(),
+  HasTurboPan: z.coerce.string().optional(),
+  CanTilt: z.coerce.string().optional(),
+  HasTiltSpeed: z.coerce.string().optional(),
+  HasTurboTilt: z.coerce.string().optional(),
+  CanAutoScan: z.coerce.string().optional(),
+  NumScanPaths: z.coerce.string().optional(),
+});
+
+export const ControlDataSchema = z.object({
+  control: z.object({
+    Control: ZMControlSchema
+  })
+});
+
+export type ZMControl = z.infer<typeof ZMControlSchema>;
+export type ControlData = z.infer<typeof ControlDataSchema>;
+
 // Event types
+// Force re-bundle
 export const EventSchema = z.object({
   Id: z.coerce.string(),
   MonitorId: z.coerce.string(),

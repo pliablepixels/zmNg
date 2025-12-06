@@ -8,13 +8,15 @@
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
 import { useQuery } from '@tanstack/react-query';
-import { getMonitor, getStreamUrl, getMonitors } from '../api/monitors';
+import { getMonitor, getStreamUrl, getMonitors, getControl } from '../api/monitors';
 import { useProfileStore } from '../stores/profile';
 import { useAuthStore } from '../stores/auth';
 import { useSettingsStore } from '../stores/settings';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
-import { ArrowLeft, Settings, Maximize2, Video, AlertTriangle, Clock, Download, PictureInPicture } from 'lucide-react';
+import { Switch } from '../components/ui/switch';
+import { Label } from '../components/ui/label';
+import { ArrowLeft, Settings, Maximize2, Video, AlertTriangle, Clock, Download, PictureInPicture, ChevronUp, ChevronDown } from 'lucide-react';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { cn } from '../lib/utils';
 import { useMonitorStore } from '../stores/monitors';
@@ -33,6 +35,7 @@ export default function MonitorDetail() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
+  const [isContinuous, setIsContinuous] = useState(true);
 
   const handlePTZCommand = async (command: string) => {
     if (!currentProfile || !monitor) return;
@@ -44,6 +47,25 @@ export default function MonitorDetail() {
         command,
         accessToken || undefined
       );
+
+      // Auto-stop logic for non-continuous mode
+      // Only apply to moveCon* and zoomCon* commands
+      if (!isContinuous && (command.startsWith('moveCon') || command.startsWith('zoomCon'))) {
+        setTimeout(async () => {
+          try {
+            await controlMonitor(
+              currentProfile.portalUrl,
+              monitor.Monitor.Id,
+              'moveStop',
+              accessToken || undefined
+            );
+          } catch (e) {
+            // Ignore errors on auto-stop
+            log.warn('Auto-stop command failed', { component: 'MonitorDetail', error: e });
+          }
+        }, 500);
+      }
+
       // Optional: Show success feedback, but usually PTZ is visual
     } catch (error) {
       log.error('PTZ command failed', { component: 'MonitorDetail', command, error });
@@ -56,11 +78,19 @@ export default function MonitorDetail() {
   const [mode, setMode] = useState<'jpeg' | 'stream'>('jpeg');
   // Default to false on Tauri to avoid CORS issues unless we know we need it
   const [corsAllowed, setCorsAllowed] = useState(!Platform.isTauri);
+  const [showPTZ, setShowPTZ] = useState(true);
 
   const { data: monitor, isLoading, error } = useQuery({
     queryKey: ['monitor', id],
     queryFn: () => getMonitor(id!),
     enabled: !!id,
+  });
+
+  // Fetch control capabilities if monitor is controllable
+  const { data: controlData } = useQuery({
+    queryKey: ['control', monitor?.Monitor.ControlId],
+    queryFn: () => getControl(monitor!.Monitor.ControlId!),
+    enabled: !!monitor?.Monitor.ControlId && monitor.Monitor.Controllable === '1',
   });
 
   // Fetch all monitors for swipe navigation
@@ -416,9 +446,36 @@ export default function MonitorDetail() {
 
         {/* PTZ Controls */}
         {monitor.Monitor.Controllable === '1' && (
-          <div className="mt-8">
-            <p className="text-sm font-medium text-center mb-4 text-muted-foreground">{t('monitor_detail.ptz_controls')}</p>
-            <PTZControls onCommand={handlePTZCommand} />
+          <div className="mt-8 w-full max-w-md flex flex-col items-center">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setShowPTZ(!showPTZ)}
+              className="mb-4 text-muted-foreground hover:text-foreground"
+            >
+              {showPTZ ? t('ptz.hide_controls') : t('ptz.show_controls')}
+              {showPTZ ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />}
+            </Button>
+            
+            {showPTZ && (
+              <div className="w-full flex flex-col items-center gap-4">
+                {controlData?.control.Control.CanMoveCon === '1' && (
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="continuous-mode"
+                      checked={isContinuous}
+                      onCheckedChange={setIsContinuous}
+                    />
+                    <Label htmlFor="continuous-mode">{t('ptz.continuous_movement')}</Label>
+                  </div>
+                )}
+                <PTZControls 
+                  onCommand={handlePTZCommand} 
+                  className="w-full" 
+                  control={controlData?.control.Control}
+                />
+              </div>
+            )}
           </div>
         )}
       </div>

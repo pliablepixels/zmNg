@@ -511,12 +511,18 @@
     "move_up": "Move Up",
     "move_up_right": "Move Up Right",
     "move_left": "Move Left",
+    "stop": "Stop",
     "home": "Home",
     "move_right": "Move Right",
     "move_down_left": "Move Down Left",
     "move_down": "Move Down",
     "move_down_right": "Move Down Right",
     "zoom_in": "Zoom In",
-    "zoom_out": "Zoom Out"
+    "zoom_out": "Zoom Out",
+    "reset": "Reset",
+    "presets": "Presets",
+    "show_controls": "Show Controls",
+    "hide_controls": "Hide Controls",
+    "continuous_movement": "Continuous Movement"
   }
 }

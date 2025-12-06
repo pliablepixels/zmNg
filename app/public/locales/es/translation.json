@@ -510,13 +510,19 @@
     "move_up_left": "Mover Arriba Izquierda",
     "move_up": "Mover Arriba",
     "move_up_right": "Mover Arriba Derecha",
-    "move_left": "Mover Izquierda",
+        "move_left": "Mover a la izquierda",
+    "stop": "Detener",
     "home": "Inicio",
     "move_right": "Mover Derecha",
     "move_down_left": "Mover Abajo Izquierda",
     "move_down": "Mover Abajo",
     "move_down_right": "Mover Abajo Derecha",
     "zoom_in": "Acercar",
-    "zoom_out": "Alejar"
+    "zoom_out": "Alejar",
+    "reset": "Restablecer",
+    "presets": "Preajustes",
+    "show_controls": "Mostrar controles",
+    "hide_controls": "Ocultar controles",
+    "continuous_movement": "Movimiento continuo"
   }
 }

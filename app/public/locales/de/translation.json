@@ -510,13 +510,19 @@
     "move_up_left": "Oben Links",
     "move_up": "Oben",
     "move_up_right": "Oben Rechts",
-    "move_left": "Links",
-    "home": "Startposition",
+        "move_left": "Nach links bewegen",
+    "stop": "Stopp",
+    "home": "Startseite",
     "move_right": "Rechts",
     "move_down_left": "Unten Links",
     "move_down": "Unten",
     "move_down_right": "Unten Rechts",
     "zoom_in": "Vergrößern",
-    "zoom_out": "Verkleinern"
+    "zoom_out": "Verkleinern",
+    "reset": "Zurücksetzen",
+    "presets": "Voreinstellungen",
+    "show_controls": "Steuerung anzeigen",
+    "hide_controls": "Steuerung ausblenden",
+    "continuous_movement": "Kontinuierliche Bewegung"
   }
 }
