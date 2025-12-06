@@ -45,9 +45,35 @@ app.get('/image-proxy', async (req, res) => {
       res.setHeader('Content-Type', contentType);
     }
 
-    // Stream the image data
-    const buffer = await response.arrayBuffer();
-    res.send(Buffer.from(buffer));
+    // Stream the response body
+    if (response.body) {
+      // Check if it's a Node.js stream (node-fetch)
+      if (typeof response.body.pipe === 'function') {
+        response.body.pipe(res);
+      } 
+      // Check if it's a Web ReadableStream (native fetch)
+      else if (typeof response.body.getReader === 'function') {
+        const reader = response.body.getReader();
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            res.write(value);
+          }
+          res.end();
+        } catch (err) {
+          console.error('[Image Proxy Error] Stream error:', err);
+          res.end();
+        }
+      }
+      else {
+        // Fallback for unknown body type
+        const buffer = await response.arrayBuffer();
+        res.send(Buffer.from(buffer));
+      }
+    } else {
+      res.end();
+    }
   } catch (error) {
     console.error('[Image Proxy Error]', error.message);
     res.status(500).json({ error: error.message });

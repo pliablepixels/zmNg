@@ -301,27 +301,4 @@ export async function downloadEventVideo(
   }
 }
 
-/**
- * Download event image/snapshot (for events with only JPEG frames, no video).
- * 
- * @param imageUrl - Full URL to the event image
- * @param eventId - Event ID
- * @param eventName - Event name for filename
- */
-export async function downloadEventImage(
-  imageUrl: string,
-  eventId: string,
-  eventName: string
-): Promise<void> {
-  // Sanitize event name for filename
-  const sanitizedName = eventName.replace(/[^a-zA-Z0-9-_]/g, '_');
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-  const filename = `Event_${eventId}_${sanitizedName}_${timestamp}.jpg`;
 
-  try {
-    await downloadFile(imageUrl, filename);
-  } catch (error) {
-    log.error('Failed to download event image', { component: 'Download', eventId }, error);
-    throw error;
-  }
-}

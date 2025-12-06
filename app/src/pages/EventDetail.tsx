@@ -14,11 +14,10 @@ import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { VideoPlayer } from '../components/ui/video-player';
-import { ArrowLeft, Calendar, Clock, HardDrive, AlertTriangle, Download, Archive, Video, ListVideo, Image, Info } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, HardDrive, AlertTriangle, Download, Archive, Video, ListVideo, Info } from 'lucide-react';
 import { format } from 'date-fns';
-import { downloadEventVideo, downloadEventImage } from '../lib/download';
+import { downloadEventVideo } from '../lib/download';
 import { toast } from 'sonner';
-import { ZM_CONSTANTS } from '../lib/constants';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { log } from '../lib/logger';
@@ -98,14 +97,7 @@ export default function EventDetail() {
     ? getEventZmsUrl(currentProfile.portalUrl, event.Event.Id, accessToken || undefined, currentProfile.apiUrl)
     : '';
 
-  const imageUrl = currentProfile && hasJPEGs
-    ? getEventImageUrl(currentProfile.portalUrl, event.Event.Id, 'snapshot', {
-      token: accessToken || undefined,
-      width: ZM_CONSTANTS.eventMontageImageWidth,
-      height: ZM_CONSTANTS.eventMontageImageHeight,
-      apiUrl: currentProfile.apiUrl,
-    })
-    : '';
+
 
   const posterUrl = currentProfile
     ? getEventImageUrl(currentProfile.portalUrl, event.Event.Id, 'snapshot', {
@@ -153,7 +145,7 @@ export default function EventDetail() {
             <Archive className="h-4 w-4" />
             <span className="hidden sm:inline">{t('event_detail.archive')}</span>
           </Button>
-          {(hasVideo || hasJPEGs) && (
+          {hasVideo && (
             <Button
               variant="outline"
               size="sm"
@@ -168,25 +160,12 @@ export default function EventDetail() {
                   )
                     .then(() => toast.success(t('event_detail.video_download_started')))
                     .catch(() => toast.error(t('event_detail.video_download_failed')));
-                } else if (hasJPEGs && imageUrl) {
-                  downloadEventImage(imageUrl, event.Event.Id, event.Event.Name)
-                    .then(() => toast.success(t('event_detail.image_downloaded')))
-                    .catch(() => toast.error(t('event_detail.image_download_failed')));
                 }
               }}
-              title={hasVideo ? t('event_detail.download_video') : t('event_detail.download_image')}
+              title={t('event_detail.download_video')}
             >
-              {hasVideo ? (
-                <>
-                  <Download className="h-4 w-4" />
-                  <span className="hidden sm:inline">{t('event_detail.download_video')}</span>
-                </>
-              ) : (
-                <>
-                  <Image className="h-4 w-4" />
-                  <span className="hidden sm:inline">{t('event_detail.download_image')}</span>
-                </>
-              )}
+              <Download className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('event_detail.download_video')}</span>
             </Button>
           )}
         </div>

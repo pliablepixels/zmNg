@@ -48,12 +48,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../components/ui/dialog';
-import { RefreshCw, Video, AlertCircle, Filter, ChevronDown, X, Calendar, LayoutGrid, Image, Grid2x2, Grid3x3, GripVertical, Loader2 } from 'lucide-react';
+import { RefreshCw, Video, AlertCircle, Filter, ChevronDown, X, Calendar, LayoutGrid, Grid2x2, Grid3x3, GripVertical, Loader2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { format } from 'date-fns';
 import { filterEnabledMonitors } from '../lib/filters';
 import { ZM_CONSTANTS } from '../lib/constants';
-import { downloadEventVideo, downloadEventImage } from '../lib/download';
+import { downloadEventVideo } from '../lib/download';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { formatLocalDateTime } from '../lib/time';
@@ -517,7 +517,6 @@ export default function EventMontage() {
                 : '';
 
               const hasVideo = event.Videoed === '1';
-              const hasJPEGs = event.SaveJPEGs !== null && event.SaveJPEGs !== '0';
 
               return (
                 <Card
@@ -542,7 +541,7 @@ export default function EventMontage() {
                     </div>
 
                     {/* Download Button Overlay */}
-                    {(hasVideo || hasJPEGs) && (
+                    {hasVideo && (
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
                         <Button
                           variant="secondary"
@@ -559,25 +558,12 @@ export default function EventMontage() {
                               )
                                 .then(() => toast.success(t('eventMontage.video_download_started')))
                                 .catch(() => toast.error(t('eventMontage.video_download_failed')));
-                            } else if (hasJPEGs) {
-                              downloadEventImage(imageUrl, event.Id, event.Name)
-                                .then(() => toast.success(t('eventMontage.image_downloaded')))
-                                .catch(() => toast.error(t('eventMontage.image_download_failed')));
                             }
                           }}
-                          title={hasVideo ? t('eventMontage.download_video') : t('eventMontage.download_image')}
+                          title={t('eventMontage.download_video')}
                         >
-                          {hasVideo ? (
-                            <>
-                              <Video className="h-4 w-4" />
-                              {t('eventMontage.download_video')}
-                            </>
-                          ) : (
-                            <>
-                              <Image className="h-4 w-4" />
-                              {t('eventMontage.download_image')}
-                            </>
-                          )}
+                          <Video className="h-4 w-4" />
+                          {t('eventMontage.download_video')}
                         </Button>
                       </div>
                     )}

@@ -24,6 +24,7 @@ import { useTranslation } from 'react-i18next';
 import { useSwipeNavigation } from '../hooks/useSwipeNavigation';
 import { filterEnabledMonitors } from '../lib/filters';
 import { log } from '../lib/logger';
+import { Platform } from '../lib/platform';
 
 export default function MonitorDetail() {
   const { id } = useParams<{ id: string }>();
@@ -34,7 +35,8 @@ export default function MonitorDetail() {
   // Check if user came from another page (navigation state tracking)
   const referrer = location.state?.from as string | undefined;
   const [mode, setMode] = useState<'jpeg' | 'stream'>('jpeg');
-  const [corsAllowed, setCorsAllowed] = useState(true);
+  // Default to false on Tauri to avoid CORS issues unless we know we need it
+  const [corsAllowed, setCorsAllowed] = useState(!Platform.isTauri);
 
   const { data: monitor, isLoading, error } = useQuery({
     queryKey: ['monitor', id],
@@ -161,6 +163,12 @@ export default function MonitorDetail() {
   }, [monitor?.Monitor.Id, regenerateConnKey]);
 
   // Snapshot mode: periodic refresh
+  // Note: In MonitorDetail, we force streaming, so this effect is technically not needed for the main view,
+  // but we keep it in case we ever want to support snapshot mode here or for other side effects.
+  // However, since we are forcing streaming, we should probably disable this to avoid unnecessary re-renders/fetches if viewMode is snapshot.
+  // For now, let's disable it effectively by checking a condition that won't be met or just removing it.
+  // Actually, let's just remove it to be clean, as we are forcing streaming.
+  /*
   useEffect(() => {
     if (!monitor || settings.viewMode !== 'snapshot') return;
 
@@ -170,6 +178,7 @@ export default function MonitorDetail() {
 
     return () => clearInterval(interval);
   }, [monitor, settings.viewMode, settings.snapshotRefreshInterval]);
+  */
 
   // Cleanup: abort image loading on unmount to release connection
   useEffect(() => {
@@ -185,11 +194,13 @@ export default function MonitorDetail() {
   }, [monitor?.Monitor.Id]);
 
   // Build stream URL
+  // Note: In MonitorDetail, we always force streaming mode (ignoring settings.viewMode)
+  // because we are viewing a single monitor and don't need to worry about browser connection limits
   const streamUrl = currentProfile && monitor
     ? getStreamUrl(currentProfile.cgiUrl, monitor.Monitor.Id, {
-      mode: settings.viewMode === 'snapshot' ? 'single' : mode,
+      mode: mode,
       scale,
-      maxfps: settings.viewMode === 'streaming' && mode === 'jpeg' ? settings.streamMaxFps : undefined,
+      maxfps: mode === 'jpeg' ? settings.streamMaxFps : undefined,
       token: accessToken || undefined,
       connkey: connKey,
       cacheBuster: cacheBuster,
@@ -197,24 +208,14 @@ export default function MonitorDetail() {
     : '';
 
   // Preload images in snapshot mode to avoid flickering
+  // Note: Since we are forcing streaming, this effect is largely bypassed, but kept for safety
   useEffect(() => {
-    if (settings.viewMode !== 'snapshot' || !streamUrl) {
-      setDisplayedImageUrl(streamUrl);
+    if (!streamUrl) {
+      setDisplayedImageUrl('');
       return;
     }
-
-    // Preload the new image
-    const img = new Image();
-    img.onload = () => {
-      // Only update the displayed URL when the new image is fully loaded
-      setDisplayedImageUrl(streamUrl);
-    };
-    img.onerror = () => {
-      // On error, still update to trigger the error handler
-      setDisplayedImageUrl(streamUrl);
-    };
-    img.src = streamUrl;
-  }, [streamUrl, settings.viewMode]);
+    setDisplayedImageUrl(streamUrl);
+  }, [streamUrl]);
 
   if (isLoading) {
     return (
