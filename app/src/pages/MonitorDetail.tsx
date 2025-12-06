@@ -22,6 +22,8 @@ import { toast } from 'sonner';
 import { downloadSnapshotFromElement } from '../lib/download';
 import { useTranslation } from 'react-i18next';
 import { useSwipeNavigation } from '../hooks/useSwipeNavigation';
+import { PTZControls } from '../components/monitors/PTZControls';
+import { controlMonitor } from '../api/monitors';
 import { filterEnabledMonitors } from '../lib/filters';
 import { log } from '../lib/logger';
 import { Platform } from '../lib/platform';
@@ -31,6 +33,23 @@ export default function MonitorDetail() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
+
+  const handlePTZCommand = async (command: string) => {
+    if (!currentProfile || !monitor) return;
+
+    try {
+      await controlMonitor(
+        currentProfile.portalUrl,
+        monitor.Monitor.Id,
+        command,
+        accessToken || undefined
+      );
+      // Optional: Show success feedback, but usually PTZ is visual
+    } catch (error) {
+      log.error('PTZ command failed', { component: 'MonitorDetail', command, error });
+      toast.error(t('monitor_detail.ptz_failed'));
+    }
+  };
 
   // Check if user came from another page (navigation state tracking)
   const referrer = location.state?.from as string | undefined;
@@ -179,6 +198,18 @@ export default function MonitorDetail() {
     return () => clearInterval(interval);
   }, [monitor, settings.viewMode, settings.snapshotRefreshInterval]);
   */
+
+  // Log monitor controllable status for debugging
+  useEffect(() => {
+    if (monitor?.Monitor) {
+      log.info('Monitor loaded in Single View', {
+        id: monitor.Monitor.Id,
+        name: monitor.Monitor.Name,
+        controllable: monitor.Monitor.Controllable,
+        type: typeof monitor.Monitor.Controllable
+      });
+    }
+  }, [monitor]);
 
   // Cleanup: abort image loading on unmount to release connection
   useEffect(() => {
@@ -383,21 +414,11 @@ export default function MonitorDetail() {
           </div>
         </Card>
 
-        {/* PTZ Controls (Placeholder) */}
+        {/* PTZ Controls */}
         {monitor.Monitor.Controllable === '1' && (
-          <div className="mt-8 p-4 bg-card rounded-xl border shadow-sm">
+          <div className="mt-8">
             <p className="text-sm font-medium text-center mb-4 text-muted-foreground">{t('monitor_detail.ptz_controls')}</p>
-            <div className="grid grid-cols-3 gap-2 w-48 mx-auto">
-              <div />
-              <Button variant="outline" size="icon" aria-label="Pan up">↑</Button>
-              <div />
-              <Button variant="outline" size="icon" aria-label="Pan left">←</Button>
-              <Button variant="outline" size="icon" aria-label="Center">●</Button>
-              <Button variant="outline" size="icon" aria-label="Pan right">→</Button>
-              <div />
-              <Button variant="outline" size="icon" aria-label="Pan down">↓</Button>
-              <div />
-            </div>
+            <PTZControls onCommand={handlePTZCommand} />
           </div>
         )}
       </div>

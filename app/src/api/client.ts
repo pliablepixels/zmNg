@@ -54,7 +54,9 @@ export function createApiClient(baseURL: string): AxiosInstance {
 
           // Build query string from params
           const params = new URLSearchParams(config.params || {}).toString();
-          const urlWithParams = params ? `${fullUrl}?${params}` : fullUrl;
+          const urlWithParams = params
+            ? (fullUrl.includes('?') ? `${fullUrl}&${params}` : `${fullUrl}?${params}`)
+            : fullUrl;
 
           log.api(`[${Platform.isNative ? 'Native' : 'Tauri'} HTTP] Request: ${config.method?.toUpperCase() || 'GET'} ${urlWithParams}`, {});
 
@@ -226,7 +228,8 @@ export function createApiClient(baseURL: string): AxiosInstance {
       if (import.meta.env.DEV) {
         const zmApiUrl = localStorage.getItem('zm_api_url') || baseURL;
         const path = config.url || '';
-        const fullZmUrl = zmApiUrl + path;
+        // Don't prepend base URL if path is already absolute
+        const fullZmUrl = path.startsWith('http') ? path : zmApiUrl + path;
         const queryParams = config.params ? new URLSearchParams(config.params).toString() : '';
         const fullUrlWithParams = queryParams ? `${fullZmUrl}?${queryParams}` : fullZmUrl;
 
@@ -270,7 +273,7 @@ export function createApiClient(baseURL: string): AxiosInstance {
       if (import.meta.env.DEV) {
         const zmApiUrl = localStorage.getItem('zm_api_url') || baseURL;
         const path = response.config.url || '';
-        const fullZmUrl = zmApiUrl + path;
+        const fullZmUrl = path.startsWith('http') ? path : zmApiUrl + path;
 
         log.api(`[Response] ${response.status} ${response.statusText} - ${fullZmUrl}`, {
           status: response.status,
@@ -310,7 +313,7 @@ export function createApiClient(baseURL: string): AxiosInstance {
       if (import.meta.env.DEV) {
         const zmApiUrl = localStorage.getItem('zm_api_url') || '';
         const path = error.config?.url || '';
-        const fullZmUrl = zmApiUrl + path;
+        const fullZmUrl = path.startsWith('http') ? path : zmApiUrl + path;
         const queryParams = error.config?.params
           ? new URLSearchParams(error.config.params).toString()
           : '';

@@ -505,5 +505,18 @@
     "unexpected_error_message": "An unexpected error occurred.",
     "component_stack": "Component Stack",
     "reload_application": "Reload Application"
+  },
+  "ptz": {
+    "move_up_left": "Move Up Left",
+    "move_up": "Move Up",
+    "move_up_right": "Move Up Right",
+    "move_left": "Move Left",
+    "home": "Home",
+    "move_right": "Move Right",
+    "move_down_left": "Move Down Left",
+    "move_down": "Move Down",
+    "move_down_right": "Move Down Right",
+    "zoom_in": "Zoom In",
+    "zoom_out": "Zoom Out"
   }
 }

@@ -5,7 +5,7 @@ pub fn run() {
     .plugin(
       tauri_plugin_log::Builder::default()
         .level(log::LevelFilter::Info)
-        .rotation_strategy(tauri_plugin_log::RotationStrategy::Keep(5))
+        .rotation_strategy(tauri_plugin_log::RotationStrategy::KeepOne)
         .max_file_size(10 * 1024 * 1024)
         .build(),
     )

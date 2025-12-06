@@ -505,5 +505,18 @@
     "unexpected_error_message": "Ocurrió un error inesperado.",
     "component_stack": "Pila de Componentes",
     "reload_application": "Recargar Aplicación"
+  },
+  "ptz": {
+    "move_up_left": "Mover Arriba Izquierda",
+    "move_up": "Mover Arriba",
+    "move_up_right": "Mover Arriba Derecha",
+    "move_left": "Mover Izquierda",
+    "home": "Inicio",
+    "move_right": "Mover Derecha",
+    "move_down_left": "Mover Abajo Izquierda",
+    "move_down": "Mover Abajo",
+    "move_down_right": "Mover Abajo Derecha",
+    "zoom_in": "Acercar",
+    "zoom_out": "Alejar"
   }
 }

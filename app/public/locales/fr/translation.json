@@ -505,5 +505,18 @@
     "unexpected_error_message": "Une erreur inattendue s'est produite.",
     "component_stack": "Pile de composants",
     "reload_application": "Recharger l'application"
+  },
+  "ptz": {
+    "move_up_left": "Haut Gauche",
+    "move_up": "Haut",
+    "move_up_right": "Haut Droite",
+    "move_left": "Gauche",
+    "home": "Accueil",
+    "move_right": "Droite",
+    "move_down_left": "Bas Gauche",
+    "move_down": "Bas",
+    "move_down_right": "Bas Droite",
+    "zoom_in": "Zoom Avant",
+    "zoom_out": "Zoom Arrière"
   }
 }

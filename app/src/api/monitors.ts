@@ -7,7 +7,7 @@
 
 import { getApiClient } from './client';
 import type { MonitorsResponse, MonitorData } from './types';
-import { MonitorsResponseSchema } from './types';
+import { MonitorsResponseSchema, MonitorDataSchema } from './types';
 import { Platform } from '../lib/platform';
 
 /**
@@ -35,7 +35,8 @@ export async function getMonitors(): Promise<MonitorsResponse> {
 export async function getMonitor(monitorId: string): Promise<MonitorData> {
   const client = getApiClient();
   const response = await client.get<{ monitor: MonitorData }>(`/monitors/${monitorId}.json`);
-  return response.data.monitor;
+  // Validate and coerce types (e.g. Controllable number -> string)
+  return MonitorDataSchema.parse(response.data.monitor);
 }
 
 /**
@@ -196,4 +197,48 @@ export function getStreamUrl(
   }
 
   return fullUrl;
+}
+
+/**
+ * Send PTZ control command to a monitor.
+ * 
+ * @param portalUrl - Base Portal URL (e.g. https://zm.example.com/zm)
+ * @param monitorId - The ID of the monitor
+ * @param command - The PTZ command to execute
+ * @param token - Optional auth token
+ */
+export async function controlMonitor(
+  portalUrl: string,
+  monitorId: string,
+  command: string,
+  token?: string
+): Promise<void> {
+  const params = new URLSearchParams({
+    view: 'request',
+    request: 'control',
+    id: monitorId,
+    control: command,
+    xge: '0',
+    yge: '0',
+    ...(token && { token }),
+  });
+
+  let url = `${portalUrl}/index.php?${params.toString()}`;
+
+  // In dev mode on web, use proxy server to avoid CORS issues
+  if (Platform.shouldUseProxy) {
+    const proxyParams = new URLSearchParams();
+    proxyParams.append('url', url);
+    url = `http://localhost:3001/image-proxy?${proxyParams.toString()}`;
+  }
+
+  const client = getApiClient();
+  // We use the client to take advantage of the native adapter if needed,
+  // but we pass the full URL which overrides the baseURL.
+  // We skip auth interceptor because we manually added the token to the URL
+  await client.get(url, {
+    headers: {
+      'Skip-Auth': 'true'
+    }
+  });
 }
