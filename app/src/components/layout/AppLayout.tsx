@@ -6,7 +6,7 @@
  * It also handles the sidebar resizing logic and mobile drawer state.
  */
 
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, Navigate } from 'react-router-dom';
 import { useProfileStore } from '../../stores/profile';
 import { useAuthStore } from '../../stores/auth';
 import { useNotificationStore } from '../../stores/notifications';
@@ -219,6 +219,7 @@ function SidebarContent({ onMobileClose, isCollapsed }: SidebarContentProps) {
  * The main layout wrapper that includes the sidebar and main content area.
  */
 export default function AppLayout() {
+  const currentProfile = useProfileStore((state) => state.currentProfile());
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(256); // 256px = w-64
   const [isDragging, setIsDragging] = useState(false);
@@ -227,6 +228,10 @@ export default function AppLayout() {
   const MIN_WIDTH = 60;
   const MAX_WIDTH = 256;
   const { t } = useTranslation();
+
+  if (!currentProfile) {
+    return <Navigate to="/setup" replace />;
+  }
 
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
