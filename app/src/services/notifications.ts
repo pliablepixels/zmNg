@@ -319,7 +319,7 @@ export class ZMNotificationService {
       ws.onerror = (error) => {
         if (this.ws !== ws) return;
         log.error('WebSocket error', { component: 'Notifications' }, error);
-        if (this.config.ssl) {
+        if (this.config?.ssl) {
           log.warn('If using self-signed certificates, ensure they are trusted by the device/browser.', { component: 'Notifications' });
         }
         this._handleError(error);

@@ -232,19 +232,21 @@ export default function NotificationSettings() {
       <div className="grid gap-6">
         {/* Enable/Disable */}
         <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
+          <CardHeader className="pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 {settings.enabled ? (
-                  <Bell className="h-5 w-5 text-primary" />
+                  <Bell className="h-5 w-5 text-primary shrink-0" />
                 ) : (
-                  <BellOff className="h-5 w-5 text-muted-foreground" />
+                  <BellOff className="h-5 w-5 text-muted-foreground shrink-0" />
                 )}
-                <CardTitle>{t('notification_settings.status_title')}</CardTitle>
+                <CardTitle className="text-lg sm:text-xl">{t('notification_settings.status_title')}</CardTitle>
               </div>
-              {getConnectionBadge()}
+              <div className="self-start sm:self-auto">
+                {getConnectionBadge()}
+              </div>
             </div>
-            <CardDescription>
+            <CardDescription className="mt-1.5">
               {t('notification_settings.status_desc')}
             </CardDescription>
           </CardHeader>

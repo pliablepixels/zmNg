@@ -1,5 +1,6 @@
 import UIKit
 import Capacitor
+import WebKit
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -46,4 +47,55 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return ApplicationDelegateProxy.shared.application(application, continue: userActivity, restorationHandler: restorationHandler)
     }
 
+}
+
+class ViewController: CAPBridgeViewController {
+    
+    var sslDelegate: SSLProxyDelegate?
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        // Wrap the existing navigation delegate to intercept SSL challenges
+        if let webView = self.webView, let original = webView.navigationDelegate {
+            self.sslDelegate = SSLProxyDelegate(originalDelegate: original)
+            webView.navigationDelegate = self.sslDelegate
+        }
+    }
+}
+
+class SSLProxyDelegate: NSObject, WKNavigationDelegate {
+    let originalDelegate: WKNavigationDelegate
+    
+    init(originalDelegate: WKNavigationDelegate) {
+        self.originalDelegate = originalDelegate
+        super.init()
+    }
+    
+    override func forwardingTarget(for aSelector: Selector!) -> Any? {
+        return originalDelegate
+    }
+    
+    override func responds(to aSelector: Selector!) -> Bool {
+        if super.responds(to: aSelector) { return true }
+        return originalDelegate.responds(to: aSelector)
+    }
+    
+    func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+        
+        // Handle SSL Trust for self-signed certificates
+        if challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust {
+            if let serverTrust = challenge.protectionSpace.serverTrust {
+                completionHandler(.useCredential, URLCredential(trust: serverTrust))
+                return
+            }
+        }
+        
+        // Forward to original delegate if it implements this method
+        if originalDelegate.responds(to: #selector(webView(_:didReceive:completionHandler:))) {
+            originalDelegate.webView?(webView, didReceive: challenge, completionHandler: completionHandler)
+        } else {
+            completionHandler(.performDefaultHandling, nil)
+        }
+    }
 }

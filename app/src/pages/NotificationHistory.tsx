@@ -75,18 +75,18 @@ export default function NotificationHistory() {
               key={`${event.EventId}-${event.receivedAt}`}
               className={event.read ? 'opacity-60' : 'border-primary'}
             >
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <CardTitle className="text-lg">{event.MonitorName}</CardTitle>
+              <CardHeader className="p-3 sm:p-6 pb-3 sm:pb-3">
+                <div className="flex items-start justify-between gap-2 sm:gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <CardTitle className="text-base sm:text-lg break-words">{event.MonitorName}</CardTitle>
                       {!event.read && (
-                        <Badge variant="destructive" className="text-xs">
+                        <Badge variant="destructive" className="text-[10px] sm:text-xs shrink-0">
                           {t('notification_history.new')}
                         </Badge>
                       )}
                     </div>
-                    <CardDescription className="mt-1">
+                    <CardDescription className="mt-1 text-xs sm:text-sm">
                       {formatDistanceToNow(event.receivedAt, { addSuffix: true })}
                     </CardDescription>
                   </div>
@@ -94,9 +94,10 @@ export default function NotificationHistory() {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleViewEvent(event.EventId)}
+                    className="shrink-0 h-8 sm:h-9 px-2 sm:px-3"
                   >
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    {t('notification_history.view_event')}
+                    <ExternalLink className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">{t('notification_history.view_event')}</span>
                   </Button>
                 </div>
               </CardHeader>
