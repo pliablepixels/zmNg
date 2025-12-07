@@ -428,7 +428,7 @@ export const useProfileStore = create<ProfileState>()(
 
         if (!state?.currentProfileId) {
           log.profile('No current profile found on app load', { state });
-          useProfileStore.setState({ isInitialized: true });
+          setTimeout(() => useProfileStore.setState({ isInitialized: true }), 0);
           log.profile('isInitialized set to true (no profile)');
           return;
         }
@@ -440,7 +440,7 @@ export const useProfileStore = create<ProfileState>()(
             profileId: state.currentProfileId,
           });
           // CRITICAL: Set isInitialized even on error to prevent hanging
-          useProfileStore.setState({ isInitialized: true });
+          setTimeout(() => useProfileStore.setState({ isInitialized: true }), 0);
           return;
         }
 
@@ -518,7 +518,7 @@ export const useProfileStore = create<ProfileState>()(
           // CRITICAL: Always set isInitialized to true, even if authentication fails
           // This allows the app to proceed to the UI and show any error messages
           log.profile('App initialization complete - setting isInitialized to true');
-          useProfileStore.setState({ isInitialized: true });
+          setTimeout(() => useProfileStore.setState({ isInitialized: true }), 0);
           log.profile('isInitialized flag set successfully');
         }
       },

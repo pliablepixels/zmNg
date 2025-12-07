@@ -12,7 +12,6 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
 import { useProfileStore } from '../stores/profile';
-import { getVersion } from '../api/auth';
 import { createApiClient, setApiClient } from '../api/client';
 import { discoverZoneminder, DiscoveryError } from '../lib/discovery';
 import { Video, Server, ShieldCheck, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
@@ -75,8 +74,9 @@ export default function Setup() {
       const client = createApiClient(result.apiUrl);
       setApiClient(client);
 
-      const version = await getVersion();
-      log.info('Successfully connected', { component: 'Setup', apiUrl: result.apiUrl, version });
+      // We don't call getVersion() here because it might fail with 401 if auth is required.
+      // We trust discoverZoneminder() which already probed the endpoint.
+      log.info('Successfully connected', { component: 'Setup', apiUrl: result.apiUrl });
 
       return result;
     } catch (e) {
