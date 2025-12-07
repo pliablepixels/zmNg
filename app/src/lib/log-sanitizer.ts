@@ -18,6 +18,24 @@ const SENSITIVE_KEYS = [
     'auth',
 ];
 
+// Whitelist of keys that should NEVER be sanitized, even if they look like sensitive data
+// or if we want to preserve them for debugging
+const WHITELIST_KEYS = [
+    'event',
+    'events',
+    'status',
+    'reason',
+    'type',
+    'monitor',
+    'MonitorName',
+    'Cause',
+    'Name',
+    'DetectionJson',
+    'ImageUrl',
+    'fullMessage',
+    'message'
+];
+
 /**
  * Redacts password fields completely
  */
@@ -189,6 +207,12 @@ export function sanitizeObject(obj: unknown): unknown {
     const sanitized: Record<string, unknown> = {};
 
     for (const [key, value] of Object.entries(obj)) {
+        // Skip sanitization for whitelisted keys
+        if (WHITELIST_KEYS.includes(key)) {
+            sanitized[key] = value;
+            continue;
+        }
+
         const lowerKey = key.toLowerCase();
 
         // Check if this is a sensitive key
