@@ -311,7 +311,11 @@ export const useNotificationStore = create<NotificationState>()(
           };
 
           const currentEvents = state.profileEvents[profileId] || [];
-          const events = [notificationEvent, ...currentEvents].slice(0, MAX_EVENTS);
+          
+          // Remove any existing event with the same ID to avoid duplicates
+          const otherEvents = currentEvents.filter(e => e.EventId !== event.EventId);
+          
+          const events = [notificationEvent, ...otherEvents].slice(0, MAX_EVENTS);
           const unreadCount = events.filter((e) => !e.read).length;
 
           const profileSettings = state.profileSettings[profileId] || DEFAULT_SETTINGS;
