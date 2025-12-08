@@ -8,6 +8,7 @@ import {
   type ConnectionState,
 } from '../services/notifications';
 import { log } from '../lib/logger';
+import { useAuthStore } from './auth';
 
 export interface NotificationSettings {
   enabled: boolean;
@@ -53,7 +54,7 @@ interface NotificationState {
   removeMonitorFilter: (profileId: string, monitorId: number) => void;
 
   // Actions - Connection
-  connect: (profileId: string, username: string, password: string) => Promise<void>;
+  connect: (profileId: string, username: string, password: string, portalUrl: string) => Promise<void>;
   disconnect: () => void;
   reconnect: () => Promise<void>;
 
@@ -195,7 +196,7 @@ export const useNotificationStore = create<NotificationState>()(
 
       // ========== Connection Actions ==========
 
-      connect: async (profileId: string, username: string, password: string) => {
+      connect: async (profileId: string, username: string, password: string, portalUrl: string) => {
         const settings = get().getProfileSettings(profileId);
 
         if (!settings.enabled) {
@@ -232,7 +233,9 @@ export const useNotificationStore = create<NotificationState>()(
           ssl: settings.ssl,
           username,
           password,
+          token: useAuthStore.getState().accessToken || undefined,
           appVersion: '1.0.0', // TODO: Get from package.json
+          portalUrl,
         };
 
         const service = getNotificationService();

@@ -16,7 +16,9 @@ export interface ZMEventServerConfig {
   ssl: boolean; // true for wss://, false for ws://
   username: string;
   password: string;
+  token?: string;
   appVersion: string;
+  portalUrl: string; // ZoneMinder portal URL for constructing image URLs
 }
 
 export interface ZMAlarmEvent {
@@ -411,6 +413,20 @@ export class ZMNotificationService {
             eventId: event.EventId,
             cause: event.Cause,
           });
+
+          // Construct image URL for the event snapshot
+          if (this.config && event.EventId) {
+            let imageUrl = `${this.config.portalUrl}/index.php?view=image&eid=${event.EventId}&fid=snapshot&width=600`;
+            if (this.config.token) {
+              imageUrl += `&token=${this.config.token}`;
+            }
+            event.ImageUrl = imageUrl;
+            log.info('Constructed image URL for event', {
+              component: 'Notifications',
+              eventId: event.EventId,
+              imageUrl,
+            });
+          }
 
           // Notify all listeners
           this.eventCallbacks.forEach((callback) => {
