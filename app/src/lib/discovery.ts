@@ -229,6 +229,27 @@ export async function discoverZoneminder(inputUrl: string): Promise<DiscoveryRes
 
     log.info(`[Discovery] Inferred CGI URL: ${confirmedCgiUrl}`);
 
+    // CRITICAL: Verify that portal and API use the same protocol
+    const portalProtocol = confirmedPortalUrl.startsWith('https://') ? 'https' : 'http';
+    const apiProtocol = confirmedApiUrl.startsWith('https://') ? 'https' : 'http';
+
+    if (portalProtocol !== apiProtocol) {
+        const errorMsg = `Protocol mismatch detected! Portal uses ${portalProtocol}:// but API uses ${apiProtocol}://. ` +
+            `ZoneMinder Portal and API must use the same protocol. Please configure your ZoneMinder server to use ` +
+            `consistent protocols, or enter URLs manually with matching protocols.`;
+
+        log.error(`[Discovery] Protocol mismatch!`, {
+            portalUrl: confirmedPortalUrl,
+            apiUrl: confirmedApiUrl,
+            portalProtocol,
+            apiProtocol
+        });
+
+        throw new DiscoveryError(errorMsg, 'UNKNOWN');
+    }
+
+    log.info(`[Discovery] Protocol validation passed - both using ${portalProtocol}://`);
+
     return {
         portalUrl: confirmedPortalUrl,
         apiUrl: confirmedApiUrl,

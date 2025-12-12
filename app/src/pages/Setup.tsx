@@ -120,6 +120,20 @@ export default function Setup() {
         if (!manualApiUrl || !manualCgiUrl) {
           throw new Error(t('setup.enter_both_urls'));
         }
+
+        // Validate that portal and API have matching protocols
+        const portalHasProtocol = portalUrl.startsWith('http://') || portalUrl.startsWith('https://');
+        const portalProtocol = portalUrl.startsWith('https://') ? 'https' : 'http';
+        const apiHasProtocol = manualApiUrl.startsWith('http://') || manualApiUrl.startsWith('https://');
+        const apiProtocol = manualApiUrl.startsWith('https://') ? 'https' : 'http';
+
+        if (portalHasProtocol && apiHasProtocol && portalProtocol !== apiProtocol) {
+          throw new Error(
+            `Protocol mismatch! Portal uses ${portalProtocol}:// but API uses ${apiProtocol}://. ` +
+            `Both must use the same protocol (either both HTTP or both HTTPS).`
+          );
+        }
+
         apiUrl = manualApiUrl;
         cgiUrl = manualCgiUrl;
         log.info('Manual URLs set', { component: 'Setup', apiUrl, cgiUrl });
