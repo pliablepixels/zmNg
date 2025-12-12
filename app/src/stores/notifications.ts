@@ -9,6 +9,7 @@ import {
 } from '../services/notifications';
 import { log } from '../lib/logger';
 import { useAuthStore } from './auth';
+import { getAppVersion } from '../lib/version';
 
 export interface NotificationSettings {
   enabled: boolean;
@@ -234,7 +235,7 @@ export const useNotificationStore = create<NotificationState>()(
           username,
           password,
           token: useAuthStore.getState().accessToken || undefined,
-          appVersion: '1.0.0', // TODO: Get from package.json
+          appVersion: getAppVersion(),
           portalUrl,
         };
 

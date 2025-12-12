@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../components/ui/select';
+import { getAppVersion } from '../lib/version';
 
 export default function Settings() {
   const { t, i18n } = useTranslation();
@@ -533,7 +534,7 @@ export default function Settings() {
               </div>
               <div className="p-4 rounded-lg bg-muted/50 border">
                 <div className="text-sm font-medium text-muted-foreground">{t('settings.app_version')}</div>
-                <div className="text-2xl font-bold mt-1">0.1.0</div>
+                <div className="text-2xl font-bold mt-1">{getAppVersion()}</div>
               </div>
             </div>
           </CardContent>

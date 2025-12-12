@@ -11,6 +11,7 @@ import { Share } from '@capacitor/share';
 import { useToast } from '../hooks/use-toast';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { getAppVersion } from '../lib/version';
 
 function LogCodeBlock({ content }: { content: string }) {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -156,11 +157,16 @@ export default function Logs() {
         }
     };
 
+    const appVersion = getAppVersion();
+
     return (
         <div className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6 h-[calc(100vh-4rem)] flex flex-col">
             <div className="flex items-center justify-between shrink-0">
                 <div>
-                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">{t('logs.title')}</h1>
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">{t('logs.title')}</h1>
+                        <Badge variant="outline" className="text-xs">v{appVersion}</Badge>
+                    </div>
                     <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
                         {t('logs.subtitle')}
                     </p>
