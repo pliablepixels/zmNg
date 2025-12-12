@@ -4,6 +4,7 @@
     "refresh": "刷新",
     "close": "关闭",
     "settings": "设置",
+    "server": "Server",
     "loading": "加载中...",
     "error": "错误",
     "save": "保存",
@@ -174,6 +175,7 @@
     "alarm_frames_count": "{{total}}帧中有{{count}}个报警帧"
   },
   "settings": {
+    "server": "Server",
     "title": "设置",
     "subtitle": "应用配置",
     "language": "语言",
@@ -246,6 +248,7 @@
     "view_events": "查看事件",
     "timeline": "时间轴",
     "settings": "设置",
+    "server": "Server",
     "ptz_controls": "PTZ 控制",
     "save_snapshot": "保存快照",
     "snapshot_saved": "快照已保存",
@@ -435,6 +438,7 @@
     "events": "事件",
     "timeline": "时间轴",
     "settings": "设置",
+    "server": "Server",
     "logout": "登出",
     "profile": "配置",
     "expand": "展开",

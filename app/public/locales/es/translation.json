@@ -4,6 +4,7 @@
     "refresh": "Actualizar",
     "close": "Cerrar",
     "settings": "Configuración",
+    "server": "Server",
     "loading": "Cargando...",
     "error": "Error",
     "save": "Guardar",
@@ -174,6 +175,7 @@
     "alarm_frames_count": "{{count}} de {{total}} fotogramas con alarma"
   },
   "settings": {
+    "server": "Server",
     "title": "Configuración",
     "subtitle": "Configuración de la aplicación",
     "language": "Idioma",
@@ -246,6 +248,7 @@
     "view_events": "Ver Eventos",
     "timeline": "Línea de Tiempo",
     "settings": "Configuración",
+    "server": "Server",
     "ptz_controls": "Controles PTZ",
     "save_snapshot": "Guardar Instantánea",
     "snapshot_saved": "Instantánea guardada",
@@ -435,6 +438,7 @@
     "events": "Eventos",
     "timeline": "Línea de Tiempo",
     "settings": "Configuración",
+    "server": "Server",
     "logout": "Cerrar Sesión",
     "profile": "Perfil",
     "expand": "Expandir",

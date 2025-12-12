@@ -4,6 +4,7 @@
     "refresh": "Aktualisieren",
     "close": "Schließen",
     "settings": "Einstellungen",
+    "server": "Server",
     "loading": "Laden...",
     "error": "Fehler",
     "save": "Speichern",
@@ -174,6 +175,7 @@
     "alarm_frames_count": "{{count}} von {{total}} Frames mit Alarm"
   },
   "settings": {
+    "server": "Server",
     "title": "Einstellungen",
     "subtitle": "App-Konfiguration",
     "language": "Sprache",
@@ -246,6 +248,7 @@
     "view_events": "Ereignisse ansehen",
     "timeline": "Zeitachse",
     "settings": "Einstellungen",
+    "server": "Server",
     "ptz_controls": "PTZ-Steuerung",
     "save_snapshot": "Schnappschuss speichern",
     "snapshot_saved": "Schnappschuss gespeichert",
@@ -435,6 +438,7 @@
     "events": "Ereignisse",
     "timeline": "Zeitachse",
     "settings": "Einstellungen",
+    "server": "Server",
     "logout": "Abmelden",
     "profile": "Profil",
     "expand": "Erweitern",

@@ -14,7 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Label } from '../components/ui/label';
 import { Input } from '../components/ui/input';
 import { Switch } from '../components/ui/switch';
-import { Settings as SettingsIcon, Shield, Info, LogOut, Image, Video as VideoIcon, List, Maximize2, Minimize2, Globe, LayoutDashboard } from 'lucide-react';
+import { Settings as SettingsIcon, Shield, LogOut, Image, Video as VideoIcon, List, Maximize2, Minimize2, Globe, LayoutDashboard } from 'lucide-react';
 import { Badge } from '../components/ui/badge';
 import { useTranslation } from 'react-i18next';
 import {
@@ -24,12 +24,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../components/ui/select';
-import { getAppVersion } from '../lib/version';
 
 export default function Settings() {
   const { t, i18n } = useTranslation();
   const currentProfile = useProfileStore((state) => state.currentProfile());
-  const { version, apiVersion, logout } = useAuthStore();
+  const { logout } = useAuthStore();
   const settings = useSettingsStore(
     useShallow((state) => state.getProfileSettings(currentProfile?.id || ''))
   );
@@ -506,35 +505,6 @@ export default function Settings() {
                     60
                   </Button>
                 </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* System Info */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Info className="h-5 w-5 text-primary" />
-              <CardTitle>{t('settings.system_info')}</CardTitle>
-            </div>
-            <CardDescription>
-              {t('settings.system_info_desc')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 rounded-lg bg-muted/50 border">
-                <div className="text-sm font-medium text-muted-foreground">{t('settings.zm_version')}</div>
-                <div className="text-2xl font-bold mt-1">{version || t('common.unknown')}</div>
-              </div>
-              <div className="p-4 rounded-lg bg-muted/50 border">
-                <div className="text-sm font-medium text-muted-foreground">{t('settings.api_version')}</div>
-                <div className="text-2xl font-bold mt-1">{apiVersion || t('common.unknown')}</div>
-              </div>
-              <div className="p-4 rounded-lg bg-muted/50 border">
-                <div className="text-sm font-medium text-muted-foreground">{t('settings.app_version')}</div>
-                <div className="text-2xl font-bold mt-1">{getAppVersion()}</div>
               </div>
             </div>
           </CardContent>

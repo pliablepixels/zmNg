@@ -29,7 +29,8 @@ import {
   ChevronRight,
   FileText,
   Globe,
-  LayoutDashboard
+  LayoutDashboard,
+  Server
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useState, useRef, useEffect } from 'react';
@@ -137,6 +138,7 @@ function SidebarContent({ onMobileClose, isCollapsed }: SidebarContentProps) {
     { path: '/notifications', label: t('sidebar.notifications'), icon: Bell },
     { path: '/profiles', label: t('sidebar.profiles'), icon: Users },
     { path: '/settings', label: t('sidebar.settings'), icon: Settings },
+    { path: '/server', label: t('sidebar.server'), icon: Server },
     { path: '/logs', label: t('sidebar.logs'), icon: FileText },
   ];
 

@@ -32,6 +32,7 @@ const EventMontage = lazy(() => import('./pages/EventMontage'));
 const Timeline = lazy(() => import('./pages/Timeline'));
 const Profiles = lazy(() => import('./pages/Profiles'));
 const Settings = lazy(() => import('./pages/Settings'));
+const Server = lazy(() => import('./pages/Server'));
 const NotificationSettings = lazy(() => import('./pages/NotificationSettings'));
 const NotificationHistory = lazy(() => import('./pages/NotificationHistory'));
 const Logs = lazy(() => import('./pages/Logs'));
@@ -231,6 +232,14 @@ function AppRoutes() {
             element={
               <RouteErrorBoundary routePath="/settings">
                 <Settings />
+              </RouteErrorBoundary>
+            }
+          />
+          <Route
+            path="/server"
+            element={
+              <RouteErrorBoundary routePath="/server">
+                <Server />
               </RouteErrorBoundary>
             }
           />

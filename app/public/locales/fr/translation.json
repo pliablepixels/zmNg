@@ -4,6 +4,7 @@
     "refresh": "Actualiser",
     "close": "Fermer",
     "settings": "Paramètres",
+    "server": "Server",
     "loading": "Chargement...",
     "error": "Erreur",
     "save": "Enregistrer",
@@ -174,6 +175,7 @@
     "alarm_frames_count": "{{count}} sur {{total}} images avec alarme"
   },
   "settings": {
+    "server": "Server",
     "title": "Paramètres",
     "subtitle": "Configuration de l'application",
     "language": "Langue",
@@ -246,6 +248,7 @@
     "view_events": "Voir les événements",
     "timeline": "Chronologie",
     "settings": "Paramètres",
+    "server": "Server",
     "ptz_controls": "Contrôles PTZ",
     "save_snapshot": "Enregistrer l'instantané",
     "snapshot_saved": "Instantané enregistré",
@@ -435,6 +438,7 @@
     "events": "Événements",
     "timeline": "Chronologie",
     "settings": "Paramètres",
+    "server": "Server",
     "logout": "Déconnexion",
     "profile": "Profil",
     "expand": "Développer",
