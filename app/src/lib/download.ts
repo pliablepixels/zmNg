@@ -17,6 +17,7 @@ import { log } from './logger';
 import { Platform } from './platform';
 import { httpGet } from './http';
 import { getApiClient } from '../api/client';
+import { getEventVideoUrl as buildEventVideoUrl } from './url-builder';
 
 /**
  * Download a file from a URL.
@@ -267,21 +268,7 @@ export function getEventVideoDownloadUrl(
   eventId: string,
   token?: string
 ): string {
-  // Ensure portalUrl has a protocol
-  let baseUrl = portalUrl;
-  if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
-    baseUrl = `https://${baseUrl}`;
-  }
-
-  // ZoneMinder video export endpoint
-  // This tries to get the video file directly (mp4, avi, or mjpeg)
-  const params = new URLSearchParams({
-    view: 'video',
-    eid: eventId,
-    ...(token && { token }),
-  });
-
-  return `${baseUrl}/index.php?${params.toString()}`;
+  return buildEventVideoUrl(portalUrl, eventId, { token });
 }
 
 /**

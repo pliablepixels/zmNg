@@ -10,6 +10,12 @@ import type { EventsResponse, EventData } from './types';
 import { EventsResponseSchema } from './types';
 import { log } from '../lib/logger';
 import { Platform } from '../lib/platform';
+import { validateApiResponse } from '../lib/api-validator';
+import {
+  getEventImageUrl as buildEventImageUrl,
+  getEventVideoUrl as buildEventVideoUrl,
+  getEventZmsUrl as buildEventZmsUrl,
+} from '../lib/url-builder';
 
 export interface EventFilters {
   monitorId?: string;
@@ -79,7 +85,10 @@ export async function getEvents(filters: EventFilters = {}): Promise<EventsRespo
     );
 
     const response = await client.get<EventsResponse>(url, { params });
-    const validated = EventsResponseSchema.parse(response.data);
+    const validated = validateApiResponse(EventsResponseSchema, response.data, {
+      endpoint: url,
+      method: 'GET',
+    });
 
     // Add events from this page
     allEvents.push(...validated.events);
@@ -185,10 +194,10 @@ export async function getConsoleEvents(interval: string = '1 hour'): Promise<Rec
 
 /**
  * Construct event image URL using ZoneMinder's index.php endpoint.
- * 
+ *
  * Format: /index.php?view=image&eid=<eventId>&fid=<frame>&width=<width>&height=<height>&token=<token>
  * In dev mode, uses proxy to avoid CORS issues.
- * 
+ *
  * @param portalUrl - Base portal URL
  * @param eventId - The ID of the event
  * @param frame - Frame number, 'snapshot', or 'objdetect'
@@ -206,52 +215,21 @@ export function getEventImageUrl(
     apiUrl?: string;
   } = {}
 ): string {
-  // Ensure portalUrl has a protocol
-  // Ensure portalUrl has a protocol
-  let baseUrl = portalUrl;
-
-  // If no protocol specified, default to http first so we can upgrade it later if needed
-  if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
-    baseUrl = `http://${baseUrl}`;
-  }
-
-  // If apiUrl is provided and starts with http://, force baseUrl to use http://
-  // This handles cases where portalUrl was forced to https:// but the server is actually http://
-  if (options.apiUrl && options.apiUrl.startsWith('http://')) {
-    baseUrl = baseUrl.replace(/^https:\/\//, 'http://');
-  } else if (options.apiUrl && options.apiUrl.startsWith('https://')) {
-    // Conversely, if API is https://, force baseUrl to use https://
-    baseUrl = baseUrl.replace(/^http:\/\//, 'https://');
-  }
-
-  // Build query parameters for ZoneMinder's index.php image viewer
-  const params = new URLSearchParams();
-  params.append('view', 'image');
-  params.append('eid', eventId);
-  params.append('fid', frame.toString());
-
-  if (options.width) params.append('width', options.width.toString());
-  if (options.height) params.append('height', options.height.toString());
-  if (options.token) params.append('token', options.token);
-
-  // Construct the full URL: portalUrl/index.php?view=image&eid=...
-  const imagePath = `/index.php?${params.toString()}`;
-  const fullUrl = `${baseUrl}${imagePath}`;
+  const fullUrl = buildEventImageUrl(portalUrl, eventId, frame, options);
 
   // In dev mode, use proxy server to avoid CORS issues
-  // In production (Tauri), use direct URL
   if (Platform.shouldUseProxy) {
     const proxyParams = new URLSearchParams();
     proxyParams.append('url', fullUrl);
     return `http://localhost:3001/image-proxy?${proxyParams.toString()}`;
-  } else {
-    return fullUrl;
   }
+
+  return fullUrl;
 }
 
 /**
  * Construct event video URL (for MP4 playback).
- * 
+ *
  * @param portalUrl - Base portal URL
  * @param eventId - The ID of the event
  * @param token - Auth token
@@ -264,32 +242,7 @@ export function getEventVideoUrl(
   token?: string,
   apiUrl?: string
 ): string {
-  // Ensure portalUrl has a protocol
-  // Ensure portalUrl has a protocol
-  let baseUrl = portalUrl;
-
-  // If no protocol specified, default to http first so we can upgrade it later if needed
-  if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
-    baseUrl = `http://${baseUrl}`;
-  }
-
-  // If apiUrl is provided and starts with http://, force baseUrl to use http://
-  if (apiUrl && apiUrl.startsWith('http://')) {
-    baseUrl = baseUrl.replace(/^https:\/\//, 'http://');
-  } else if (apiUrl && apiUrl.startsWith('https://')) {
-    // Conversely, if API is https://, force baseUrl to use https://
-    baseUrl = baseUrl.replace(/^http:\/\//, 'https://');
-  }
-
-  const params = new URLSearchParams({
-    view: 'view_video',
-    eid: eventId,
-    mode: 'mp4',
-    format: 'h264',
-    ...(token && { token }),
-  });
-
-  return `${baseUrl}/index.php?${params.toString()}`;
+  return buildEventVideoUrl(portalUrl, eventId, { token, apiUrl });
 }
 
 /**
@@ -313,33 +266,5 @@ export function getEventZmsUrl(
     scale?: number;        // Scale percentage (50 = 50%, 100 = 100%)
   } = {}
 ): string {
-  // Ensure portalUrl has a protocol
-  let baseUrl = portalUrl;
-
-  // If no protocol specified, default to http first so we can upgrade it later if needed
-  if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
-    baseUrl = `http://${baseUrl}`;
-  }
-
-  // If apiUrl is provided and starts with http://, force baseUrl to use http://
-  if (options.apiUrl && options.apiUrl.startsWith('http://')) {
-    baseUrl = baseUrl.replace(/^https:\/\//, 'http://');
-  } else if (options.apiUrl && options.apiUrl.startsWith('https://')) {
-    // Conversely, if API is https://, force baseUrl to use https://
-    baseUrl = baseUrl.replace(/^http:\/\//, 'https://');
-  }
-
-  const params = new URLSearchParams({
-    mode: 'jpeg',
-    source: 'event',
-    event: eventId,
-    frame: (options.frame || 1).toString(),
-    rate: (options.rate || 100).toString(),
-    maxfps: (options.maxfps || 30).toString(),
-    replay: options.replay || 'single',
-    ...(options.scale && { scale: options.scale.toString() }),
-    ...(options.token && { token: options.token }),
-  });
-
-  return `${baseUrl}/cgi-bin/nph-zms?${params.toString()}`;
+  return buildEventZmsUrl(portalUrl, eventId, options);
 }

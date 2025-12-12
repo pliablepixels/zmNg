@@ -22,6 +22,8 @@ import {
 import { getEventImageUrl } from '../../api/events';
 import { useTranslation } from 'react-i18next';
 import { httpGet } from '../../lib/http';
+import { log } from '../../lib/logger';
+import { getEventZmsUrl, getZmsControlUrl } from '../../lib/url-builder';
 
 // ZoneMinder stream command constants
 const ZM_CMD = {
@@ -99,55 +101,29 @@ export function ZmsEventPlayer({
     return positions;
   }, [alarmFrameId, maxScoreFrameId, totalFrames]);
 
-  // Prepare base URL
-  const baseUrl = useMemo(() => {
-    let url = portalUrl;
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      url = `http://${url}`;
-    }
-    if (apiUrl && apiUrl.startsWith('http://')) {
-      url = url.replace(/^https:\/\//, 'http://');
-    } else if (apiUrl && apiUrl.startsWith('https://')) {
-      url = url.replace(/^http:\/\//, 'https://');
-    }
-    return url;
-  }, [portalUrl, apiUrl]);
-
   // Build ZMS stream URL
   const zmsUrl = useMemo(() => {
-    const params = new URLSearchParams({
-      mode: 'jpeg',
-      source: 'event',
-      event: eventId,
-      frame: '1',
-      rate: playbackSpeed.toString(),
-      maxfps: '30',
+    return getEventZmsUrl(portalUrl, eventId, {
+      token,
+      apiUrl,
+      frame: 1,
+      rate: playbackSpeed,
+      maxfps: 30,
       replay: 'single',
       connkey: connKey,
-      ...(token && { token }),
     });
-
-    return `${baseUrl}/cgi-bin/nph-zms?${params.toString()}`;
-  }, [baseUrl, eventId, playbackSpeed, connKey, token]);
+  }, [portalUrl, apiUrl, eventId, playbackSpeed, connKey, token]);
 
   // Send control command to the stream
   const sendCommand = useCallback(async (cmd: number, offset?: number) => {
-    const params: Record<string, string> = {
-      command: cmd.toString(),
-      connkey: connKey,
-      view: 'request',
-      request: 'stream',
-      ...(offset !== undefined && { offset: offset.toString() }),
-    };
-
-    const url = `${baseUrl}/index.php`;
+    const url = getZmsControlUrl(portalUrl, cmd, connKey, { token, apiUrl, offset });
 
     try {
-      await httpGet(url, { params, token });
+      await httpGet(url);
     } catch (err) {
-      console.error('Stream command failed:', err);
+      log.error('Stream command failed', { component: 'ZmsEventPlayer', command: cmd, connkey: connKey }, err);
     }
-  }, [baseUrl, connKey, token]);
+  }, [portalUrl, apiUrl, connKey, token]);
 
   // Calculate time offset from frame number
   const frameToOffset = useCallback((frame: number) => {

@@ -9,6 +9,11 @@ import { getApiClient } from './client';
 import type { MonitorsResponse, MonitorData, ControlData } from './types';
 import { MonitorsResponseSchema, MonitorDataSchema, ControlDataSchema } from './types';
 import { Platform } from '../lib/platform';
+import { validateApiResponse } from '../lib/api-validator';
+import {
+  getMonitorStreamUrl as buildMonitorStreamUrl,
+  getMonitorControlUrl as buildMonitorControlUrl,
+} from '../lib/url-builder';
 
 /**
  * Get all monitors.
@@ -22,8 +27,10 @@ export async function getMonitors(): Promise<MonitorsResponse> {
   const response = await client.get<MonitorsResponse>('/monitors.json');
 
   // Validate response with Zod
-  const validated = MonitorsResponseSchema.parse(response.data);
-  return validated;
+  return validateApiResponse(MonitorsResponseSchema, response.data, {
+    endpoint: '/monitors.json',
+    method: 'GET',
+  });
 }
 
 /**
@@ -36,7 +43,10 @@ export async function getMonitor(monitorId: string): Promise<MonitorData> {
   const client = getApiClient();
   const response = await client.get<{ monitor: MonitorData }>(`/monitors/${monitorId}.json`);
   // Validate and coerce types (e.g. Controllable number -> string)
-  return MonitorDataSchema.parse(response.data.monitor);
+  return validateApiResponse(MonitorDataSchema, response.data.monitor, {
+    endpoint: `/monitors/${monitorId}.json`,
+    method: 'GET',
+  });
 }
 
 /**
@@ -48,7 +58,10 @@ export async function getMonitor(monitorId: string): Promise<MonitorData> {
 export async function getControl(controlId: string): Promise<ControlData> {
   const client = getApiClient();
   const response = await client.get(`/controls/${controlId}.json`);
-  return ControlDataSchema.parse(response.data);
+  return validateApiResponse(ControlDataSchema, response.data, {
+    endpoint: `/controls/${controlId}.json`,
+    method: 'GET',
+  });
 }
 
 /**
@@ -184,21 +197,7 @@ export function getStreamUrl(
     cacheBuster?: number;
   } = {}
 ): string {
-  const params = new URLSearchParams({
-    monitor: monitorId,
-    mode: options.mode || 'jpeg',
-    ...(options.scale && { scale: options.scale.toString() }),
-    ...(options.width && { width: `${options.width}px` }),
-    ...(options.height && { height: `${options.height}px` }),
-    ...(options.maxfps && { maxfps: options.maxfps.toString() }),
-    ...(options.buffer && { buffer: options.buffer.toString() }),
-    ...(options.token && { token: options.token }),
-    ...(options.connkey && { connkey: options.connkey.toString() }),
-    // Add cache buster to ensure browser doesn't reuse old connections
-    ...(options.cacheBuster && { _t: options.cacheBuster.toString() }),
-  });
-
-  const fullUrl = `${cgiUrl}/nph-zms?${params.toString()}`;
+  const fullUrl = buildMonitorStreamUrl(cgiUrl, monitorId, options);
 
   // In dev mode on web, use proxy server to avoid CORS issues
   // Native platforms and production can access directly
@@ -225,17 +224,7 @@ export async function controlMonitor(
   command: string,
   token?: string
 ): Promise<void> {
-  const params = new URLSearchParams({
-    view: 'request',
-    request: 'control',
-    id: monitorId,
-    control: command,
-    xge: '0',
-    yge: '0',
-    ...(token && { token }),
-  });
-
-  let url = `${portalUrl}/index.php?${params.toString()}`;
+  let url = buildMonitorControlUrl(portalUrl, monitorId, command, { token });
 
   // In dev mode on web, use proxy server to avoid CORS issues
   if (Platform.shouldUseProxy) {
