@@ -14,9 +14,9 @@ npx playwright test tests/full_walkthrough.spec.ts
 Configure your ZoneMinder server in `.env`:
 
 ```env
-ZM_HOST_1=http://192.168.50.11
-ZM_USER_1=admin
-ZM_PASSWORD_1=admin
+ZM_HOST_1=<url>
+ZM_USER_1=<username>
+ZM_PASSWORD_1=<password>
 ```
 
 ## Test Flow
