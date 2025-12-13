@@ -33,17 +33,15 @@ Watch a video of the demo [HERE](https://youtu.be/ces_2ap-htc)
 - Node.js 18+ and npm ([download](https://nodejs.org/en/download))
 - For desktop builds: Rust toolchain (for Tauri builds)
 
+### Limitations
+- Self signed/untrusted certificates are not supported. It's not worth the effort to support them. Please use LetsEncrypt or other free certs
+
 ### Desktop Development
 
 ```bash
 git clone https://github.com/pliablepixels/zmNg
 cd zmNg/app
 npm install
-
-# Web development (with CORS proxy)
-npm run dev:all
-# App: http://localhost:5173
-# Proxy: http://localhost:3001
 
 # Desktop development (Tauri - native app)
 npm run tauri:dev
