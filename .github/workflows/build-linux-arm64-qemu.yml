@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'Release tag to build for (e.g., zmNg-1.0.0)'
-        required: true
+        description: 'Release tag to build for (e.g., zmNg-1.0.0). Leave empty to build from current branch.'
+        required: false
         type: string
 
 jobs:
@@ -15,7 +15,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.release_tag }}
+          ref: ${{ inputs.release_tag || github.ref }}
 
       - name: Add Swap Space
         run: |
@@ -62,20 +62,21 @@ jobs:
       - name: Upload DEB package artifact
         uses: actions/upload-artifact@v4
         with:
-          name: zmNg-linux-arm64-deb-${{ inputs.release_tag }}
+          name: zmNg-linux-arm64-deb-${{ inputs.release_tag || github.ref_name }}
           path: app/src-tauri/target/release/bundle/deb/*.deb
           retention-days: 30
 
       - name: Upload RPM package artifact (if exists)
         uses: actions/upload-artifact@v4
         with:
-          name: zmNg-linux-arm64-rpm-${{ inputs.release_tag }}
+          name: zmNg-linux-arm64-rpm-${{ inputs.release_tag || github.ref_name }}
           path: app/src-tauri/target/release/bundle/rpm/*.rpm
           retention-days: 30
           if-no-files-found: ignore
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v1
+        if: inputs.release_tag != ''
         with:
           tag_name: ${{ inputs.release_tag }}
           files: |

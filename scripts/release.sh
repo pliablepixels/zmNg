@@ -61,6 +61,9 @@ echo ""
 echo "✅ Standard release triggered! Check GitHub Actions for progress."
 echo "   https://github.com/pliablepixels/zmNg/actions"
 
+echo "Waiting 5 seconds for tag propagation..."
+sleep 5
+
 echo ""
 echo "---------------------------------------------------"
 echo "Optional: Linux ARM64 Build (QEMU)"
