@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       platforms:
-        description: 'Platforms to build (comma-separated: android,macos,linux,windows)'
+        description: 'Platforms to build (comma-separated: android,macos,linux,linux-arm64,windows)'
         required: false
         default: 'android,macos,linux,windows'
         type: string
@@ -149,7 +149,7 @@ jobs:
           path: app/src-tauri/target/release/bundle/deb/*.deb
 
   build-linux-arm64:
-    if: contains(github.event.inputs.platforms, 'linux')
+    if: contains(github.event.inputs.platforms, 'linux-arm64')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -169,6 +169,11 @@ jobs:
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           run: |
             source $HOME/.cargo/env
+            # Set linker flags to reduce memory usage and avoid segfaults
+            export RUSTFLAGS="-C link-arg=-Wl,--no-keep-memory -C link-arg=-Wl,--reduce-memory-overheads"
+            # Limit cargo concurrency to avoid OOM
+            export CARGO_BUILD_JOBS=1
+            
             cd app
             npm ci
             npm run tauri:build
