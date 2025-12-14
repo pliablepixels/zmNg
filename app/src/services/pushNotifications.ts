@@ -349,6 +349,7 @@ export class MobilePushService {
         }
 
         // Add event to notification history (duplicate prevention handled by store)
+        // Event is added as unread initially
         notificationStore.addEvent(profileId, {
           MonitorId: parseInt(data.monitorId, 10),
           MonitorName: data.monitorName || 'Unknown',
@@ -358,7 +359,10 @@ export class MobilePushService {
           ImageUrl: imageUrl,
         });
 
-        log.info('Added notification to history from tap action', {
+        // Mark as read since user is tapping to view the event
+        notificationStore.markEventRead(profileId, parseInt(data.eventId, 10));
+
+        log.info('Added notification to history from tap action and marked as read', {
           component: 'Push',
           eventId: data.eventId,
           profileId,
