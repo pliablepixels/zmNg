@@ -9,13 +9,50 @@ on:
         type: string
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      ref: ${{ steps.set-ref.outputs.ref }}
+      upload_tag: ${{ steps.set-ref.outputs.upload_tag }}
+      short_ref: ${{ steps.set-ref.outputs.short_ref }}
+    steps:
+      - id: set-ref
+        run: |
+          INPUT_TAG="${{ inputs.release_tag }}"
+          if [ -z "$INPUT_TAG" ]; then
+            echo "No input tag provided, using github.ref: ${{ github.ref }}"
+            echo "ref=${{ github.ref }}" >> $GITHUB_OUTPUT
+            echo "short_ref=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+            echo "upload_tag=" >> $GITHUB_OUTPUT
+          else
+            # Check if it starts with zmNg-
+            if [[ "$INPUT_TAG" == zmNg-* ]]; then
+              echo "Input tag already has prefix: $INPUT_TAG"
+              echo "ref=$INPUT_TAG" >> $GITHUB_OUTPUT
+              echo "short_ref=$INPUT_TAG" >> $GITHUB_OUTPUT
+              echo "upload_tag=$INPUT_TAG" >> $GITHUB_OUTPUT
+            elif [[ "$INPUT_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+               echo "Input tag looks like version number, prepending zmNg-"
+               echo "ref=zmNg-$INPUT_TAG" >> $GITHUB_OUTPUT
+               echo "short_ref=zmNg-$INPUT_TAG" >> $GITHUB_OUTPUT
+               echo "upload_tag=zmNg-$INPUT_TAG" >> $GITHUB_OUTPUT
+            else
+               # Fallback: just use what was given (could be a branch name like 'dev')
+               echo "Input tag format unknown, using as is: $INPUT_TAG"
+               echo "ref=$INPUT_TAG" >> $GITHUB_OUTPUT
+               echo "short_ref=$INPUT_TAG" >> $GITHUB_OUTPUT
+               echo "upload_tag=$INPUT_TAG" >> $GITHUB_OUTPUT
+            fi
+          fi
+
   build-linux-arm64:
+    needs: prepare
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.release_tag || github.ref }}
+          ref: ${{ needs.prepare.outputs.ref }}
 
       - name: Add Swap Space
         run: |
@@ -48,37 +85,35 @@ jobs:
             npm ci
             # Skip AppImage bundle to avoid linuxdeploy/QEMU issues
             npm run tauri:build -- --bundles deb,rpm
-            npm run tauri:build -- --bundles deb,rpm
 
-      # AppImage generation is skipped due to QEMU issues
       # AppImage generation is skipped due to QEMU issues
       # - name: Upload AppImage artifact
       #   uses: actions/upload-artifact@v4
       #   with:
-      #     name: zmNg-linux-arm64-appimage-${{ inputs.release_tag }}
+      #     name: zmNg-linux-arm64-appimage-${{ needs.prepare.outputs.short_ref }}
       #     path: app/src-tauri/target/release/bundle/appimage/*.AppImage
       #     retention-days: 30
 
       - name: Upload DEB package artifact
         uses: actions/upload-artifact@v4
         with:
-          name: zmNg-linux-arm64-deb-${{ inputs.release_tag || github.ref_name }}
+          name: zmNg-linux-arm64-deb-${{ needs.prepare.outputs.short_ref }}
           path: app/src-tauri/target/release/bundle/deb/*.deb
           retention-days: 30
 
       - name: Upload RPM package artifact (if exists)
         uses: actions/upload-artifact@v4
         with:
-          name: zmNg-linux-arm64-rpm-${{ inputs.release_tag || github.ref_name }}
+          name: zmNg-linux-arm64-rpm-${{ needs.prepare.outputs.short_ref }}
           path: app/src-tauri/target/release/bundle/rpm/*.rpm
           retention-days: 30
           if-no-files-found: ignore
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v1
-        if: inputs.release_tag != ''
+        if: needs.prepare.outputs.upload_tag != ''
         with:
-          tag_name: ${{ inputs.release_tag }}
+          tag_name: ${{ needs.prepare.outputs.upload_tag }}
           files: |
             app/src-tauri/target/release/bundle/deb/*.deb
             app/src-tauri/target/release/bundle/rpm/*.rpm
