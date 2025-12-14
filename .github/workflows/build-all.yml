@@ -106,7 +106,7 @@ jobs:
           name: zmNg-macos-dmg-${{ github.event.inputs.version }}
           path: app/src-tauri/target/release/bundle/dmg/*.dmg
 
-  build-linux:
+  build-linux-amd64:
     if: contains(github.event.inputs.platforms, 'linux')
     runs-on: ubuntu-latest
     steps:
@@ -132,20 +132,57 @@ jobs:
         working-directory: ./app
         run: npm ci
 
-      - name: Build Tauri app (Linux)
+      - name: Build Tauri app (Linux amd64)
         working-directory: ./app
         run: npm run tauri:build
 
       - name: Upload AppImage artifact
         uses: actions/upload-artifact@v4
         with:
-          name: zmNg-linux-appimage-${{ github.event.inputs.version }}
+          name: zmNg-linux-amd64-appimage-${{ github.event.inputs.version }}
           path: app/src-tauri/target/release/bundle/appimage/*.AppImage
 
       - name: Upload DEB package artifact
         uses: actions/upload-artifact@v4
         with:
-          name: zmNg-linux-deb-${{ github.event.inputs.version }}
+          name: zmNg-linux-amd64-deb-${{ github.event.inputs.version }}
+          path: app/src-tauri/target/release/bundle/deb/*.deb
+
+  build-linux-arm64:
+    if: contains(github.event.inputs.platforms, 'linux')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build on ARM64 via QEMU
+        uses: uraimo/run-on-arch-action@v2
+        with:
+          arch: aarch64
+          distro: ubuntu22.04
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          install: |
+            apt-get update
+            apt-get install -y curl wget file libssl-dev libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf build-essential
+            curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+            apt-get install -y nodejs
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          run: |
+            source $HOME/.cargo/env
+            cd app
+            npm ci
+            npm run tauri:build
+
+      - name: Upload AppImage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: zmNg-linux-arm64-appimage-${{ github.event.inputs.version }}
+          path: app/src-tauri/target/release/bundle/appimage/*.AppImage
+
+      - name: Upload DEB package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: zmNg-linux-arm64-deb-${{ github.event.inputs.version }}
           path: app/src-tauri/target/release/bundle/deb/*.deb
 
   build-windows:

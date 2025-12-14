@@ -59,14 +59,3 @@ jobs:
           name: zmNg-macos-app-${{ github.event.inputs.version || github.ref_name }}
           path: app/src-tauri/target/release/bundle/macos/*.app
           retention-days: 30
-
-      - name: Create GitHub Release (if tagged)
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            app/src-tauri/target/release/bundle/dmg/*.dmg
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

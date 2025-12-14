@@ -65,15 +65,3 @@ jobs:
           name: zmNg-android-aab-${{ github.event.inputs.version || github.ref_name }}
           path: app/android/app/build/outputs/bundle/release/app-release.aab
           retention-days: 30
-
-      - name: Create GitHub Release (if tagged)
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            app/android/app/build/outputs/apk/release/app-release.apk
-            app/android/app/build/outputs/bundle/release/app-release.aab
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
