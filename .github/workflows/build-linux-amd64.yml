@@ -71,6 +71,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/zmNg-')
         with:
           generate_release_notes: true
+          body_path: RELEASE_NOTES.md
           files: |
             app/src-tauri/target/release/bundle/appimage/*.AppImage
             app/src-tauri/target/release/bundle/deb/*.deb

@@ -86,8 +86,8 @@ This will:
 After a successful build, artifacts are available for download:
 
 ### Android
-- `app-release.apk` - APK for sideloading
-- `app-release.aab` - App Bundle for Google Play Store
+- `zmNg-android-unsigned-{version}.apk` - APK for sideloading
+- `zmNg-android-unsigned-{version}.aab` - App Bundle for Google Play Store
 
 ### macOS
 - `zmNg.dmg` - DMG installer
@@ -96,10 +96,22 @@ After a successful build, artifacts are available for download:
 ### Linux
 - `zmNg.AppImage` - Universal AppImage
 - `zmNg.deb` - Debian package
+- `zmNg.rpm` - RPM package
 
 ### Windows
 - `zmNg.msi` - MSI installer
 - `zmNg.exe` - NSIS installer (if configured)
+
+## Customizing Release Notes
+
+Release notes are automatically generated from commit messages, but you can add custom content:
+
+1. Edit `RELEASE_NOTES.md` in the repository root
+2. Add installation instructions, warnings, or any other information
+3. Commit and push the changes
+4. The next release will include your custom notes at the top
+
+The file uses Markdown format and will appear above the auto-generated commit history.
 
 ## Build Requirements
 

@@ -55,18 +55,26 @@ jobs:
         working-directory: ./app/android
         run: ./gradlew bundleRelease
 
+      - name: Rename Android artifacts
+        run: |
+          VERSION="${{ github.event.inputs.version || github.ref_name }}"
+          VERSION="${VERSION#zmNg-}"
+          mkdir -p dist/android
+          cp app/android/app/build/outputs/apk/release/*.apk dist/android/zmNg-android-unsigned-${VERSION}.apk
+          cp app/android/app/build/outputs/bundle/release/*.aab dist/android/zmNg-android-unsigned-${VERSION}.aab
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: zmNg-android-apk-${{ github.event.inputs.version || github.ref_name }}
-          path: app/android/app/build/outputs/apk/release/*.apk
+          path: dist/android/*.apk
           retention-days: 30
 
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
         with:
           name: zmNg-android-aab-${{ github.event.inputs.version || github.ref_name }}
-          path: app/android/app/build/outputs/bundle/release/*.aab
+          path: dist/android/*.aab
           retention-days: 30
 
       - name: Upload to Release
@@ -74,8 +82,9 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/zmNg-')
         with:
           generate_release_notes: true
+          body_path: RELEASE_NOTES.md
           files: |
-            app/android/app/build/outputs/apk/release/*.apk
-            app/android/app/build/outputs/bundle/release/*.aab
+            dist/android/*.apk
+            dist/android/*.aab
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
