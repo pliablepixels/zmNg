@@ -13,7 +13,7 @@ get_version() {
 VERSION=$(get_version)
 if [[ "$VERSION" == "NONE" ]]; then
     echo "app/package.json not found. Please make sure you run ./scripts/release.sh from the root project dir"
-    echo . 
+    echo .
     exit 1
 fi
 
@@ -25,6 +25,45 @@ echo "==================================================="
 echo "Detected Version: $VERSION"
 echo "Target Tag:       $TAG"
 echo "==================================================="
+echo ""
+
+# Check for uncommitted changes
+if [[ -n $(git status --porcelain) ]]; then
+    echo "❌ Error: You have uncommitted changes in your working directory."
+    echo ""
+    echo "Please commit or stash your changes before creating a release:"
+    echo ""
+    git status --short
+    echo ""
+    exit 1
+fi
+
+# Get current branch
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+# Check if branch has an upstream
+if ! git rev-parse --abbrev-ref @{u} >/dev/null 2>&1; then
+    echo "❌ Error: Current branch '$CURRENT_BRANCH' has no upstream branch."
+    echo ""
+    echo "Please push your branch first:"
+    echo "  git push -u origin $CURRENT_BRANCH"
+    echo ""
+    exit 1
+fi
+
+# Check for unpushed commits
+UNPUSHED=$(git rev-list @{u}..HEAD --count)
+if [[ "$UNPUSHED" -gt 0 ]]; then
+    echo "❌ Error: You have $UNPUSHED unpushed commit(s) on branch '$CURRENT_BRANCH'."
+    echo ""
+    echo "Please push your commits before creating a release:"
+    echo "  git push origin $CURRENT_BRANCH"
+    echo ""
+    exit 1
+fi
+
+echo "✅ Working directory is clean"
+echo "✅ All commits are pushed to origin"
 echo ""
 echo "This script will:"
 echo "1. Create a local git tag '$TAG'"
@@ -39,23 +78,65 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     exit 1
 fi
 
-# Check if tag exists locally
+# Check if tag exists locally or remotely
+TAG_EXISTS_LOCALLY=false
+TAG_EXISTS_REMOTELY=false
+
 if git rev-parse "$TAG" >/dev/null 2>&1; then
-    echo "Error: Tag '$TAG' already exists locally."
-    exit 1
+    TAG_EXISTS_LOCALLY=true
 fi
 
-# Check if tag exists remotely
 if git ls-remote --exit-code --tags origin "$TAG" >/dev/null 2>&1; then
-    echo "Error: Tag '$TAG' already exists on remote."
-    exit 1
+    TAG_EXISTS_REMOTELY=true
 fi
 
-echo "Creating tag $TAG..."
-git tag "$TAG"
+if [ "$TAG_EXISTS_LOCALLY" = true ] || [ "$TAG_EXISTS_REMOTELY" = true ]; then
+    echo ""
+    echo "⚠️  Tag '$TAG' already exists!"
+    if [ "$TAG_EXISTS_LOCALLY" = true ]; then
+        echo "   - Found locally"
+    fi
+    if [ "$TAG_EXISTS_REMOTELY" = true ]; then
+        echo "   - Found on remote"
+    fi
+    echo ""
+    echo "This will:"
+    echo "1. Delete the existing tag (local and remote)"
+    echo "2. Create a new tag '$TAG' at the current commit"
+    echo "3. Force push the tag to trigger a new release build"
+    echo ""
+    read -p "Do you want to move the tag to the current commit? (y/N) " -n 1 -r
+    echo ""
 
-echo "Pushing tag to origin..."
-git push origin "$TAG"
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Release cancelled."
+        exit 1
+    fi
+
+    # Delete local tag if it exists
+    if [ "$TAG_EXISTS_LOCALLY" = true ]; then
+        echo "Deleting local tag $TAG..."
+        git tag -d "$TAG"
+    fi
+
+    # Delete remote tag if it exists
+    if [ "$TAG_EXISTS_REMOTELY" = true ]; then
+        echo "Deleting remote tag $TAG..."
+        git push origin --delete "$TAG" 2>/dev/null || true
+    fi
+
+    echo "Creating new tag $TAG at current commit..."
+    git tag "$TAG"
+
+    echo "Force pushing tag to origin..."
+    git push origin "$TAG" --force
+else
+    echo "Creating tag $TAG..."
+    git tag "$TAG"
+
+    echo "Pushing tag to origin..."
+    git push origin "$TAG"
+fi
 
 echo ""
 echo "✅ Standard release triggered! Check GitHub Actions for progress."

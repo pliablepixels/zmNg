@@ -24,6 +24,29 @@ Each platform has its own dedicated workflow that can be triggered manually or o
 
 ## How to Trigger Builds
 
+### Recommended: Using the Release Script
+
+The easiest way to create a release is using the automated release script:
+
+```bash
+# From the project root
+./scripts/release.sh
+```
+
+This script will:
+1. Verify all changes are committed and pushed
+2. Read the version from `app/package.json`
+3. Create a git tag in the format `zmNg-{version}`
+4. Push the tag to trigger all build workflows
+5. Create a GitHub Release with build artifacts
+
+**Safety Checks**: The script performs validation before creating a release:
+- Fails if there are uncommitted changes
+- Fails if there are unpushed commits
+- Asks for confirmation before proceeding
+
+**Handling Existing Tags**: If a tag already exists, the script will ask if you want to move it to the current commit. This is useful when you need to rebuild a release with fixes.
+
 ### Manual Trigger (Workflow Dispatch)
 
 1. Go to **Actions** tab in GitHub
@@ -32,13 +55,26 @@ Each platform has its own dedicated workflow that can be triggered manually or o
 4. Enter the version number (e.g., `1.0.0`)
 5. For `build-all.yml`, optionally specify platforms (default: all)
 
-### Automatic Trigger (Git Tags)
+### Manual Tag Push (Alternative)
 
-Push a version tag to automatically trigger builds:
+You can also manually push a tag to trigger builds:
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+# Tag format must be: zmNg-{version}
+git tag zmNg-1.0.0
+git push origin zmNg-1.0.0
+```
+
+To move an existing tag to a new commit:
+
+```bash
+# Delete old tag
+git tag -d zmNg-1.0.0
+git push origin --delete zmNg-1.0.0
+
+# Create new tag and push
+git tag zmNg-1.0.0
+git push origin zmNg-1.0.0 --force
 ```
 
 This will:
@@ -67,21 +103,35 @@ After a successful build, artifacts are available for download:
 
 ## Build Requirements
 
+### Required: GitHub Actions Permissions
+
+For automated releases to work, you must enable write permissions:
+
+1. Go to repository **Settings** → **Actions** → **General**
+2. Scroll to **Workflow permissions**
+3. Select **"Read and write permissions"**
+4. Click **Save**
+
+Without this, you'll get 403 errors when trying to create releases.
+
 ### Android
 - No additional secrets required
-- Uses unsigned debug builds by default
+- Builds unsigned APK and AAB by default
 - For signed releases, configure signing in `app/android/app/build.gradle`
 
 ### Desktop Platforms (macOS, Linux, Windows)
 - Uses Tauri for desktop builds
-- **macOS Code Signing** (required to avoid "damaged" error):
+- **All builds are unsigned by default** (no secrets required)
+- Linux builds work without issues
+- macOS/Windows builds will require users to bypass security warnings (see below)
+- **Optional macOS Code Signing** (to avoid "damaged" error):
   - `APPLE_CERTIFICATE` - Base64-encoded .p12 certificate
   - `APPLE_CERTIFICATE_PASSWORD` - Certificate password
   - `APPLE_SIGNING_IDENTITY` - Developer ID (e.g., "Developer ID Application: Your Name (TEAM_ID)")
   - `APPLE_ID` - Apple ID email
   - `APPLE_PASSWORD` - App-specific password
   - `APPLE_TEAM_ID` - Team ID from Apple Developer account
-- Optional Tauri updater signing:
+- **Optional Tauri updater signing**:
   - `TAURI_SIGNING_PRIVATE_KEY`
   - `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`
 
