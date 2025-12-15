@@ -62,6 +62,19 @@ I am happy to accept PRs, but I don't want [AI slop](https://en.wikipedia.org/wi
 - Node.js 18+ and npm ([download](https://nodejs.org/en/download))
 - For desktop builds: Rust toolchain (for Tauri builds)
 
+### GitHub Actions Setup (For Automated Releases)
+
+If you're setting up automated builds via GitHub Actions, you need to enable write permissions:
+
+1. Go to your repository on GitHub
+2. Navigate to **Settings** → **Actions** → **General**
+3. Scroll down to **Workflow permissions**
+4. Select **"Read and write permissions"**
+5. Check **"Allow GitHub Actions to create and approve pull requests"** (optional)
+6. Click **Save**
+
+This allows the workflows to create GitHub releases automatically when you push a tag.
+
 ### Desktop Development
 
 ```bash

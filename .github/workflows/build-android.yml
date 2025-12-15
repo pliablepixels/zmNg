@@ -11,6 +11,9 @@ on:
     tags:
       - 'zmNg-*'
 
+permissions:
+  contents: write
+
 jobs:
   build-android:
     runs-on: ubuntu-latest
@@ -56,14 +59,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: zmNg-android-apk-${{ github.event.inputs.version || github.ref_name }}
-          path: app/android/app/build/outputs/apk/release/app-release.apk
+          path: app/android/app/build/outputs/apk/release/*.apk
           retention-days: 30
 
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
         with:
           name: zmNg-android-aab-${{ github.event.inputs.version || github.ref_name }}
-          path: app/android/app/build/outputs/bundle/release/app-release.aab
+          path: app/android/app/build/outputs/bundle/release/*.aab
           retention-days: 30
 
       - name: Upload to Release
@@ -72,7 +75,7 @@ jobs:
         with:
           generate_release_notes: true
           files: |
-            app/android/app/build/outputs/apk/release/app-release.apk
-            app/android/app/build/outputs/bundle/release/app-release.aab
+            app/android/app/build/outputs/apk/release/*.apk
+            app/android/app/build/outputs/bundle/release/*.aab
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -112,30 +112,9 @@ See Tauri documentation for details: https://tauri.app/v1/guides/distribution/si
 
 If you get a **"zmNg.app is damaged and can't be opened. You should move it to the Trash"** error, this is because the app is not signed/notarized. You have two options:
 
-### Option 1: Use Unsigned Build (Bypass Gatekeeper)
 
-For unsigned builds, bypass macOS Gatekeeper security using one of these methods:
-
-**Method A: Command Line (Simplest)**
-```bash
-# Remove quarantine attribute (no sudo needed)
-xattr -c zmNg.app
-```
-
-**Method B: Right-Click (Most Reliable)**
-1. Right-click (or Control+click) on `zmNg.app`
-2. Select "Open" from the context menu
-3. Click "Open" in the security dialog that appears
-4. The app will open and macOS will remember your choice
-
-**Method C: System Settings (If above methods fail)**
-1. Try to open the app normally (it will fail)
-2. Go to System Settings → Privacy & Security
-3. Scroll down to see "zmNg was blocked"
-4. Click "Open Anyway"
-5. Confirm by clicking "Open"
-
-**Note:** Don't use `sudo` with xattr - it's not needed and causes permission issues.
+### Option 1: Bypass Security
+Use [Sentinel](https://github.com/alienator88/Sentinel)
 
 ### Option 2: Set Up Code Signing (Recommended for Distribution)
 

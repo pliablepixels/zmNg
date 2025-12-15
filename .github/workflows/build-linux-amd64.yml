@@ -11,6 +11,9 @@ on:
     tags:
       - 'zmNg-*'
 
+permissions:
+  contents: write
+
 jobs:
   build-linux-amd64:
     runs-on: ubuntu-latest

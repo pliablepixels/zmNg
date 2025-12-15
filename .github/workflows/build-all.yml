@@ -58,13 +58,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: zmNg-android-apk-${{ github.event.inputs.version }}
-          path: app/android/app/build/outputs/apk/release/app-release.apk
+          path: app/android/app/build/outputs/apk/release/*.apk
 
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
         with:
           name: zmNg-android-aab-${{ github.event.inputs.version }}
-          path: app/android/app/build/outputs/bundle/release/app-release.aab
+          path: app/android/app/build/outputs/bundle/release/*.aab
 
   build-macos:
     if: contains(github.event.inputs.platforms, 'macos')
@@ -90,15 +90,6 @@ jobs:
       - name: Build Tauri app (macOS)
         working-directory: ./app
         run: npm run tauri:build
-        env:
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
@@ -172,9 +163,6 @@ jobs:
       - name: Build Tauri app (Windows)
         working-directory: ./app
         run: npm run tauri:build
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
       - name: Upload MSI installer artifact
         uses: actions/upload-artifact@v4
