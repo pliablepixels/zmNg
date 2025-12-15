@@ -47,7 +47,7 @@ I am happy to accept PRs, but I don't want [AI slop](https://en.wikipedia.org/wi
 ### Limitations & Notes
 - Self signed/untrusted certificates are not supported. It's not worth the effort to support them. Please use LetsEncrypt or other free certs
 - Push notifications won't work till you build the mobile apps yourself (web notifications, when the app is in foreground will work). See [Android](ANDROID_BUILD.md) and [iOS](IOS_BUILD.md) guides.
-- If you want push notificatons, you'll have to use a newer [Event Server](https://github.com/pliablepixels/zm_docker_macos) that has support for direct FCM (yep, you don't need the proxy cloud function anymore)
+- If you want push notifications, you'll have to use a newer [Event Server](https://github.com/pliablepixels/zm_docker_macos) that has support for direct FCM (yep, you don't need the proxy cloud function anymore)
 
 
 ## Quick Start
