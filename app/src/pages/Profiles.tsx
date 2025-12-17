@@ -366,19 +366,20 @@ export default function Profiles() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <div className="space-y-3" data-testid="profile-list">
                 {profiles.map((profile) => (
                   <div
                     key={profile.id}
                     className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                    data-testid="profile-card"
                   >
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       {profile.id === currentProfile?.id && (
-                        <Check className="h-4 w-4 text-primary shrink-0" />
+                        <Check className="h-4 w-4 text-primary shrink-0" data-testid="profile-active-indicator" />
                       )}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-medium">{profile.name}</span>
+                          <span className="font-medium" data-testid="profile-name">{profile.name}</span>
                           {profile.isDefault && (
                             <Badge variant="secondary" className="text-xs">{t('profiles.default')}</Badge>
                           )}

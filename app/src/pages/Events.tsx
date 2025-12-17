@@ -311,21 +311,23 @@ export default function Events() {
 
       {/* Events List */}
       {allEvents.length === 0 ? (
-        <EmptyState
-          icon={Video}
-          title={t('events.no_events')}
-          action={
-            filters.monitorId || filters.startDateTime || filters.endDateTime
-              ? {
-                  label: t('events.clear_filters'),
-                  onClick: clearFilters,
-                  variant: 'link',
-                }
-              : undefined
-          }
-        />
+        <div data-testid="events-empty-state">
+          <EmptyState
+            icon={Video}
+            title={t('events.no_events')}
+            action={
+              filters.monitorId || filters.startDateTime || filters.endDateTime
+                ? {
+                    label: t('events.clear_filters'),
+                    onClick: clearFilters,
+                    variant: 'link',
+                  }
+                : undefined
+            }
+          />
+        </div>
       ) : (
-        <div className="min-h-0">
+        <div className="min-h-0" data-testid="event-list">
           <div
             style={{
               height: `${rowVirtualizer.getTotalSize()}px`,

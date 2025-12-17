@@ -225,14 +225,14 @@ export default function Logs() {
                 </CardHeader>
                 <CardContent className="p-0 flex-1 overflow-y-auto font-mono text-xs sm:text-sm">
                     {filteredLogs.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8">
+                        <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8" data-testid="logs-empty-state">
                             <ScrollText className="h-12 w-12 mb-4 opacity-20" />
                             <p>{t('logs.no_logs_available')}</p>
                         </div>
                     ) : (
-                        <div className="divide-y">
+                        <div className="divide-y" data-testid="log-entries">
                             {filteredLogs.map((log) => (
-                                <div key={log.id} className="p-2 sm:p-3 hover:bg-muted/50 transition-colors">
+                                <div key={log.id} className="p-2 sm:p-3 hover:bg-muted/50 transition-colors" data-testid="log-entry">
                                     <div className="flex items-start gap-2 sm:gap-3">
                                         <div className="shrink-0 pt-0.5">
                                             <Badge className={cn("text-[10px] px-1 py-0 h-5", getLevelColor(log.level))}>

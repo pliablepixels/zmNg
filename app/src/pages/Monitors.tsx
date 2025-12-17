@@ -119,11 +119,11 @@ export default function Monitors() {
       {/* All Cameras */}
       <div className="space-y-3 sm:space-y-4">
         {allMonitors.length === 0 ? (
-          <div className="p-8 text-center border rounded-lg bg-muted/20 text-muted-foreground">
+          <div className="p-8 text-center border rounded-lg bg-muted/20 text-muted-foreground" data-testid="monitors-empty-state">
             {t('monitors.no_cameras')}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6" data-testid="monitor-grid">
             {allMonitors.map(({ Monitor, Monitor_Status }) => (
               <MonitorCard
                 key={Monitor.Id}

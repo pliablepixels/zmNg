@@ -105,7 +105,7 @@ function MonitorCardComponent({
   };
 
   return (
-    <Card className="group overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 bg-card ring-1 ring-border/50 hover:ring-primary/50">
+    <Card className="group overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 bg-card ring-1 ring-border/50 hover:ring-primary/50" data-testid="monitor-card">
       {/* Thumbnail Preview - Clickable */}
       <div
         className="relative aspect-video bg-black/90 cursor-pointer"
@@ -117,6 +117,7 @@ function MonitorCardComponent({
           alt={monitor.Name}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           onError={handleImageError}
+          data-testid="monitor-player"
         />
 
         {/* Status Badge */}
@@ -129,6 +130,7 @@ function MonitorCardComponent({
                 ? 'bg-green-500/90 hover:bg-green-500'
                 : 'bg-red-500/90 hover:bg-red-500'
             )}
+            data-testid="monitor-status"
           >
             {isRunning ? t('monitors.live') : t('monitors.offline')}
           </Badge>
@@ -154,7 +156,7 @@ function MonitorCardComponent({
         {/* Name & Resolution */}
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <div className="font-semibold text-base truncate">{monitor.Name}</div>
+            <div className="font-semibold text-base truncate" data-testid="monitor-name">{monitor.Name}</div>
             <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 shrink-0">
               ID: {monitor.Id}
             </Badge>

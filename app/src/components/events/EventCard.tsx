@@ -43,6 +43,7 @@ function EventCardComponent({ event, monitorName, thumbnailUrl }: EventCardProps
     <Card
       className="group overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-200 hover:ring-2 hover:ring-primary/50"
       onClick={() => navigate(`/events/${event.Id}`, { state: { from: '/events' } })}
+      data-testid="event-card"
     >
       <div className="flex gap-2 sm:gap-3 p-2 sm:p-3">
         {/* Thumbnail */}
@@ -53,6 +54,7 @@ function EventCardComponent({ event, monitorName, thumbnailUrl }: EventCardProps
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             loading="lazy"
             onError={handleImageError}
+            data-testid="event-thumbnail"
           />
           <div className="absolute bottom-0.5 right-0.5 sm:bottom-1 sm:right-1 bg-black/80 text-white text-[10px] sm:text-xs px-1 sm:px-1.5 py-0.5 rounded font-medium">
             {event.Length}s
@@ -74,7 +76,7 @@ function EventCardComponent({ event, monitorName, thumbnailUrl }: EventCardProps
             <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
               <div className="flex items-center gap-1 sm:gap-1.5">
                 <Video className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="truncate max-w-[100px] sm:max-w-[150px]" title={monitorName}>
+                <span className="truncate max-w-[100px] sm:max-w-[150px]" title={monitorName} data-testid="event-monitor-name">
                   {monitorName}
                 </span>
               </div>
