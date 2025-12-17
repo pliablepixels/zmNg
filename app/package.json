@@ -20,6 +20,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:notifications": "playwright test tests/notifications.spec.ts",
+    "test:e2e:bdd": "bddgen && playwright test -c playwright-bdd.config.ts",
+    "test:e2e:bdd:ui": "bddgen && playwright test -c playwright-bdd.config.ts --ui",
     "test:all": "npm run test:unit && npm run test:e2e",
     "android:sync": "npm run build && npx cap sync android",
     "android:run": "npx cap run android",
