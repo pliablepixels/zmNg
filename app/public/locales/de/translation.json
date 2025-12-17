@@ -28,7 +28,13 @@
     "filter": "Filtern",
     "clear": "Leeren",
     "apply": "Anwenden",
-    "saving": "Speichern..."
+    "saving": "Speichern...",
+    "hide_password": "Passwort ausblenden",
+    "show_password": "Passwort anzeigen",
+    "selected": "Ausgewählt",
+    "unknown_error": "Unbekannter Fehler",
+    "running": "Läuft",
+    "stopped": "Gestoppt"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -268,7 +274,8 @@
     "load_error": "Fehler beim Laden des Monitors",
     "maximize": "Maximieren",
     "pip": "Bild-in-Bild",
-    "pip_failed": "Bild-in-Bild konnte nicht gestartet werden"
+    "pip_failed": "Bild-in-Bild konnte nicht gestartet werden",
+    "ptz_failed": "PTZ-Steuerung fehlgeschlagen"
   },
   "montage": {
     "title": "Montage",
@@ -311,7 +318,8 @@
     "new": "Neu",
     "showing_count": "Zeige {{count}} Benachrichtigungen",
     "event_id": "Ereignis {{id}}",
-    "monitor_id": "Monitor {{id}}"
+    "monitor_id": "Monitor {{id}}",
+    "select_profile_first": "Wählen Sie zuerst ein Profil"
   },
   "notification_settings": {
     "title": "Benachrichtigungseinstellungen",
@@ -360,7 +368,9 @@
     "unread_count": "Ungelesene Anzahl",
     "view_history": "Verlauf ansehen",
     "function": "Funktion",
-    "disconnected": "Getrennt"
+    "disconnected": "Getrennt",
+    "notifications_enabled": "Benachrichtigungen aktiviert",
+    "select_profile_first": "Wählen Sie zuerst ein Profil"
   },
   "profiles": {
     "title": "Profile",
@@ -534,7 +544,8 @@
     "change_error": "Fehler beim Ändern des Zustands",
     "load_error": "Fehler beim Laden der Zustände",
     "description": "Beschreibung",
-    "no_description": "Keine Beschreibung verfügbar"
+    "no_description": "Keine Beschreibung verfügbar",
+    "activate": "Aktivieren"
   },
   "timeline": {
     "title": "Zeitachse",
@@ -571,7 +582,11 @@
     "something_went_wrong": "Etwas ist schief gelaufen",
     "unexpected_error_message": "Ein unerwarteter Fehler ist aufgetreten.",
     "component_stack": "Komponenten-Stack",
-    "reload_application": "Anwendung neu laden"
+    "reload_application": "Anwendung neu laden",
+    "page_error": "Seitenfehler",
+    "page_error_message": "Entschuldigung, beim Laden dieser Seite ist ein Fehler aufgetreten",
+    "go_to_home": "Zur Startseite",
+    "reload_page": "Seite neu laden"
   },
   "ptz": {
     "move_up_left": "Oben Links",
@@ -590,6 +605,7 @@
     "presets": "Voreinstellungen",
     "show_controls": "Steuerung anzeigen",
     "hide_controls": "Steuerung ausblenden",
-    "continuous_movement": "Kontinuierliche Bewegung"
+    "continuous_movement": "Kontinuierliche Bewegung",
+    "zoom": "Zoom"
   }
 }

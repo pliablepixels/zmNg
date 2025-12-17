@@ -29,7 +29,11 @@
     "apply": "Apply",
     "saving": "Saving...",
     "running": "Running",
-    "stopped": "Stopped"
+    "stopped": "Stopped",
+    "hide_password": "Hide password",
+    "show_password": "Show password",
+    "selected": "Selected",
+    "unknown_error": "Unknown error"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -267,7 +271,8 @@
     "load_error": "Error loading monitor",
     "maximize": "Maximize",
     "pip": "Picture in Picture",
-    "pip_failed": "Failed to enter Picture-in-Picture mode"
+    "pip_failed": "Failed to enter Picture-in-Picture mode",
+    "ptz_failed": "PTZ control failed"
   },
   "montage": {
     "title": "Montage",
@@ -310,7 +315,8 @@
     "new": "New",
     "showing_count": "Showing {{count}} notifications",
     "event_id": "Event {{id}}",
-    "monitor_id": "Monitor {{id}}"
+    "monitor_id": "Monitor {{id}}",
+    "select_profile_first": "Please select a profile first"
   },
   "notification_settings": {
     "title": "Notification Settings",
@@ -320,6 +326,7 @@
     "push_enabled": "Push Notifications Enabled",
     "push_registered": "Device registered for push notifications",
     "notifications_disabled": "Notifications Disabled",
+    "notifications_enabled": "Notifications enabled",
     "server_config_title": "Server Configuration",
     "server_config_desc": "Configure the notification server",
     "server_host": "Server Host",
@@ -359,7 +366,8 @@
     "unread_count": "Unread Count",
     "view_history": "View History",
     "function": "Function",
-    "disconnected": "Disconnected"
+    "disconnected": "Disconnected",
+    "select_profile_first": "Please select a profile first"
   },
   "profiles": {
     "title": "Profiles",
@@ -534,7 +542,8 @@
     "change_error": "Failed to change state",
     "load_error": "Failed to load states",
     "description": "Description",
-    "no_description": "No description available"
+    "no_description": "No description available",
+    "activate": "Activate"
   },
   "timeline": {
     "title": "Timeline",
@@ -571,7 +580,11 @@
     "something_went_wrong": "Something went wrong",
     "unexpected_error_message": "An unexpected error occurred.",
     "component_stack": "Component Stack",
-    "reload_application": "Reload Application"
+    "reload_application": "Reload Application",
+    "page_error": "Page Error",
+    "page_error_message": "An error occurred while loading this page.",
+    "go_to_home": "Go to Home",
+    "reload_page": "Reload Page"
   },
   "ptz": {
     "move_up_left": "Move Up Left",
@@ -590,6 +603,7 @@
     "presets": "Presets",
     "show_controls": "Show Controls",
     "hide_controls": "Hide Controls",
-    "continuous_movement": "Continuous Movement"
+    "continuous_movement": "Continuous Movement",
+    "zoom": "Zoom"
   }
 }

@@ -28,7 +28,13 @@
     "filter": "筛选",
     "clear": "清除",
     "apply": "应用",
-    "saving": "保存中..."
+    "saving": "保存中...",
+    "hide_password": "隐藏密码",
+    "show_password": "显示密码",
+    "selected": "已选择",
+    "unknown_error": "未知错误",
+    "running": "运行中",
+    "stopped": "已停止"
   },
   "dashboard": {
     "title": "仪表板",
@@ -268,7 +274,8 @@
     "load_error": "加载监控错误",
     "maximize": "最大化",
     "pip": "画中画",
-    "pip_failed": "无法进入画中画模式"
+    "pip_failed": "无法进入画中画模式",
+    "ptz_failed": "PTZ 控制失败"
   },
   "montage": {
     "title": "蒙太奇",
@@ -311,7 +318,8 @@
     "new": "新",
     "showing_count": "显示 {{count}} 条通知",
     "event_id": "事件 {{id}}",
-    "monitor_id": "监控 {{id}}"
+    "monitor_id": "监控 {{id}}",
+    "select_profile_first": "请先选择配置"
   },
   "notification_settings": {
     "title": "通知设置",
@@ -360,7 +368,9 @@
     "unread_count": "未读数量",
     "view_history": "查看历史",
     "function": "功能",
-    "disconnected": "已断开"
+    "disconnected": "已断开",
+    "notifications_enabled": "通知已启用",
+    "select_profile_first": "请先选择配置"
   },
   "profiles": {
     "title": "配置",
@@ -534,7 +544,8 @@
     "change_error": "更改状态失败",
     "load_error": "加载状态失败",
     "description": "描述",
-    "no_description": "无描述可用"
+    "no_description": "无描述可用",
+    "activate": "激活"
   },
   "timeline": {
     "title": "时间轴",
@@ -571,7 +582,11 @@
     "something_went_wrong": "出错了",
     "unexpected_error_message": "发生了意外错误。",
     "component_stack": "组件堆栈",
-    "reload_application": "重新加载应用"
+    "reload_application": "重新加载应用",
+    "page_error": "页面错误",
+    "page_error_message": "抱歉，加载此页面时出错",
+    "go_to_home": "返回首页",
+    "reload_page": "重新加载页面"
   },
   "ptz": {
     "move_up_left": "左上",
@@ -590,6 +605,7 @@
     "presets": "预设",
     "show_controls": "显示控制",
     "hide_controls": "隐藏控制",
-    "continuous_movement": "连续移动"
+    "continuous_movement": "连续移动",
+    "zoom": "缩放"
   }
 }

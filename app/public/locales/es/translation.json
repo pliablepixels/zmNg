@@ -28,7 +28,13 @@
     "filter": "Filtrar",
     "clear": "Limpiar",
     "apply": "Aplicar",
-    "saving": "Guardando..."
+    "saving": "Guardando...",
+    "hide_password": "Ocultar contraseña",
+    "show_password": "Mostrar contraseña",
+    "selected": "Seleccionado",
+    "unknown_error": "Error desconocido",
+    "running": "En ejecución",
+    "stopped": "Detenido"
   },
   "dashboard": {
     "title": "Panel de Control",
@@ -268,7 +274,8 @@
     "load_error": "Error al cargar monitor",
     "maximize": "Maximizar",
     "pip": "Imagen en Imagen",
-    "pip_failed": "Error al entrar en Imagen en Imagen"
+    "pip_failed": "Error al entrar en Imagen en Imagen",
+    "ptz_failed": "Fallo en control PTZ"
   },
   "montage": {
     "title": "Montaje",
@@ -311,7 +318,8 @@
     "new": "Nuevo",
     "showing_count": "Mostrando {{count}} notificaciones",
     "event_id": "Evento {{id}}",
-    "monitor_id": "Monitor {{id}}"
+    "monitor_id": "Monitor {{id}}",
+    "select_profile_first": "Seleccione un perfil primero"
   },
   "notification_settings": {
     "title": "Configuración de Notificaciones",
@@ -360,7 +368,9 @@
     "unread_count": "Conteo No Leído",
     "view_history": "Ver Historial",
     "function": "Función",
-    "disconnected": "Desconectado"
+    "disconnected": "Desconectado",
+    "notifications_enabled": "Notificaciones habilitadas",
+    "select_profile_first": "Seleccione un perfil primero"
   },
   "profiles": {
     "title": "Perfiles",
@@ -534,7 +544,8 @@
     "change_error": "Fallo al cambiar estado",
     "load_error": "Fallo al cargar estados",
     "description": "Descripción",
-    "no_description": "No hay descripción disponible"
+    "no_description": "No hay descripción disponible",
+    "activate": "Activar"
   },
   "timeline": {
     "title": "Línea de Tiempo",
@@ -571,7 +582,11 @@
     "something_went_wrong": "Algo salió mal",
     "unexpected_error_message": "Ocurrió un error inesperado.",
     "component_stack": "Pila de Componentes",
-    "reload_application": "Recargar Aplicación"
+    "reload_application": "Recargar Aplicación",
+    "page_error": "Error de página",
+    "page_error_message": "Lo sentimos, ha ocurrido un error al cargar esta página",
+    "go_to_home": "Ir a inicio",
+    "reload_page": "Recargar página"
   },
   "ptz": {
     "move_up_left": "Mover Arriba Izquierda",
@@ -590,6 +605,7 @@
     "presets": "Preajustes",
     "show_controls": "Mostrar controles",
     "hide_controls": "Ocultar controles",
-    "continuous_movement": "Movimiento continuo"
+    "continuous_movement": "Movimiento continuo",
+    "zoom": "Zoom"
   }
 }

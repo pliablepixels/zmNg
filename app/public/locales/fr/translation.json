@@ -28,7 +28,13 @@
     "filter": "Filtrer",
     "clear": "Effacer",
     "apply": "Appliquer",
-    "saving": "Enregistrement..."
+    "saving": "Enregistrement...",
+    "hide_password": "Masquer le mot de passe",
+    "show_password": "Afficher le mot de passe",
+    "selected": "Sélectionné",
+    "unknown_error": "Erreur inconnue",
+    "running": "En cours d'exécution",
+    "stopped": "Arrêté"
   },
   "dashboard": {
     "title": "Tableau de bord",
@@ -268,7 +274,8 @@
     "load_error": "Erreur de chargement du moniteur",
     "maximize": "Maximiser",
     "pip": "Image dans l'image",
-    "pip_failed": "Échec de l'ouverture de l'image dans l'image"
+    "pip_failed": "Échec de l'ouverture de l'image dans l'image",
+    "ptz_failed": "Échec du contrôle PTZ"
   },
   "montage": {
     "title": "Montage",
@@ -311,7 +318,8 @@
     "new": "Nouveau",
     "showing_count": "Affichage de {{count}} notifications",
     "event_id": "Événement {{id}}",
-    "monitor_id": "Moniteur {{id}}"
+    "monitor_id": "Moniteur {{id}}",
+    "select_profile_first": "Sélectionnez d'abord un profil"
   },
   "notification_settings": {
     "title": "Paramètres de notification",
@@ -360,7 +368,9 @@
     "unread_count": "Nombre non lu",
     "view_history": "Voir l'historique",
     "function": "Fonction",
-    "disconnected": "Déconnecté"
+    "disconnected": "Déconnecté",
+    "notifications_enabled": "Notifications activées",
+    "select_profile_first": "Sélectionnez d'abord un profil"
   },
   "profiles": {
     "title": "Profils",
@@ -534,7 +544,8 @@
     "change_error": "Échec du changement d'état",
     "load_error": "Échec du chargement des états",
     "description": "Description",
-    "no_description": "Pas de description disponible"
+    "no_description": "Pas de description disponible",
+    "activate": "Activer"
   },
   "timeline": {
     "title": "Chronologie",
@@ -571,7 +582,11 @@
     "something_went_wrong": "Quelque chose s'est mal passé",
     "unexpected_error_message": "Une erreur inattendue s'est produite.",
     "component_stack": "Pile de composants",
-    "reload_application": "Recharger l'application"
+    "reload_application": "Recharger l'application",
+    "page_error": "Erreur de page",
+    "page_error_message": "Désolé, une erreur s'est produite lors du chargement de cette page",
+    "go_to_home": "Aller à l'accueil",
+    "reload_page": "Recharger la page"
   },
   "ptz": {
     "move_up_left": "Haut Gauche",
@@ -590,6 +605,7 @@
     "presets": "Préréglages",
     "show_controls": "Afficher les contrôles",
     "hide_controls": "Masquer les contrôles",
-    "continuous_movement": "Mouvement continu"
+    "continuous_movement": "Mouvement continu",
+    "zoom": "Zoom"
   }
 }
