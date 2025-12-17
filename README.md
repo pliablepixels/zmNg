@@ -2,7 +2,7 @@
 
 <img src="app/assets/logo.png" align="right" width="120" />
 
-A modern web and mobile application for ZoneMinder home surveillance systems, providing a clean, intuitive interface for viewing live camera feeds, reviewing events, and managing multiple server profiles. It is a ground-up rewrite of the original [zmNinja](https://zmninja.zoneminder.com/) application, using modern web technologies and a more intuitive user interface. The code was 99% Claude CLI generated.
+A modern web and mobile application for ZoneMinder, providing a clean, intuitive interface for viewing live camera feeds, reviewing events, and managing multiple server profiles. It is a ground-up rewrite of the original [zmNinja](https://zmninja.zoneminder.com/) application, using modern web technologies and a more intuitive user interface. The code was 99% Claude CLI generated.
 
 Watch a video of the demo [HERE](https://youtu.be/ces_2ap-htc)
 
@@ -53,6 +53,7 @@ I am happy to accept PRs, but I don't want [AI slop](https://en.wikipedia.org/wi
 ### Binaries
 - Download binaries from [zmNg Releases](https://github.com/pliablepixels/zmNg/releases)
 - iOS is not uploaded - I don't have a dev account anymore
+- I use Github workflows and runners to automatically build release binaries [here](https://github.com/pliablepixels/zmNg/tree/main/.github/workflows). Binaries are built for specific platforms. If the binary doesn't work for your linux distro, look at those files
 
 ## Build from Source
 
@@ -86,7 +87,6 @@ npm run tauri:dev
 
 ### Desktop Production Builds
 
-
 #### Desktop production build (Tauri): Recommended
 ```bash
 npm run tauri:build    # Output: src-tauri/target/release/bundle/
@@ -100,8 +100,8 @@ Deploy web build (`dist/`) to: Netlify, Vercel, GitHub Pages, AWS S3, etc.
 
 ### Mobile Builds
 
-For Android setup and builds, see [ANDROID](docs/building/ANDROID.md)
-For iOS setup and builds, see [IOS](docs/building/IOS.md)
+- For Android setup and builds, see [ANDROID](docs/building/ANDROID.md)
+- For iOS setup and builds, see [IOS](docs/building/IOS.md)
 
 ## Testing
 
@@ -152,6 +152,9 @@ npm run test:e2e -- tests/monitors.spec.ts
 # Run both unit and E2E tests
 npm run test:all
 ```
+
+### Making releases
+- See `scripts/release.sh` [here](scripts/release.sh). This automatically tags the current state and triggers release builds
 
 ### New vs Old
 [View Comparison with zmNinja](notes/COMPARISON.md)
