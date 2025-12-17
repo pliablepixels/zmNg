@@ -261,10 +261,6 @@ export default function AppLayout() {
   const MAX_WIDTH = 256;
   const { t } = useTranslation();
 
-  if (!currentProfile) {
-    return <Navigate to="/setup" replace />;
-  }
-
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
     dragStartX.current = e.clientX;
@@ -294,6 +290,11 @@ export default function AppLayout() {
       document.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isDragging]);
+
+  // Check for profile after all hooks are called to avoid hooks violation
+  if (!currentProfile) {
+    return <Navigate to="/setup" replace />;
+  }
 
   const toggleSidebar = () => {
     setSidebarWidth(sidebarWidth > MIN_WIDTH + 20 ? MIN_WIDTH : MAX_WIDTH);
