@@ -1,19 +1,25 @@
 import { defineConfig, devices } from '@playwright/test';
+import { defineBddConfig } from 'playwright-bdd';
 import dotenv from 'dotenv';
 import path from 'path';
 
 // Load environment variables from .env file
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
+const testDir = defineBddConfig({
+  features: ['tests/features/**/*.feature', '!tests/features/.archive/**'],
+  steps: 'tests/steps.ts',
+});
+
 export default defineConfig({
-  testDir: './tests',
+  testDir,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 1, // Retry once locally to avoid flakes
+  retries: process.env.CI ? 2 : 1,
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
 
-  timeout: 30000, // 30s per test (but each transition limited to 5s)
+  timeout: 30000,
 
   use: {
     baseURL: 'http://localhost:5173',
@@ -23,14 +29,12 @@ export default defineConfig({
   },
 
   projects: [
-    { name: 'setup', testMatch: /.*\.setup\.ts/ },
     {
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        // Use prepared auth state.
-        storageState: 'playwright/.auth/user.json',
-        // Disable web security to allow CORS requests to external APIs if needed
+        // Note: BDD tests handle authentication in the Background step
+        // No storageState needed - each test authenticates via Given step
         launchOptions: {
           args: [
             '--disable-web-security',
@@ -38,7 +42,6 @@ export default defineConfig({
           ],
         },
       },
-      dependencies: ['setup'],
     },
   ],
 
