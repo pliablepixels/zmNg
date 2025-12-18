@@ -72,6 +72,7 @@ jobs:
         with:
           generate_release_notes: true
           body_path: .github/workflows/_RELEASE_NOTE_INSERT.md
+          append_body: true
           files: |
             app/src-tauri/target/release/bundle/appimage/*.AppImage
             app/src-tauri/target/release/bundle/deb/*.deb
