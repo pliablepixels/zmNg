@@ -1,7 +1,3 @@
-# Release Notes
-
-## Installation Notes
-
 ### General Note
 These binaries are provided for convenience. You are much better off building from source. If they don't work
 for your environment (especially linux, which is well known for breaking glibc and other deps changing), build from source.
