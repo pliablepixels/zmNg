@@ -23,7 +23,7 @@ export default defineConfig({
 
   use: {
     baseURL: 'http://localhost:5173',
-    trace: 'on-first-retry',
+    trace: 'on', // Capture trace for all tests (shows timeline with screenshots of every action)
     screenshot: 'on',
     video: 'on-first-retry',
   },
