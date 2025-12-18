@@ -1,0 +1,80 @@
+name: Build Linux ARM64 Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.0.0)'
+        required: true
+        type: string
+  push:
+    tags:
+      - 'zmNg-*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux-arm64:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: app/package-lock.json
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install dependencies
+        working-directory: ./app
+        run: npm ci
+
+      - name: Build Tauri app (Linux arm64)
+        working-directory: ./app
+        run: npm run tauri:build
+
+      - name: Upload AppImage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: zmNg-linux-arm64-appimage-${{ github.event.inputs.version || github.ref_name }}
+          path: app/src-tauri/target/release/bundle/appimage/*.AppImage
+          retention-days: 30
+
+      - name: Upload DEB package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: zmNg-linux-arm64-deb-${{ github.event.inputs.version || github.ref_name }}
+          path: app/src-tauri/target/release/bundle/deb/*.deb
+          retention-days: 30
+
+      - name: Upload RPM package artifact (if exists)
+        uses: actions/upload-artifact@v4
+        with:
+          name: zmNg-linux-arm64-rpm-${{ github.event.inputs.version || github.ref_name }}
+          path: app/src-tauri/target/release/bundle/rpm/*.rpm
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/zmNg-')
+        with:
+          generate_release_notes: true
+          body_path: .github/workflows/_RELEASE_NOTE_INSERT.md
+          files: |
+            app/src-tauri/target/release/bundle/appimage/*.AppImage
+            app/src-tauri/target/release/bundle/deb/*.deb
+            app/src-tauri/target/release/bundle/rpm/*.rpm
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
