@@ -217,15 +217,16 @@ export async function discoverZoneminder(inputUrl: string): Promise<DiscoveryRes
 
     let confirmedCgiUrl = '';
     if (confirmedApiUrl.includes('/zm/api')) {
-        confirmedCgiUrl = confirmedPortalUrl + '/zm/cgi-bin';
+        confirmedCgiUrl = confirmedPortalUrl + '/zm/cgi-bin/nph-zms';
     } else {
         // If API is at root /api, CGI might be at /cgi-bin
-        confirmedCgiUrl = confirmedPortalUrl + '/cgi-bin';
+        confirmedCgiUrl = confirmedPortalUrl + '/cgi-bin/nph-zms';
     }
 
     // NOTE: User asked to "Try" CGI. Without a valid test target, "Try" is hard.
     // Retaining the inference logic from the previous `deriveZoneminderUrls` but simplifying it
     // to match the confirmed API structure is robust.
+    // CGI URL now includes /nph-zms directly for consistency with ZM_PATH_ZMS API response.
 
     log.info(`[Discovery] Inferred CGI URL: ${confirmedCgiUrl}`);
 

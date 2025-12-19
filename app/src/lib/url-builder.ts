@@ -90,7 +90,7 @@ export function buildUrl(
 /**
  * Get monitor stream URL (ZMS MJPEG stream)
  *
- * @param cgiUrl - CGI-BIN URL (e.g., portalUrl/cgi-bin)
+ * @param cgiUrl - Full CGI-BIN URL including nph-zms (e.g., portalUrl/cgi-bin/nph-zms)
  * @param monitorId - Monitor ID
  * @param options - Stream options
  * @returns Stream URL
@@ -125,7 +125,8 @@ export function getMonitorStreamUrl(
   if (options.cacheBuster) params._t = options.cacheBuster.toString();
 
   const queryString = new URLSearchParams(params).toString();
-  return `${cgiUrl}/nph-zms?${queryString}`;
+  // cgiUrl already includes /nph-zms (from discovery or ZM_PATH_ZMS API)
+  return `${cgiUrl}?${queryString}`;
 }
 
 /**

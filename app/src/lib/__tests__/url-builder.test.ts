@@ -91,7 +91,7 @@ describe('buildUrl', () => {
 });
 
 describe('getMonitorStreamUrl', () => {
-  const cgiUrl = 'https://zm.com/cgi-bin';
+  const cgiUrl = 'https://zm.com/cgi-bin/nph-zms';
   const monitorId = '1';
 
   it('generates basic stream URL', () => {

@@ -16,6 +16,7 @@ import { persist } from 'zustand/middleware';
 import type { Profile } from '../api/types';
 import { createApiClient, setApiClient } from '../api/client';
 import { getServerTimeZone } from '../api/time';
+import { fetchZmsPath } from '../api/auth';
 import { setSecureValue, getSecureValue, removeSecureValue } from '../lib/secureStorage';
 import { log } from '../lib/logger';
 import { useAuthStore } from './auth';
@@ -31,7 +32,7 @@ interface ProfileState {
 
 
   // Actions
-  addProfile: (profile: Omit<Profile, 'id' | 'createdAt'>) => Promise<void>;
+  addProfile: (profile: Omit<Profile, 'id' | 'createdAt'>) => Promise<string>;
   updateProfile: (id: string, updates: Partial<Profile>) => Promise<void>;
   deleteProfile: (id: string) => Promise<void>;
   deleteAllProfiles: () => Promise<void>;
@@ -128,6 +129,8 @@ export const useProfileStore = create<ProfileState>()(
             log.warn('Failed to fetch timezone for new profile', { error: e });
           }
         }
+
+        return newProfileId;
       },
 
       /**
@@ -334,6 +337,42 @@ export const useProfileStore = create<ProfileState>()(
             get().updateProfile(id, { timezone });
           } catch (tzError) {
             log.warn('Failed to fetch server timezone', { error: tzError });
+            // Don't fail the switch for this
+          }
+
+          // STEP 5.5: Fetch ZMS path and update CGI URL if different from inferred
+          try {
+            log.profile('Step 5.5: Fetching ZMS path from server config');
+            const zmsPath = await fetchZmsPath();
+            if (zmsPath && profile.portalUrl) {
+              // Construct the full CGI URL from portal + ZMS path
+              try {
+                const url = new URL(profile.portalUrl);
+                const newCgiUrl = `${url.origin}${zmsPath}`;
+
+                // Only update if different from current
+                if (newCgiUrl !== profile.cgiUrl) {
+                  log.profile('ZMS path fetched, updating CGI URL', {
+                    oldCgiUrl: profile.cgiUrl,
+                    zmsPath,
+                    newCgiUrl
+                  });
+                  get().updateProfile(id, { cgiUrl: newCgiUrl });
+                } else {
+                  log.profile('ZMS path matches current CGI URL, no update needed', { cgiUrl: profile.cgiUrl });
+                }
+              } catch (urlError) {
+                log.warn('Failed to construct CGI URL from ZMS path', {
+                  portalUrl: profile.portalUrl,
+                  zmsPath,
+                  error: urlError
+                });
+              }
+            } else {
+              log.profile('ZMS path not available, keeping current CGI URL', { cgiUrl: profile.cgiUrl });
+            }
+          } catch (zmsError) {
+            log.warn('Failed to fetch ZMS path during profile switch', { error: zmsError });
             // Don't fail the switch for this
           }
 
@@ -574,6 +613,42 @@ export const useProfileStore = create<ProfileState>()(
             }
           } catch (tzError) {
             log.warn('Failed to fetch timezone on load', { error: tzError });
+          }
+
+          // STEP 4.5: Fetch ZMS path and update CGI URL if different from inferred
+          try {
+            log.profile('Fetching ZMS path from server config');
+            const zmsPath = await fetchZmsPath();
+            if (zmsPath && profile.portalUrl) {
+              // Construct the full CGI URL from portal + ZMS path
+              try {
+                const url = new URL(profile.portalUrl);
+                const newCgiUrl = `${url.origin}${zmsPath}`;
+
+                // Only update if different from current
+                if (newCgiUrl !== profile.cgiUrl) {
+                  log.profile('ZMS path fetched, updating CGI URL', {
+                    oldCgiUrl: profile.cgiUrl,
+                    zmsPath,
+                    newCgiUrl
+                  });
+                  useProfileStore.getState().updateProfile(profile.id, { cgiUrl: newCgiUrl });
+                } else {
+                  log.profile('ZMS path matches current CGI URL, no update needed', { cgiUrl: profile.cgiUrl });
+                }
+              } catch (urlError) {
+                log.warn('Failed to construct CGI URL from ZMS path', {
+                  portalUrl: profile.portalUrl,
+                  zmsPath,
+                  error: urlError
+                });
+              }
+            } else {
+              log.profile('ZMS path not available, keeping current CGI URL', { cgiUrl: profile.cgiUrl });
+            }
+          } catch (zmsError) {
+            log.warn('Failed to fetch ZMS path on load', { error: zmsError });
+            // Don't fail initialization for this
           }
 
         } finally {

@@ -47,13 +47,11 @@ export default function Profiles() {
 
   const profiles = useProfileStore((state) => state.profiles);
   const currentProfile = useProfileStore((state) => state.currentProfile());
-  const addProfile = useProfileStore((state) => state.addProfile);
   const updateProfile = useProfileStore((state) => state.updateProfile);
   const deleteProfile = useProfileStore((state) => state.deleteProfile);
   const deleteAllProfiles = useProfileStore((state) => state.deleteAllProfiles);
   const switchProfile = useProfileStore((state) => state.switchProfile);
 
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(searchParams.get('action') === 'add-profile');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleteAllDialogOpen, setIsDeleteAllDialogOpen] = useState(false);
@@ -90,12 +88,6 @@ export default function Profiles() {
     }
   };
 
-  const handleOpenAddDialog = () => {
-    setFormData({ name: '', portalUrl: '', apiUrl: '', cgiUrl: '', username: '', password: '' });
-    setShowPassword(false);
-    setIsAddDialogOpen(true);
-  };
-
   const handleOpenEditDialog = async (profile: Profile) => {
     setSelectedProfile(profile);
 
@@ -123,52 +115,6 @@ export default function Profiles() {
   const handleOpenDeleteDialog = (profile: Profile) => {
     setSelectedProfile(profile);
     setIsDeleteDialogOpen(true);
-  };
-
-  const handleAddProfile = async () => {
-    if (!formData.name || !formData.portalUrl) {
-      toast({
-        title: t('common.error'),
-        description: t('profiles.name_url_required'),
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      let portalUrl = formData.portalUrl.replace(/\/$/, '');
-
-      // Discover working URLs
-      // Pass the URL as-is (with or without scheme)
-      const { apiUrl, cgiUrl, portalUrl: finalPortalUrl } = await discoverUrls(portalUrl);
-
-      await addProfile({
-        name: formData.name,
-        portalUrl: finalPortalUrl,
-        apiUrl,
-        cgiUrl,
-        username: formData.username || undefined,
-        password: formData.password || undefined,
-        isDefault: profiles.length === 0,
-      });
-
-      toast({
-        title: t('common.success'),
-        description: t('profiles.add_success'),
-      });
-
-      setIsAddDialogOpen(false);
-      setFormData({ name: '', portalUrl: '', apiUrl: '', cgiUrl: '', username: '', password: '' });
-    } catch (error) {
-      toast({
-        title: t('common.error'),
-        description: error instanceof Error ? error.message : t('profiles.add_error'),
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSaving(false);
-    }
   };
 
   const handleUpdateProfile = async () => {
@@ -261,8 +207,8 @@ export default function Profiles() {
       const remainingProfiles = useProfileStore.getState().profiles;
 
       if (remainingProfiles.length === 0) {
-        // If no profiles left, go to setup
-        navigate('/setup');
+        // If no profiles left, go to profile creation
+        navigate('/profiles/new');
       } else if (isDeletingCurrent) {
         // If we deleted the active profile, reload to ensure clean state specific
         // to the new auto-selected profile (which the store selects)
@@ -288,8 +234,8 @@ export default function Profiles() {
 
       setIsDeleteAllDialogOpen(false);
 
-      // Redirect to setup since no profiles exist
-      navigate('/setup');
+      // Redirect to profile creation since no profiles exist
+      navigate('/profiles/new');
     } catch (error) {
       toast({
         title: t('common.error'),
@@ -348,7 +294,7 @@ export default function Profiles() {
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button onClick={handleOpenAddDialog} className="h-9 sm:h-10">
+                  <Button onClick={() => navigate('/profiles/new?returnTo=/profiles')} className="h-9 sm:h-10">
                     <Plus className="h-4 w-4 sm:mr-2" />
                     <span className="hidden sm:inline">{t('profiles.add_profile')}</span>
                   </Button>
@@ -458,91 +404,6 @@ export default function Profiles() {
           </Card>
         </div>
       </div>
-
-      {/* Add Profile Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>{t('profiles.add_dialog_title')}</DialogTitle>
-            <DialogDescription>
-              {t('profiles.add_dialog_desc')}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">{t('profiles.name')}*</Label>
-              <Input
-                id="name"
-                placeholder="e.g., Home Server"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="portalUrl">{t('profiles.portal_url')}*</Label>
-              <Input
-                id="portalUrl"
-                placeholder="https://zm.example.com"
-                value={formData.portalUrl}
-                onChange={(e) => setFormData({ ...formData, portalUrl: e.target.value })}
-                autoCapitalize="none"
-                autoCorrect="off"
-              />
-              <p className="text-xs text-muted-foreground">
-                {t('profiles.url_hint')}
-              </p>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="username">{t('profiles.username')}</Label>
-              <Input
-                id="username"
-                placeholder="admin"
-                value={formData.username}
-                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                autoCapitalize="none"
-                autoCorrect="off"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password">{t('profiles.password')}</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="pr-10"
-                  autoCapitalize="none"
-                  autoCorrect="off"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowPassword(!showPassword)}
-                  tabIndex={-1}
-                >
-                  {showPassword ? (
-                    <Eye className="h-4 w-4 text-muted-foreground" />
-                  ) : (
-                    <EyeOff className="h-4 w-4 text-muted-foreground" />
-                  )}
-                </Button>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-              {t('common.cancel')}
-            </Button>
-            <Button onClick={handleAddProfile} disabled={isSaving}>
-              {isSaving ? t('common.saving') : t('profiles.add')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Edit Profile Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>

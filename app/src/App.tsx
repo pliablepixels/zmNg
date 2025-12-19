@@ -21,7 +21,7 @@ import { NotificationHandler } from './components/NotificationHandler';
 import { log } from './lib/logger';
 
 // Lazy load route components for code splitting
-const Setup = lazy(() => import('./pages/Setup'));
+const ProfileForm = lazy(() => import('./pages/ProfileForm'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Monitors = lazy(() => import('./pages/Monitors'));
 const MonitorDetail = lazy(() => import('./pages/MonitorDetail'));
@@ -124,17 +124,22 @@ function AppRoutes() {
             currentProfile ? (
               <Navigate to="/dashboard" replace />
             ) : (
-              <Navigate to="/setup" replace />
+              <Navigate to="/profiles/new" replace />
             )
           }
         />
         <Route
-          path="/setup"
+          path="/profiles/new"
           element={
-            <RouteErrorBoundary routePath="/setup">
-              <Setup />
+            <RouteErrorBoundary routePath="/profiles/new">
+              <ProfileForm />
             </RouteErrorBoundary>
           }
+        />
+        {/* Legacy route redirect - for backwards compatibility */}
+        <Route
+          path="/setup"
+          element={<Navigate to="/profiles/new" replace />}
         />
 
         <Route element={<AppLayout />}>

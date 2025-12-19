@@ -327,6 +327,15 @@ export type Config = z.infer<typeof ConfigSchema>;
 export type ConfigData = z.infer<typeof ConfigDataSchema>;
 export type ConfigsResponse = z.infer<typeof ConfigsResponseSchema>;
 
+// ZMS Path response schema for fetching ZM_PATH_ZMS config
+export const ZmsPathResponseSchema = z.object({
+  config: z.object({
+    Value: z.string(),
+  }),
+});
+
+export type ZmsPathResponse = z.infer<typeof ZmsPathResponseSchema>;
+
 // Profile types (app-specific, not from ZM API)
 export interface Profile {
   id: string;

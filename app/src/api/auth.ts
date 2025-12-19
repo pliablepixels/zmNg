@@ -6,8 +6,8 @@
  */
 
 import { getApiClient } from './client';
-import type { LoginResponse } from './types';
-import { LoginResponseSchema } from './types';
+import type { LoginResponse, ZmsPathResponse } from './types';
+import { LoginResponseSchema, ZmsPathResponseSchema } from './types';
 import { log } from '../lib/logger';
 
 export interface LoginCredentials {
@@ -123,10 +123,10 @@ export async function getVersion(): Promise<{ version: string; apiversion: strin
 
 /**
  * Test if API is reachable and working.
- * 
+ *
  * Attempts to fetch version info from the specified API URL.
  * Useful for validating server connection during setup.
- * 
+ *
  * @param apiUrl - The base API URL to test
  * @returns Promise resolving to true if connection successful, false otherwise
  */
@@ -138,5 +138,40 @@ export async function testConnection(apiUrl: string): Promise<boolean> {
   } catch (error) {
     log.warn('Connection test failed', { component: 'Auth API', apiUrl }, error);
     return false;
+  }
+}
+
+/**
+ * Fetch the ZMS (ZoneMinder Streaming) path from server configuration.
+ *
+ * This API endpoint returns the server-configured ZMS path, which may differ
+ * from the default /cgi-bin/nph-zms. Only works after successful authentication.
+ *
+ * @returns Promise resolving to the ZMS path (e.g., "/cgi-bin/nph-zms") or null if fetch fails
+ */
+export async function fetchZmsPath(): Promise<string | null> {
+  try {
+    const client = getApiClient();
+    log.debug('Fetching ZMS path from server config', { component: 'Auth API' });
+
+    const response = await client.get<ZmsPathResponse>('/configs/viewByName/ZM_PATH_ZMS.json');
+
+    // Validate response with Zod
+    const validated = ZmsPathResponseSchema.parse(response.data);
+    const zmsPath = validated.config.Value;
+
+    log.info('ZMS path fetched successfully', { component: 'Auth API', zmsPath });
+    return zmsPath;
+  } catch (error: unknown) {
+    const err = error as { constructor: { name: string }; message: string; response?: { status: number; data: unknown } };
+    log.warn('Failed to fetch ZMS path from server', { component: 'Auth API' }, error, {
+      errorType: err.constructor.name,
+      message: err.message,
+      status: err.response?.status,
+      responseData: err.response?.data,
+    });
+
+    // Return null to allow fallback to inference logic
+    return null;
   }
 }
