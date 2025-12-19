@@ -25,4 +25,8 @@ Testing Rules
 - ALWAYS write unit test cases for new functionality
 - ALWAYS ensure test cases (unit+e2e) cover functionality and user journeys comprehensively
 
+Commit Rules
+--------------
+- Use conventional commit labels (feat: fix: docs: test: chore: refactor: and others for all commits)
+
 
