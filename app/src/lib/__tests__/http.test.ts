@@ -18,7 +18,6 @@ import {
   httpPost,
   httpPut,
   httpDelete,
-  type HttpOptions,
   type HttpError,
 } from '../http';
 import { Platform } from '../platform';
@@ -556,6 +555,7 @@ describe('HTTP Client - Native Platform', () => {
 
   it('uses CapacitorHttp for native requests', async () => {
     const mockResponse = {
+      url: 'https://example.com/api/data',
       status: 200,
       data: { result: 'success' },
       headers: { 'content-type': 'application/json' },
@@ -578,6 +578,7 @@ describe('HTTP Client - Native Platform', () => {
   it('converts base64 blob response to Blob on native', async () => {
     const base64Data = btoa('image binary data');
     const mockResponse = {
+      url: 'https://example.com/api/image',
       status: 200,
       data: base64Data,
       headers: { 'content-type': 'image/png' },
@@ -596,6 +597,7 @@ describe('HTTP Client - Native Platform', () => {
   it('uses default content-type when missing in blob response', async () => {
     const base64Data = btoa('binary data');
     const mockResponse = {
+      url: 'https://example.com/api/file',
       status: 200,
       data: base64Data,
       headers: {},
@@ -614,6 +616,7 @@ describe('HTTP Client - Native Platform', () => {
   it('handles blob conversion errors gracefully', async () => {
     const invalidBase64 = 'not-valid-base64!!!';
     const mockResponse = {
+      url: 'https://example.com/api/image',
       status: 200,
       data: invalidBase64,
       headers: { 'content-type': 'image/png' },
@@ -630,6 +633,7 @@ describe('HTTP Client - Native Platform', () => {
 
   it('throws HttpError for failed native request', async () => {
     const mockResponse = {
+      url: 'https://example.com/api/missing',
       status: 404,
       data: { error: 'Not found' },
       headers: {},

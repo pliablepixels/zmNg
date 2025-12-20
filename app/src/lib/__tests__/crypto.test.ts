@@ -470,7 +470,7 @@ describe('Key derivation with PBKDF2', () => {
     expect(decrypted1).toBe(plaintext);
 
     const encrypted2 = await encrypt(plaintext);
-    const decrypted2 = await decrypt(encrypted1);
+    const decrypted2 = await decrypt(encrypted2);
     expect(decrypted2).toBe(plaintext);
 
     expect(localStorage.getItem(storageKey)).toBe(salt);
