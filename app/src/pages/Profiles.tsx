@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useProfileStore } from '../stores/profile';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -41,7 +41,6 @@ import { useTranslation } from 'react-i18next';
 
 export default function Profiles() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { t } = useTranslation();
 

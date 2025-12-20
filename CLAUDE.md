@@ -52,3 +52,7 @@ Functional Changes
 - E2E updated if user journeys changed.
 - No crash on migration; prompt for profile reset if needed.
 
+
+For Codex
+----------
+If a command fails due to insufficient permissions, you must elevate the command to the user for approval.
