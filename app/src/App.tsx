@@ -29,7 +29,6 @@ const MonitorDetail = lazy(() => import('./pages/MonitorDetail'));
 const Montage = lazy(() => import('./pages/Montage'));
 const Events = lazy(() => import('./pages/Events'));
 const EventDetail = lazy(() => import('./pages/EventDetail'));
-const EventMontage = lazy(() => import('./pages/EventMontage'));
 const Timeline = lazy(() => import('./pages/Timeline'));
 const Profiles = lazy(() => import('./pages/Profiles'));
 const Settings = lazy(() => import('./pages/Settings'));
@@ -220,11 +219,7 @@ function AppRoutes() {
           />
           <Route
             path="/event-montage"
-            element={
-              <RouteErrorBoundary routePath="/event-montage">
-                <EventMontage />
-              </RouteErrorBoundary>
-            }
+            element={<Navigate to="/events?view=montage" replace />}
           />
           <Route
             path="/timeline"

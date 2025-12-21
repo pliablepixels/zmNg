@@ -1,6 +1,8 @@
 {
   "common": {
     "refresh": "Refresh",
+    "view_list": "List view",
+    "view_montage": "Montage view",
     "close": "Close",
     "settings": "Settings",
     "loading": "Loading...",
@@ -564,6 +566,7 @@
     "invalid_columns": "Invalid number of columns",
     "load_error": "Error loading events",
     "grid_layout": "Grid Layout",
+    "screen_too_small": "Screen width is too small for that many columns",
     "columns": "{{count}} Columns",
     "custom": "Custom",
     "filters": "Filters",

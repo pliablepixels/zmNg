@@ -2,6 +2,8 @@
   "common": {
     "go_back": "Volver",
     "refresh": "Actualizar",
+    "view_list": "Vista de lista",
+    "view_montage": "Vista de montaje",
     "close": "Cerrar",
     "settings": "Configuración",
     "server": "Server",
@@ -566,6 +568,7 @@
     "invalid_columns": "Número inválido de columnas",
     "load_error": "Error al cargar eventos",
     "grid_layout": "Diseño de Cuadrícula",
+    "screen_too_small": "El ancho de la pantalla es demasiado pequeño para tantas columnas",
     "columns": "{{count}} Columnas",
     "custom": "Personalizado",
     "filters": "Filtros",

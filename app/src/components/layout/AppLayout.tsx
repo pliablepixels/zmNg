@@ -8,7 +8,6 @@
 
 import { Link, Outlet, useLocation, Navigate } from 'react-router-dom';
 import { useProfileStore } from '../../stores/profile';
-import { useAuthStore } from '../../stores/auth';
 import { useNotificationStore } from '../../stores/notifications';
 import { useShallow } from 'zustand/react/shallow';
 import { Button } from '../ui/button';
@@ -20,10 +19,8 @@ import {
   Video,
   Clock,
   Settings,
-  LogOut,
   Menu,
   Users,
-  Grid3x3,
   Bell,
   ChevronLeft,
   ChevronRight,
@@ -110,7 +107,6 @@ function SidebarContent({ onMobileClose, isCollapsed }: SidebarContentProps) {
       return profiles.find((p) => p.id === currentProfileId) || null;
     })
   );
-  const logout = useAuthStore((state) => state.logout);
   const { getUnreadCount, connectionState, getProfileSettings } = useNotificationStore(
     useShallow((state) => ({
       getUnreadCount: state.getUnreadCount,
@@ -125,17 +121,12 @@ function SidebarContent({ onMobileClose, isCollapsed }: SidebarContentProps) {
 
   const { t } = useTranslation();
 
-  const handleLogout = () => {
-    logout();
-    window.location.href = '/setup';
-  };
 
   const navItems = [
     { path: '/dashboard', label: t('sidebar.dashboard'), icon: LayoutDashboard },
     { path: '/monitors', label: t('sidebar.monitors'), icon: Camera },
     { path: '/montage', label: t('sidebar.montage'), icon: LayoutGrid },
     { path: '/events', label: t('sidebar.events'), icon: Video },
-    { path: '/event-montage', label: t('sidebar.event_montage'), icon: Grid3x3 },
     { path: '/timeline', label: t('sidebar.timeline'), icon: Clock },
     { path: '/notifications', label: t('sidebar.notifications'), icon: Bell },
     { path: '/profiles', label: t('sidebar.profiles'), icon: Users },
@@ -235,17 +226,6 @@ function SidebarContent({ onMobileClose, isCollapsed }: SidebarContentProps) {
             </div>
           </>
         )}
-        <Button
-          variant="ghost"
-          className={cn("text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-300", isCollapsed ? "w-auto p-2 h-auto" : "w-full justify-start")}
-          size={isCollapsed ? "icon" : "default"}
-          onClick={handleLogout}
-          title={isCollapsed ? t('sidebar.logout') : undefined}
-          data-testid="logout-button"
-        >
-          <LogOut className="h-4 w-4" />
-          {!isCollapsed && <span className="ml-2">{t('sidebar.logout')}</span>}
-        </Button>
       </div>
     </div>
   );

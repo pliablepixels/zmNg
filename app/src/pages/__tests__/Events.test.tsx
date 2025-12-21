@@ -30,8 +30,8 @@ vi.mock('../../stores/auth', () => ({
 }));
 
 vi.mock('../../stores/settings', () => ({
-  useSettingsStore: (selector: (state: { getProfileSettings: (id: string) => { defaultEventLimit: number } }) => unknown) =>
-    selector({ getProfileSettings: () => ({ defaultEventLimit: 50 }) }),
+  useSettingsStore: (selector: (state: { getProfileSettings: (id: string) => { defaultEventLimit: number; eventsViewMode: 'list'; eventMontageGridCols: number } }) => unknown) =>
+    selector({ getProfileSettings: () => ({ defaultEventLimit: 50, eventsViewMode: 'list', eventMontageGridCols: 3 }) }),
 }));
 
 const applyFilters = vi.fn();
@@ -109,6 +109,7 @@ vi.mock('react-i18next', () => ({
 vi.mock('react-router-dom', () => ({
   useNavigate: () => vi.fn(),
   useLocation: () => ({ state: {} }),
+  useSearchParams: () => [new URLSearchParams(), vi.fn()],
 }));
 
 describe('Events Page', () => {

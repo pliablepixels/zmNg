@@ -61,6 +61,15 @@ import { QuickDateRangeButtons } from '../components/ui/quick-date-range-buttons
 import { EmptyState } from '../components/ui/empty-state';
 import { log } from '../lib/logger';
 
+const GRID_GAP = 16;
+const MIN_CARD_WIDTH = 50;
+
+const getMaxColsForWidth = (width: number, minWidth: number, gap: number) => {
+  if (width <= 0) return 1;
+  const maxCols = Math.floor((width + gap) / (minWidth + gap));
+  return Math.max(1, maxCols);
+};
+
 export default function EventMontage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -83,6 +92,8 @@ export default function EventMontage() {
   const [gridCols, setGridCols] = useState<number>(settings.eventMontageGridCols);
   const [isCustomGridDialogOpen, setIsCustomGridDialogOpen] = useState(false);
   const [customCols, setCustomCols] = useState<string>(settings.eventMontageGridCols.toString());
+  const [isScreenTooSmall, setIsScreenTooSmall] = useState(false);
+  const screenTooSmallRef = useRef(false);
 
   // Pagination state
   const [eventLimit, setEventLimit] = useState(settings.defaultEventLimit || 300);
@@ -238,7 +249,18 @@ export default function EventMontage() {
   const handleApplyGridLayout = (cols: number) => {
     if (!currentProfile) return;
 
+    const width = containerRef.current?.clientWidth ?? window.innerWidth;
+    const maxCols = getMaxColsForWidth(width, MIN_CARD_WIDTH, GRID_GAP);
+    if (cols > maxCols) {
+      toast.error(t('eventMontage.screen_too_small'));
+      setIsScreenTooSmall(true);
+      screenTooSmallRef.current = true;
+      return;
+    }
+
     setGridCols(cols);
+    setIsScreenTooSmall(false);
+    screenTooSmallRef.current = false;
 
     // Save to settings
     updateSettings(currentProfile.id, {
@@ -260,23 +282,23 @@ export default function EventMontage() {
     setIsCustomGridDialogOpen(false);
   };
 
-  // Generate grid column classes based on gridCols
-  const gridColsClass = useMemo(() => {
-    const baseClass = 'grid gap-4';
-    const colMap: Record<number, string> = {
-      1: 'grid-cols-1',
-      2: 'grid-cols-1 md:grid-cols-2',
-      3: 'grid-cols-2 md:grid-cols-3',
-      4: 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
-      5: 'grid-cols-2 md:grid-cols-3 lg:grid-cols-5',
-      6: 'grid-cols-2 md:grid-cols-4 lg:grid-cols-6',
-      7: 'grid-cols-2 md:grid-cols-4 lg:grid-cols-7',
-      8: 'grid-cols-2 md:grid-cols-4 lg:grid-cols-8',
-      9: 'grid-cols-3 md:grid-cols-5 lg:grid-cols-9',
-      10: 'grid-cols-3 md:grid-cols-5 lg:grid-cols-10',
+  useEffect(() => {
+    const handleResize = () => {
+      const width = containerRef.current?.clientWidth ?? window.innerWidth;
+      const maxCols = getMaxColsForWidth(width, MIN_CARD_WIDTH, GRID_GAP);
+      const tooSmall = gridCols > maxCols;
+      setIsScreenTooSmall(tooSmall);
+      if (tooSmall && !screenTooSmallRef.current) {
+        toast.error(t('eventMontage.screen_too_small'));
+      }
+      screenTooSmallRef.current = tooSmall;
     };
-    return `${baseClass} ${colMap[gridCols] || colMap[5]}`;
-  }, [gridCols]);
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, [gridCols, t]);
 
   if (isLoading) {
     return (
@@ -360,6 +382,11 @@ export default function EventMontage() {
           </Button>
         </div>
       </div>
+      {isScreenTooSmall && (
+        <p className="text-xs text-destructive">
+          {t('eventMontage.screen_too_small')}
+        </p>
+      )}
 
       {/* Filters */}
       <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>
@@ -500,7 +527,10 @@ export default function EventMontage() {
         />
       ) : (
         <>
-          <div className={gridColsClass}>
+          <div
+            className="grid gap-4"
+            style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}
+          >
             {events.map((eventData) => {
               const event = eventData.Event;
               const monitorName = monitors.find((m) => m.Monitor.Id === event.MonitorId)?.Monitor.Name || `Monitor ${event.MonitorId}`;

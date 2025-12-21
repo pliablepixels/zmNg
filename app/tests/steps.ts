@@ -36,8 +36,11 @@ Given('I am logged into zmNg', async ({ page }) => {
     await expect(connectBtn).toBeEnabled();
     await connectBtn.click();
 
-    // Wait for successful navigation by checking for navigation elements
-    await page.waitForSelector('[data-testid^="nav-item-"]', { timeout: testConfig.timeouts.transition });
+  // Wait for successful navigation by checking for navigation elements or mobile menu button
+  await Promise.race([
+    page.waitForSelector('[data-testid^="nav-item-"]', { timeout: testConfig.timeouts.transition }),
+    page.waitForSelector('[data-testid="mobile-menu-button"]', { timeout: testConfig.timeouts.transition }),
+  ]);
     log.info('E2E login successful', { component: 'e2e', action: 'login' });
   } else {
     log.info('E2E session already authenticated', { component: 'e2e', action: 'login' });
@@ -53,7 +56,6 @@ When('I navigate to the {string} page', async ({ page }, pageName: string) => {
     'Monitors': 'monitors',
     'Montage': 'montage',
     'Events': 'events',
-    'Event Montage': 'event-montage',
     'Timeline': 'timeline',
     'Notifications': 'notifications',
     'Profiles': 'profiles',
@@ -67,9 +69,19 @@ When('I navigate to the {string} page', async ({ page }, pageName: string) => {
     throw new Error(`Unknown page: ${pageName}`);
   }
 
-  // Try to click the link by text, with more flexible matching
+  const navItemSelector = `[data-testid="nav-item-${route}"]`;
+  const mobileMenuButton = page.getByTestId('mobile-menu-button');
+  const navItem = page.locator(navItemSelector);
+
+  if (!(await navItem.isVisible())) {
+    if (await mobileMenuButton.isVisible()) {
+      await mobileMenuButton.click();
+      await page.waitForSelector(navItemSelector, { timeout: testConfig.timeouts.transition });
+    }
+  }
+
   try {
-    await page.getByRole('link', { name: new RegExp(pageName, 'i') }).click({ timeout: 2000 });
+    await page.locator(navItemSelector).click({ timeout: 2000 });
   } catch {
     // Fallback: click link by href path
     await page.locator(`a[href*="${route}"]`).first().click();
@@ -211,6 +223,16 @@ Then('I should see events list or empty state', async ({ page }) => {
   } else {
     hasEvents = false;
   }
+});
+
+When('I switch events view to montage', async ({ page }) => {
+  const montageToggle = page.getByTestId('events-view-montage');
+  await expect(montageToggle).toBeVisible();
+  await montageToggle.click();
+});
+
+Then('I should see the events montage grid', async ({ page }) => {
+  await expect(page.getByTestId('events-montage-grid')).toBeVisible();
 });
 
 When('I click into the first event if events exist', async ({ page }) => {

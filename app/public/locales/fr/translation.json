@@ -2,6 +2,8 @@
   "common": {
     "go_back": "Retour",
     "refresh": "Actualiser",
+    "view_list": "Vue liste",
+    "view_montage": "Vue montage",
     "close": "Fermer",
     "settings": "Paramètres",
     "server": "Server",
@@ -566,6 +568,7 @@
     "invalid_columns": "Nombre de colonnes invalide",
     "load_error": "Erreur de chargement des événements",
     "grid_layout": "Mise en page de la grille",
+    "screen_too_small": "La largeur de l'écran est trop petite pour autant de colonnes",
     "columns": "{{count}} Colonnes",
     "custom": "Personnalisé",
     "filters": "Filtres",

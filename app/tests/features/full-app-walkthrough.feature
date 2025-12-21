@@ -47,6 +47,8 @@ Feature: Full Application Walkthrough
     When I click into the first event if events exist
     And I navigate back if I clicked into an event
     Then I should be on the "Events" page
+    When I switch events view to montage
+    Then I should see the events montage grid
 
   Scenario: Events - Apply and clear filters
     When I navigate to the "Events" page
@@ -57,10 +59,6 @@ Feature: Full Application Walkthrough
     Then I should see events list or empty state
     When I clear event filters
     Then I should see events list or empty state
-
-  Scenario: Event Montage - View event grid
-    When I navigate to the "Event Montage" page
-    Then I should see the page heading "Event Montage"
 
   Scenario: Timeline - View and interact with timeline
     When I navigate to the "Timeline" page

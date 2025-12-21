@@ -2,6 +2,8 @@
   "common": {
     "go_back": "Zurück",
     "refresh": "Aktualisieren",
+    "view_list": "Listenansicht",
+    "view_montage": "Montageansicht",
     "close": "Schließen",
     "settings": "Einstellungen",
     "server": "Server",
@@ -566,6 +568,7 @@
     "invalid_columns": "Ungültige Anzahl von Spalten",
     "load_error": "Fehler beim Laden der Ereignisse",
     "grid_layout": "Rasterlayout",
+    "screen_too_small": "Bildschirmbreite ist für so viele Spalten zu klein",
     "columns": "{{count}} Spalten",
     "custom": "Benutzerdefiniert",
     "filters": "Filter",
