@@ -290,7 +290,12 @@
     "maximize": "最大化",
     "pip": "画中画",
     "pip_failed": "无法进入画中画模式",
-    "ptz_failed": "PTZ 控制失败"
+    "ptz_failed": "PTZ 控制失败",
+    "rotation_label": "旋转",
+    "rotation_none": "无",
+    "rotation_flip_horizontal": "水平翻转",
+    "rotation_flip_vertical": "垂直翻转",
+    "rotation_degrees": "{{degrees}} 度"
   },
   "montage": {
     "title": "蒙太奇",
@@ -318,7 +323,16 @@
     "screen_limit": "屏幕限制为 {{columns}} 列",
     "grid_applied": "网格设置为 {{columns}} 列",
     "cameras_count": "{{count}} 个摄像头",
-    "drag_hint": "拖放以重新排序"
+    "drag_hint": "拖放以重新排序",
+    "screen_too_small": "屏幕宽度太小，无法使用这么多列",
+    "feed_fit": "画面填充",
+    "fit_contain": "完整显示（包含）",
+    "fit_cover": "填满裁剪（覆盖）",
+    "fit_fill": "拉伸填满",
+    "fit_none": "不缩放",
+    "fit_scale_down": "仅缩小",
+    "edit_layout": "编辑布局",
+    "done_editing": "完成编辑"
   },
   "notification_history": {
     "title": "通知",

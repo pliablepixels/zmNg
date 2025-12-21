@@ -19,6 +19,7 @@ import { useMonitorStream } from '../../hooks/useMonitorStream';
 import type { MonitorCardProps } from '../../api/types';
 import { log } from '../../lib/logger';
 import { useTranslation } from 'react-i18next';
+import { getMonitorAspectRatio } from '../../lib/monitor-rotation';
 
 interface MonitorCardComponentProps extends MonitorCardProps {
   /** Callback to open the settings dialog for this monitor */
@@ -44,6 +45,7 @@ function MonitorCardComponent({
   const navigate = useNavigate();
   const { t } = useTranslation();
   const isRunning = status?.Status === 'Connected';
+  const aspectRatio = getMonitorAspectRatio(monitor.Width, monitor.Height, monitor.Orientation);
 
   // Use the custom hook to manage the monitor stream URL and connection state
   const {
@@ -106,125 +108,123 @@ function MonitorCardComponent({
 
   return (
     <Card className="group overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 bg-card ring-1 ring-border/50 hover:ring-primary/50" data-testid="monitor-card">
-      {/* Thumbnail Preview - Clickable */}
-      <div
-        className="relative aspect-video bg-black/90 cursor-pointer"
-        onClick={() => navigate(`/monitors/${monitor.Id}`, { state: { from: '/monitors' } })}
-      >
-        <img
-          ref={imgRef}
-          src={displayedImageUrl || streamUrl}
-          alt={monitor.Name}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          onError={handleImageError}
-          data-testid="monitor-player"
-        />
+      <div className="flex flex-col sm:flex-row gap-4 p-4">
+        {/* Thumbnail Preview - Clickable */}
+        <div
+          className="relative bg-black/90 cursor-pointer w-full sm:w-72 md:w-80"
+          style={{ aspectRatio: aspectRatio ?? '16 / 9' }}
+          onClick={() => navigate(`/monitors/${monitor.Id}`, { state: { from: '/monitors' } })}
+        >
+          <img
+            ref={imgRef}
+            src={displayedImageUrl || streamUrl}
+            alt={monitor.Name}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            onError={handleImageError}
+            data-testid="monitor-player"
+          />
 
-        {/* Status Badge */}
-        <div className="absolute top-2 left-2 z-10">
-          <Badge
-            variant={isRunning ? 'default' : 'destructive'}
-            className={cn(
-              'text-xs shadow-sm',
-              isRunning
-                ? 'bg-green-500/90 hover:bg-green-500'
-                : 'bg-red-500/90 hover:bg-red-500'
-            )}
-            data-testid="monitor-status"
-          >
-            {isRunning ? t('monitors.live') : t('monitors.offline')}
-          </Badge>
-        </div>
-
-        {/* Quick View Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-between p-4">
-          <span className="text-white text-sm font-medium">{t('monitors.click_to_view')}</span>
-          <Button
-            variant="secondary"
-            size="icon"
-            className="h-8 w-8 shrink-0"
-            onClick={handleDownloadSnapshot}
-            title={t('monitors.download_snapshot')}
-          >
-            <Download className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Monitor Info & Controls */}
-      <div className="p-4 space-y-3">
-        {/* Name & Resolution */}
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="font-semibold text-base truncate" data-testid="monitor-name">{monitor.Name}</div>
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 shrink-0">
-              ID: {monitor.Id}
+          {/* Status Badge */}
+          <div className="absolute top-2 left-2 z-10">
+            <Badge
+              variant={isRunning ? 'default' : 'destructive'}
+              className={cn(
+                'text-xs shadow-sm',
+                isRunning
+                  ? 'bg-green-500/90 hover:bg-green-500'
+                  : 'bg-red-500/90 hover:bg-red-500'
+              )}
+              data-testid="monitor-status"
+            >
+              {isRunning ? t('monitors.live') : t('monitors.offline')}
             </Badge>
           </div>
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <Activity className="h-3 w-3" />
-              {status?.CaptureFPS || '0'} FPS
-            </span>
-            <span>
-              {monitor.Width}x{monitor.Height}
-            </span>
-            <span>{monitor.Type}</span>
+
+          {/* Quick View Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-between p-4">
+            <span className="text-white text-sm font-medium">{t('monitors.click_to_view')}</span>
+            <Button
+              variant="secondary"
+              size="icon"
+              className="h-8 w-8 shrink-0"
+              onClick={handleDownloadSnapshot}
+              title={t('monitors.download_snapshot')}
+            >
+              <Download className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 
-        {/* Function Selector */}
-        <div className="flex items-center justify-between py-2 border-t">
-          <span className="text-sm font-medium text-muted-foreground">{t('monitors.function')}</span>
-          <Badge
-            variant={monitor.Function === 'None' ? 'outline' : 'secondary'}
-            className="font-mono text-xs"
-          >
-            {monitor.Function}
-          </Badge>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="flex items-center gap-2 pt-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1 text-xs h-8 relative"
-            onClick={() => navigate(`/events?monitorId=${monitor.Id}`, { state: { from: '/monitors' } })}
-            data-testid="monitor-events-button"
-          >
-            <Video className="h-3 w-3 mr-1" />
-            {t('sidebar.events')}
-            {eventCount !== undefined && eventCount > 0 && (
-              <Badge
-                variant="destructive"
-                className="ml-1 px-1 py-0 text-[10px] h-4 min-w-4"
-              >
-                {formatEventCount(eventCount)}
+        {/* Monitor Info & Controls */}
+        <div className="flex-1 flex flex-col gap-3 sm:gap-4">
+          {/* Name & Resolution */}
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <div className="font-semibold text-base truncate" data-testid="monitor-name">{monitor.Name}</div>
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 shrink-0">
+                ID: {monitor.Id}
               </Badge>
-            )}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1 text-xs h-8"
-            onClick={handleShowSettings}
-            data-testid="monitor-settings-button"
-          >
-            <Settings className="h-3 w-3 mr-1" />
-            {t('sidebar.settings')}
-          </Button>
-        </div>
-
-        {/* Additional Info */}
-        {monitor.Controllable === '1' && (
-          <div className="pt-2 border-t">
-            <div className="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400">
-              <Activity className="h-3 w-3" />
-              <span>{t('monitors.ptz_capable')}</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Activity className="h-3 w-3" />
+                {status?.CaptureFPS || '0'} FPS
+              </span>
+              <span>
+                {monitor.Width}x{monitor.Height}
+              </span>
+              <span>{monitor.Type}</span>
             </div>
           </div>
-        )}
+
+          <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+            <span className="text-sm font-medium text-muted-foreground">{t('monitors.function')}</span>
+            <Badge
+              variant={monitor.Function === 'None' ? 'outline' : 'secondary'}
+              className="font-mono text-xs"
+            >
+              {monitor.Function}
+            </Badge>
+            {monitor.Controllable === '1' && (
+              <div className="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400">
+                <Activity className="h-3 w-3" />
+                <span>{t('monitors.ptz_capable')}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Quick Actions */}
+          <div className="flex items-center gap-2 pt-1">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs h-8 relative"
+              onClick={() => navigate(`/events?monitorId=${monitor.Id}`, { state: { from: '/monitors' } })}
+              data-testid="monitor-events-button"
+            >
+              <Video className="h-3 w-3 mr-1" />
+              {t('sidebar.events')}
+              {eventCount !== undefined && eventCount > 0 && (
+                <Badge
+                  variant="destructive"
+                  className="ml-1 px-1 py-0 text-[10px] h-4 min-w-4"
+                >
+                  {formatEventCount(eventCount)}
+                </Badge>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs h-8"
+              onClick={handleShowSettings}
+              data-testid="monitor-settings-button"
+            >
+              <Settings className="h-3 w-3 mr-1" />
+              {t('sidebar.settings')}
+            </Button>
+          </div>
+        </div>
       </div>
     </Card>
   );

@@ -11,6 +11,7 @@
  */
 
 import { useState, useEffect, useRef, memo } from 'react';
+import type { CSSProperties } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
 import type { Monitor, MonitorStatus, Profile } from '../../api/types';
@@ -27,6 +28,7 @@ import { downloadSnapshotFromElement } from '../../lib/download';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { log } from '../../lib/logger';
+import { getMonitorAspectRatio } from '../../lib/monitor-rotation';
 
 interface MontageMonitorProps {
   monitor: Monitor;
@@ -35,6 +37,8 @@ interface MontageMonitorProps {
   accessToken: string | null;
   navigate: NavigateFunction;
   isFullscreen?: boolean;
+  isEditing?: boolean;
+  objectFit?: CSSProperties['objectFit'];
 }
 
 function MontageMonitorComponent({
@@ -43,7 +47,9 @@ function MontageMonitorComponent({
   currentProfile,
   accessToken,
   navigate,
-  isFullscreen = false
+  isFullscreen = false,
+  isEditing = false,
+  objectFit
 }: MontageMonitorProps) {
   const { t } = useTranslation();
   const isRunning = status?.Status === 'Connected';
@@ -55,6 +61,8 @@ function MontageMonitorComponent({
   const [cacheBuster, setCacheBuster] = useState(Date.now());
   const [displayedImageUrl, setDisplayedImageUrl] = useState<string>('');
   const imgRef = useRef<HTMLImageElement>(null);
+  const resolvedFit = objectFit ?? (isFullscreen ? 'cover' : 'contain');
+  const aspectRatio = getMonitorAspectRatio(monitor.Width, monitor.Height, monitor.Orientation);
 
   // Force regenerate connKey when component mounts
   useEffect(() => {
@@ -127,7 +135,12 @@ function MontageMonitorComponent({
     )}>
       {/* Header / Drag Handle - Hidden in fullscreen */}
       {!isFullscreen && (
-        <div className="drag-handle h-8 bg-card border-b flex items-center justify-between px-2 cursor-move hover:bg-accent/50 transition-colors shrink-0 select-none">
+        <div
+          className={cn(
+            "h-8 bg-card border-b flex items-center justify-between px-2 transition-colors shrink-0 select-none",
+            isEditing ? "drag-handle cursor-move hover:bg-accent/50" : "cursor-default"
+          )}
+        >
           <div className="flex items-center gap-2 overflow-hidden">
             <Badge
               variant={isRunning ? "default" : "destructive"}
@@ -151,16 +164,15 @@ function MontageMonitorComponent({
           isFullscreen ? "bg-black" : "bg-black/90",
           !isFullscreen && "cursor-pointer"
         )}
-        onClick={() => !isFullscreen && navigate(`/monitors/${monitor.Id}`)}
+        style={!isFullscreen && aspectRatio ? { aspectRatio } : undefined}
+        onClick={() => !isFullscreen && !isEditing && navigate(`/monitors/${monitor.Id}`)}
       >
         <img
           ref={imgRef}
           src={displayedImageUrl || streamUrl}
           alt={monitor.Name}
-          className={cn(
-            "w-full h-full",
-            isFullscreen ? "object-cover" : "object-contain"
-          )}
+          className="w-full h-full"
+          style={{ objectFit: resolvedFit }}
           onError={(e) => {
             const img = e.target as HTMLImageElement;
             // Only retry if we haven't retried too recently (basic debounce)

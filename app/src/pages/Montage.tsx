@@ -11,7 +11,7 @@ import { getMonitors } from '../api/monitors';
 import { useProfileStore } from '../stores/profile';
 import { useAuthStore } from '../stores/auth';
 import { useSettingsStore } from '../stores/settings';
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { MontageMonitor } from '../components/monitors/MontageMonitor';
@@ -32,45 +32,30 @@ import {
 } from '../components/ui/dialog';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { RefreshCw, Video, AlertCircle, LayoutDashboard, Grid2x2, Grid3x3, GripVertical, Maximize, Minimize, X, LayoutGrid } from 'lucide-react';
+import { RefreshCw, Video, AlertCircle, LayoutDashboard, Grid2x2, Grid3x3, GripVertical, Maximize, Minimize, X, LayoutGrid, Pencil } from 'lucide-react';
 import { filterEnabledMonitors } from '../lib/filters';
 import { cn } from '../lib/utils';
-import { ZM_CONSTANTS } from '../lib/constants';
-import { Responsive, WidthProvider } from 'react-grid-layout';
-import type { Layout, Layouts } from 'react-grid-layout';
-import 'react-grid-layout/css/styles.css';
-import 'react-resizable/css/styles.css';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { usePinchZoom } from '../hooks/usePinchZoom';
-import { log } from '../lib/logger';
-
-const ResponsiveGridLayout = WidthProvider(Responsive);
-
-// Storage key for layout persistence
-// Storage key for layout persistence
-const STORAGE_KEY = 'zm-montage-layout-v2';
+import GridLayout, { WidthProvider } from 'react-grid-layout';
+import type { Layout } from 'react-grid-layout';
+import 'react-grid-layout/css/styles.css';
+import 'react-resizable/css/styles.css';
+import type { Monitor } from '../api/types';
+import { getMonitorAspectRatio } from '../lib/monitor-rotation';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 
 // Default column configuration
-const BREAKPOINTS = { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 };
-const GRID_CAPACITY = 60; // Highly divisible number (2,3,4,5,6,10,12,15,20,30) for flexible layouts
+const GRID_ROW_HEIGHT = 10;
+const GRID_MARGIN = 16;
+const MIN_CARD_WIDTH = 50;
+const WrappedGridLayout = WidthProvider(GridLayout);
 
-// Grid columns configuration
-const COLS = {
-  lg: GRID_CAPACITY,
-  md: GRID_CAPACITY,
-  sm: 12,
-  xs: 12,
-  xxs: 12
-};
-
-// Helper to determine effective columns based on width
-const getEffectiveCols = (width: number, requestedCols: number) => {
-  if (width >= BREAKPOINTS.lg) return requestedCols;
-  if (width >= BREAKPOINTS.md) return Math.min(requestedCols, 6);
-  if (width >= BREAKPOINTS.sm) return 2;
-  // Allow 2 columns minimum on mobile (changed from 1)
-  return Math.min(requestedCols, 2);
+const getMaxColsForWidth = (width: number, minWidth: number, margin: number) => {
+  if (width <= 0) return 1;
+  const maxCols = Math.floor((width + margin) / (minWidth + margin));
+  return Math.max(1, maxCols);
 };
 
 export default function Montage() {
@@ -87,16 +72,16 @@ export default function Montage() {
     useShallow((state) => state.getProfileSettings(currentProfile?.id || ''))
   );
   const updateSettings = useSettingsStore((state) => state.updateProfileSettings);
-
-  // State for layouts
-  const [layouts, setLayouts] = useState<Layouts>({});
-  const [isLayoutLoaded, setIsLayoutLoaded] = useState(false);
+  const saveMontageLayout = useSettingsStore((state) => state.saveMontageLayout);
 
   // Grid layout configuration state - load from settings
-  const [gridRows, setGridRows] = useState<number>(settings.montageGridRows);
   const [gridCols, setGridCols] = useState<number>(settings.montageGridCols);
   const [isCustomGridDialogOpen, setIsCustomGridDialogOpen] = useState(false);
   const [customCols, setCustomCols] = useState<string>(settings.montageGridCols.toString());
+  const [isScreenTooSmall, setIsScreenTooSmall] = useState(false);
+  const screenTooSmallRef = useRef(false);
+  const [layout, setLayout] = useState<Layout[]>([]);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   // Track container width for toast notifications
   const currentWidthRef = useRef(window.innerWidth);
@@ -125,11 +110,14 @@ export default function Montage() {
 
   // Update grid state when profile changes
   useEffect(() => {
-    setGridRows(settings.montageGridRows);
     setGridCols(settings.montageGridCols);
     setCustomCols(settings.montageGridCols.toString());
     setIsFullscreen(settings.montageIsFullscreen);
-  }, [currentProfile?.id, settings.montageGridRows, settings.montageGridCols, settings.montageIsFullscreen]);
+    const maxCols = getMaxColsForWidth(window.innerWidth, MIN_CARD_WIDTH, GRID_MARGIN);
+    const tooSmall = settings.montageGridCols > maxCols;
+    setIsScreenTooSmall(tooSmall);
+    screenTooSmallRef.current = tooSmall;
+  }, [currentProfile?.id, settings.montageGridCols, settings.montageIsFullscreen]);
 
   useEffect(() => {
     // Clean up interval if it exists (removed auto-refresh)
@@ -141,141 +129,53 @@ export default function Montage() {
     data?.monitors ? filterEnabledMonitors(data.monitors) : [],
     [data]
   );
-
-  // Generate default layout for a list of monitors
-  const generateDefaultLayout = useCallback((monitorList: typeof monitors, cols = gridCols) => {
-    // Determine items per row for each breakpoint
-    const itemsPerRow = {
-      lg: cols,
-      md: Math.min(cols, 6), // Cap md at 6 to avoid tiny streams
-      sm: Math.min(cols, 2), // Respect user selection, max 2 on small screens
-      xs: Math.min(cols, 2), // Respect user selection, max 2 on mobile
-      xxs: Math.min(cols, 2) // Respect user selection, max 2 on smallest screens
-    };
-
-    const newLayouts: Layouts = {};
-
-    Object.keys(COLS).forEach((bp) => {
-      const breakpoint = bp as keyof typeof COLS;
-      const totalCols = COLS[breakpoint];
-      const perRow = itemsPerRow[breakpoint];
-
-      // Calculate width: totalCols / perRow
-      // For 60 cols: 3 items -> w=20. 5 items -> w=12.
-      // For 12 cols: 2 items -> w=6.
-      const width = Math.floor(totalCols / perRow);
-
-      newLayouts[breakpoint] = monitorList.map(({ Monitor }, index) => ({
-        i: Monitor.Id,
-        x: (index % perRow) * width,
-        y: Math.floor(index / perRow) * 2,
-        w: width,
-        h: 2,
-        // Min width should be reasonable. 
-        // For 60 cols, maybe 1/6th (10) or 1/12th (5). Let's say 5 (small but visible).
-        // For 12 cols, maybe 2.
-        minW: totalCols === GRID_CAPACITY ? 5 : 2,
-        minH: 2,
-      }));
-    });
-
-    return newLayouts;
-  }, [gridCols]);
-
-  // Load layout from storage or initialize (only on mount or when monitors change)
-  useEffect(() => {
-    if (monitors.length === 0) return;
-
-    try {
-      const savedLayoutsStr = localStorage.getItem(STORAGE_KEY);
-
-      if (savedLayoutsStr) {
-        const savedLayouts = JSON.parse(savedLayoutsStr) as Layouts;
-
-        // Verify if saved layout matches current monitors
-        // If we have new monitors not in the layout, we need to add them
-        // If we have monitors in layout that don't exist, we should clean them up (optional, grid-layout handles missing items gracefully usually)
-
-        // Check if all current monitors are present in the 'lg' layout (as a reference)
-        const savedIds = new Set(savedLayouts.lg?.map(l => l.i) || []);
-        const missingIds = monitors.filter(m => !savedIds.has(m.Monitor.Id));
-
-        if (missingIds.length > 0) {
-          log.info('Found new monitors, adding to layout', { component: 'Montage', monitors: missingIds.map(m => m.Monitor.Name) });
-
-          // Generate layout for JUST the new items using current gridCols
-          const defaultForNew = generateDefaultLayout(missingIds, gridCols);
-
-          // Append new items to the bottom of existing layouts
-          const mergedLayouts: Layouts = { ...savedLayouts };
-
-          Object.keys(COLS).forEach((bp) => {
-            const breakpoint = bp as keyof typeof COLS;
-            const existing = savedLayouts[breakpoint] || [];
-            // Find lowest point in current layout
-            const maxY = existing.reduce((max, item) => Math.max(max, item.y + item.h), 0);
-
-            const newItems = (defaultForNew[breakpoint] || []).map(item => ({
-              ...item,
-              y: item.y + maxY // Offset Y to place below existing
-            }));
-
-            mergedLayouts[breakpoint] = [...existing, ...newItems];
-          });
-
-          // eslint-disable-next-line react-hooks/set-state-in-effect
-          setLayouts(mergedLayouts);
-        } else {
-          setLayouts(savedLayouts);
-        }
-      } else {
-        // No saved layout, generate default
-        log.info('No saved layout, generating default', { component: 'Montage' });
-        setLayouts(generateDefaultLayout(monitors, gridCols));
-      }
-    } catch (e) {
-      log.error('Error loading layout', { component: 'Montage' }, e);
-      setLayouts(generateDefaultLayout(monitors, gridCols));
-    }
-
-    setIsLayoutLoaded(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  const monitorMap = useMemo(() => {
+    return new Map(monitors.map((item) => [item.Monitor.Id, item.Monitor]));
   }, [monitors]);
 
-  // Save layout changes
-  const handleLayoutChange = useCallback((_currentLayout: Layout[], allLayouts: Layouts) => {
-    if (!isLayoutLoaded) return;
+  const areLayoutsEqual = (a: Layout[], b: Layout[]) => {
+    if (a.length !== b.length) return false;
+    const map = new Map(a.map((item) => [item.i, item]));
+    for (const item of b) {
+      const match = map.get(item.i);
+      if (!match) return false;
+      if (match.x !== item.x || match.y !== item.y || match.w !== item.w || match.h !== item.h) {
+        return false;
+      }
+    }
+    return true;
+  };
 
-    setLayouts(allLayouts);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(allLayouts));
-  }, [isLayoutLoaded]);
-
-  const handleApplyGridLayout = (rows: number, cols: number) => {
+  const handleApplyGridLayout = (cols: number) => {
     if (!currentProfile) return;
 
-    setGridRows(rows);
+    const margin = isFullscreen ? 0 : GRID_MARGIN;
+    const maxCols = getMaxColsForWidth(currentWidthRef.current, MIN_CARD_WIDTH, margin);
+    if (cols > maxCols) {
+      toast.error(t('montage.screen_too_small'));
+      setIsScreenTooSmall(true);
+      screenTooSmallRef.current = true;
+      return;
+    }
+
     setGridCols(cols);
+    setIsScreenTooSmall(false);
+    screenTooSmallRef.current = false;
 
     // Save to settings
     updateSettings(currentProfile.id, {
-      montageGridRows: rows,
+      montageGridRows: cols,
       montageGridCols: cols,
     });
 
-    // Generate new layout with the specified columns
-    const newLayout = generateDefaultLayout(monitors, cols);
-    setLayouts(newLayout);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newLayout));
+    const nextLayout = buildDefaultLayout(monitors, cols, currentWidthRef.current);
+    setLayout(nextLayout);
+    if (currentProfile) {
+      saveMontageLayout(currentProfile.id, { ...settings.montageLayouts, lg: nextLayout });
+    }
 
     // Check if actual columns match requested columns
-    const effectiveCols = getEffectiveCols(currentWidthRef.current, cols);
-    if (effectiveCols !== cols) {
-      toast.info(t('montage.grid_set', { columns: cols }), {
-        description: t('montage.screen_limit', { columns: effectiveCols })
-      });
-    } else {
-      toast.success(t('montage.grid_applied', { columns: cols }));
-    }
+    toast.success(t('montage.grid_applied', { columns: cols }));
   };
 
   const handleCustomGridSubmit = () => {
@@ -286,7 +186,7 @@ export default function Montage() {
       return;
     }
 
-    handleApplyGridLayout(cols, cols);
+    handleApplyGridLayout(cols);
     setIsCustomGridDialogOpen(false);
   };
 
@@ -303,7 +203,152 @@ export default function Montage() {
     }
   };
 
-  if (isLoading && !isLayoutLoaded) {
+  const handleFeedFitChange = (value: string) => {
+    if (!currentProfile) return;
+    updateSettings(currentProfile.id, {
+      montageFeedFit: value as typeof settings.montageFeedFit,
+    });
+  };
+
+  const parseAspectRatioValue = (monitor: Monitor): number => {
+    const ratio = getMonitorAspectRatio(monitor.Width, monitor.Height, monitor.Orientation);
+
+    if (!ratio) {
+      return 9 / 16;
+    }
+
+    const match = ratio.match(/(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)/);
+    if (!match) {
+      return 9 / 16;
+    }
+
+    const width = Number(match[1]);
+    const height = Number(match[2]);
+
+    if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+      return 9 / 16;
+    }
+
+    return height / width;
+  };
+
+  const calculateHeightUnits = (
+    monitorId: string,
+    widthUnits: number,
+    gridWidth: number,
+    cols: number,
+    margin: number
+  ) => {
+    const monitor = monitorMap.get(monitorId);
+    if (!monitor) {
+      return 6;
+    }
+
+    const aspectRatio = parseAspectRatioValue(monitor);
+    const columnWidth = (gridWidth - margin * (cols - 1)) / cols;
+    const itemWidth = columnWidth * widthUnits + margin * (widthUnits - 1);
+    const heightPx = itemWidth * aspectRatio;
+    const unit = (heightPx + margin) / (GRID_ROW_HEIGHT + margin);
+
+    return Math.max(2, Math.round(unit));
+  };
+
+  const buildDefaultLayout = (monitorList: typeof monitors, cols: number, gridWidth: number) => {
+    return monitorList.map(({ Monitor }, index) => {
+      const widthUnits = 1;
+      const heightUnits = calculateHeightUnits(Monitor.Id, widthUnits, gridWidth, cols, GRID_MARGIN);
+      return {
+        i: Monitor.Id,
+        x: index % cols,
+        y: Math.floor(index / cols) * heightUnits,
+        w: widthUnits,
+        h: heightUnits,
+        minW: 1,
+        minH: 2,
+      };
+    });
+  };
+
+  const normalizeLayout = (current: Layout[], cols: number, gridWidth: number, margin: number) => {
+    return current.map((item) => ({
+      ...item,
+      x: item.x % cols,
+      h: calculateHeightUnits(item.i, item.w, gridWidth, cols, margin),
+    }));
+  };
+
+  useEffect(() => {
+    if (monitors.length === 0) return;
+
+    let nextLayout: Layout[] = [];
+    const stored = settings.montageLayouts?.lg;
+
+    if (stored && stored.length > 0) {
+      const existingIds = new Set(monitors.map((item) => item.Monitor.Id));
+      const filtered = stored.filter((item) => existingIds.has(item.i));
+      const presentIds = new Set(filtered.map((item) => item.i));
+      const missing = monitors.filter((item) => !presentIds.has(item.Monitor.Id));
+      const defaults = buildDefaultLayout(missing, gridCols, currentWidthRef.current);
+      nextLayout = [...filtered, ...defaults];
+    } else {
+      nextLayout = buildDefaultLayout(monitors, gridCols, currentWidthRef.current);
+    }
+
+    const normalized = normalizeLayout(nextLayout, gridCols, currentWidthRef.current, GRID_MARGIN);
+    setLayout((prev) => (areLayoutsEqual(prev, normalized) ? prev : normalized));
+  }, [monitors, gridCols, monitorMap, settings.montageLayouts]);
+
+  const handleWidthChange = (width: number) => {
+    currentWidthRef.current = width;
+    const maxCols = getMaxColsForWidth(width, MIN_CARD_WIDTH, isFullscreen ? 0 : GRID_MARGIN);
+    const tooSmall = gridCols > maxCols;
+    setIsScreenTooSmall(tooSmall);
+    if (tooSmall && !screenTooSmallRef.current) {
+      toast.error(t('montage.screen_too_small'));
+    }
+    screenTooSmallRef.current = tooSmall;
+    setLayout((prev) => normalizeLayout(prev, gridCols, width, isFullscreen ? 0 : GRID_MARGIN));
+  };
+
+  useEffect(() => {
+    const handleResize = () => {
+      handleWidthChange(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, [gridCols, isFullscreen]);
+
+  const handleLayoutChange = (nextLayout: Layout[]) => {
+    setLayout((prev) => (areLayoutsEqual(prev, nextLayout) ? prev : nextLayout));
+    if (isEditMode && currentProfile) {
+      saveMontageLayout(currentProfile.id, { ...settings.montageLayouts, lg: nextLayout });
+    }
+  };
+
+  const handleResizeStop = (_layout: Layout[], _oldItem: Layout, newItem: Layout) => {
+    const adjustedHeight = calculateHeightUnits(
+      newItem.i,
+      newItem.w,
+      currentWidthRef.current,
+      gridCols,
+      isFullscreen ? 0 : GRID_MARGIN
+    );
+
+    setLayout((prev) => {
+      const nextLayout = prev.map((item) =>
+        item.i === newItem.i ? { ...item, h: adjustedHeight, w: newItem.w } : item
+      );
+      if (isEditMode && currentProfile) {
+        saveMontageLayout(currentProfile.id, { ...settings.montageLayouts, lg: nextLayout });
+      }
+      return areLayoutsEqual(prev, nextLayout) ? prev : nextLayout;
+    });
+  };
+
+  if (isLoading) {
     return (
       <div className="p-8 space-y-6">
         <div className="h-8 w-48 bg-muted rounded animate-pulse" />
@@ -352,70 +397,115 @@ export default function Montage() {
     <div className="min-h-[100dvh] flex flex-col bg-background relative">
       {/* Header - Hidden in fullscreen mode */}
       {!isFullscreen && (
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-2 sm:p-3 border-b bg-card/50 backdrop-blur-sm shrink-0 z-10">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div>
-              <h1 className="text-base sm:text-xl md:text-2xl font-bold tracking-tight flex items-center gap-2">
-                <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5" />
-                {t('montage.title')}
-              </h1>
-              <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">
-                {t('montage.cameras_count', { count: monitors.length })}<span className="hidden md:inline"> • {t('montage.drag_hint')}</span>
-              </p>
+        <>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-2 sm:p-3 border-b bg-card/50 backdrop-blur-sm shrink-0 z-10">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div>
+                <h1 className="text-base sm:text-xl md:text-2xl font-bold tracking-tight flex items-center gap-2">
+                  <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5" />
+                  {t('montage.title')}
+                </h1>
+                <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">
+                  {t('montage.cameras_count', { count: monitors.length })}<span className="hidden md:inline"> • {t('montage.drag_hint')}</span>
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" title={t('montage.layout')} className="h-8 sm:h-9">
+                    <LayoutDashboard className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">{gridCols} {t('montage.columns_label')}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handleApplyGridLayout(1)}>
+                    <LayoutGrid className="h-4 w-4 mr-2" />
+                    {t('montage.1col')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleApplyGridLayout(2)}>
+                    <Grid2x2 className="h-4 w-4 mr-2" />
+                    {t('montage.2col')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleApplyGridLayout(3)}>
+                    <Grid3x3 className="h-4 w-4 mr-2" />
+                    {t('montage.3col')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleApplyGridLayout(4)}>
+                    <LayoutGrid className="h-4 w-4 mr-2" />
+                    {t('montage.4col')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleApplyGridLayout(5)}>
+                    <LayoutGrid className="h-4 w-4 mr-2" />
+                    {t('montage.5col')}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setIsCustomGridDialogOpen(true)}>
+                    <GripVertical className="h-4 w-4 mr-2" />
+                    {t('montage.custom')}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground hidden md:inline">{t('montage.feed_fit')}</span>
+                <Select value={settings.montageFeedFit} onValueChange={handleFeedFitChange}>
+                  <SelectTrigger className="h-8 sm:h-9 w-[170px]" data-testid="montage-fit-select">
+                    <SelectValue placeholder={t('montage.feed_fit')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="contain" data-testid="montage-fit-contain">
+                      {t('montage.fit_contain')}
+                    </SelectItem>
+                    <SelectItem value="cover" data-testid="montage-fit-cover">
+                      {t('montage.fit_cover')}
+                    </SelectItem>
+                    <SelectItem value="fill" data-testid="montage-fit-fill">
+                      {t('montage.fit_fill')}
+                    </SelectItem>
+                    <SelectItem value="none" data-testid="montage-fit-none">
+                      {t('montage.fit_none')}
+                    </SelectItem>
+                    <SelectItem value="scale-down" data-testid="montage-fit-scale-down">
+                      {t('montage.fit_scale_down')}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button onClick={() => refetch()} variant="outline" size="sm" className="h-8 sm:h-9">
+                <RefreshCw className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">{t('common.refresh')}</span>
+              </Button>
+              <Button
+                onClick={() => setIsEditMode((prev) => !prev)}
+                variant={isEditMode ? "default" : "outline"}
+                size="sm"
+                className="h-8 sm:h-9"
+                title={isEditMode ? t('montage.done_editing') : t('montage.edit_layout')}
+                data-testid="montage-edit-toggle"
+              >
+                <Pencil className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">
+                  {isEditMode ? t('montage.done_editing') : t('montage.edit_layout')}
+                </span>
+              </Button>
+              <Button
+                onClick={() => handleToggleFullscreen(true)}
+                variant="default"
+                size="sm"
+                className="h-8 sm:h-9"
+                title={t('montage.fullscreen')}
+              >
+                <Maximize className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">{t('montage.fullscreen')}</span>
+              </Button>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" title={t('montage.layout')} className="h-8 sm:h-9">
-                  <LayoutDashboard className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">{gridCols} {t('montage.columns_label')}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleApplyGridLayout(1, 1)}>
-                  <LayoutGrid className="h-4 w-4 mr-2" />
-                  {t('montage.1col')}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleApplyGridLayout(2, 2)}>
-                  <Grid2x2 className="h-4 w-4 mr-2" />
-                  {t('montage.2col')}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleApplyGridLayout(3, 3)}>
-                  <Grid3x3 className="h-4 w-4 mr-2" />
-                  {t('montage.3col')}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleApplyGridLayout(4, 4)}>
-                  <LayoutGrid className="h-4 w-4 mr-2" />
-                  {t('montage.4col')}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleApplyGridLayout(5, 5)}>
-                  <LayoutGrid className="h-4 w-4 mr-2" />
-                  {t('montage.5col')}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setIsCustomGridDialogOpen(true)}>
-                  <GripVertical className="h-4 w-4 mr-2" />
-                  {t('montage.custom')}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Button onClick={() => refetch()} variant="outline" size="sm" className="h-8 sm:h-9">
-              <RefreshCw className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">{t('common.refresh')}</span>
-            </Button>
-            <Button
-              onClick={() => handleToggleFullscreen(true)}
-              variant="default"
-              size="sm"
-              className="h-8 sm:h-9"
-              title={t('montage.fullscreen')}
-            >
-              <Maximize className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">{t('montage.fullscreen')}</span>
-            </Button>
-          </div>
-        </div>
+          {isScreenTooSmall && (
+            <p className="text-xs text-destructive px-2 sm:px-3 pb-2">
+              {t('montage.screen_too_small')}
+            </p>
+          )}
+        </>
       )}
 
       {/* Fullscreen Overlay Menu */}
@@ -429,6 +519,19 @@ export default function Montage() {
             <div className="flex items-center gap-1 sm:gap-2">
               <Button onClick={() => refetch()} variant="ghost" size="sm" className="text-white hover:bg-white/10 h-8 sm:h-9">
                 <RefreshCw className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={() => setIsEditMode((prev) => !prev)}
+                variant={isEditMode ? "default" : "ghost"}
+                size="sm"
+                className="text-white hover:bg-white/10 h-8 sm:h-9"
+                title={isEditMode ? t('montage.done_editing') : t('montage.edit_layout')}
+                data-testid="montage-edit-toggle"
+              >
+                <Pencil className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">
+                  {isEditMode ? t('montage.done_editing') : t('montage.edit_layout')}
+                </span>
               </Button>
               <Button
                 onClick={() => handleToggleFullscreen(false)}
@@ -468,49 +571,45 @@ export default function Montage() {
           }
         }}
       >
-        {isLayoutLoaded && (
-          <div
-            style={{
-              transform: `scale(${pinchZoom.scale})`,
-              transformOrigin: 'top left',
-              transition: pinchZoom.isPinching ? 'none' : 'transform 0.2s ease-out',
-            }}
-          >
-            <ResponsiveGridLayout
-            key={`${gridRows}-${gridCols}`}
-            className="layout"
-            layouts={layouts}
-            breakpoints={BREAKPOINTS}
-            cols={COLS}
-            rowHeight={ZM_CONSTANTS.gridRowHeight}
-            onLayoutChange={handleLayoutChange}
-            onWidthChange={(width) => {
-              currentWidthRef.current = width;
-            }}
-            draggableHandle=".drag-handle"
-            resizeHandles={['se']}
-            compactType="vertical"
-            preventCollision={false}
-            margin={isFullscreen ? [0, 0] : [ZM_CONSTANTS.gridMargin, ZM_CONSTANTS.gridMargin]}
-            containerPadding={[0, 0]}
-            isDraggable={!isFullscreen}
-            isResizable={!isFullscreen}
-          >
-            {monitors.map(({ Monitor, Monitor_Status }) => (
-              <div key={Monitor.Id} className="relative group">
-                <MontageMonitor
-                  monitor={Monitor}
-                  status={Monitor_Status}
-                  currentProfile={currentProfile}
-                  accessToken={accessToken}
-                  navigate={navigate}
-                  isFullscreen={isFullscreen}
-                />
-              </div>
-            ))}
-          </ResponsiveGridLayout>
+        <div
+          style={{
+            transform: `scale(${pinchZoom.scale})`,
+            transformOrigin: 'top left',
+            transition: pinchZoom.isPinching ? 'none' : 'transform 0.2s ease-out',
+          }}
+        >
+          <div className="w-full" data-testid="montage-grid">
+            <WrappedGridLayout
+              layout={layout}
+              cols={gridCols}
+              rowHeight={GRID_ROW_HEIGHT}
+              margin={[isFullscreen ? 0 : GRID_MARGIN, isFullscreen ? 0 : GRID_MARGIN]}
+              containerPadding={[0, 0]}
+              compactType="vertical"
+              preventCollision={false}
+              isResizable={isEditMode}
+              isDraggable={isEditMode}
+              draggableHandle=".drag-handle"
+              onLayoutChange={handleLayoutChange}
+              onResizeStop={handleResizeStop}
+            >
+              {monitors.map(({ Monitor, Monitor_Status }) => (
+                <div key={Monitor.Id} className="relative group">
+                  <MontageMonitor
+                    monitor={Monitor}
+                    status={Monitor_Status}
+                    currentProfile={currentProfile}
+                    accessToken={accessToken}
+                    navigate={navigate}
+                    isFullscreen={isFullscreen}
+                    isEditing={isEditMode}
+                    objectFit={settings.montageFeedFit}
+                  />
+                </div>
+              ))}
+            </WrappedGridLayout>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Custom Grid Dialog */}

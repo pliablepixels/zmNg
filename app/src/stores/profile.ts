@@ -653,7 +653,7 @@ export const useProfileStore = create<ProfileState>()(
               try {
                 const decryptedPassword = await withTimeout(
                   'Password decrypt',
-                  getState().getDecryptedPassword(state.currentProfileId)
+                  getState().getDecryptedPassword(profile.id)
                 );
                 if (!decryptedPassword) {
                   throw new Error('Failed to decrypt password');

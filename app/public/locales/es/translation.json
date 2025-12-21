@@ -290,7 +290,12 @@
     "maximize": "Maximizar",
     "pip": "Imagen en Imagen",
     "pip_failed": "Error al entrar en Imagen en Imagen",
-    "ptz_failed": "Fallo en control PTZ"
+    "ptz_failed": "Fallo en control PTZ",
+    "rotation_label": "Rotación",
+    "rotation_none": "Ninguna",
+    "rotation_flip_horizontal": "Voltear horizontal",
+    "rotation_flip_vertical": "Voltear vertical",
+    "rotation_degrees": "{{degrees}} grados"
   },
   "montage": {
     "title": "Montaje",
@@ -318,7 +323,16 @@
     "screen_limit": "Pantalla limitada a {{columns}} columnas",
     "grid_applied": "Cuadrícula establecida en {{columns}} columnas",
     "cameras_count": "{{count}} Cámaras",
-    "drag_hint": "Arrastra y suelta para reordenar monitores"
+    "drag_hint": "Arrastra y suelta para reordenar monitores",
+    "screen_too_small": "El ancho de la pantalla es demasiado pequeño para tantas columnas",
+    "feed_fit": "Ajuste de imagen",
+    "fit_contain": "Ajustar (mostrar todo)",
+    "fit_cover": "Cubrir (llenar y recortar)",
+    "fit_fill": "Rellenar (estirar)",
+    "fit_none": "Ninguno (sin escalar)",
+    "fit_scale_down": "Reducir (solo encoger)",
+    "edit_layout": "Editar diseño",
+    "done_editing": "Finalizar edición"
   },
   "notification_history": {
     "title": "Notificaciones",

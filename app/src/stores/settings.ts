@@ -4,6 +4,7 @@ import type { Layouts } from 'react-grid-layout';
 
 export type ViewMode = 'snapshot' | 'streaming';
 export type DisplayMode = 'normal' | 'compact';
+export type MonitorFeedFit = 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
 
 export interface ProfileSettings {
   viewMode: ViewMode;
@@ -19,6 +20,7 @@ export interface ProfileSettings {
   montageGridCols: number; // Grid columns for Montage page
   eventMontageGridCols: number; // Grid columns for EventMontage page
   montageIsFullscreen: boolean; // Fullscreen state for Montage page
+  montageFeedFit: MonitorFeedFit; // Object-fit for montage feeds
   eventMontageFilters: {
     monitorIds: string[];
     cause: string;
@@ -69,6 +71,7 @@ const DEFAULT_SETTINGS: ProfileSettings = {
   montageGridCols: 4,
   eventMontageGridCols: 5,
   montageIsFullscreen: false,
+  montageFeedFit: 'contain',
   eventMontageFilters: {
     monitorIds: [],
     cause: 'all',

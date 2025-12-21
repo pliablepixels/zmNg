@@ -290,7 +290,12 @@
     "maximize": "Maximieren",
     "pip": "Bild-in-Bild",
     "pip_failed": "Bild-in-Bild konnte nicht gestartet werden",
-    "ptz_failed": "PTZ-Steuerung fehlgeschlagen"
+    "ptz_failed": "PTZ-Steuerung fehlgeschlagen",
+    "rotation_label": "Drehung",
+    "rotation_none": "Keine",
+    "rotation_flip_horizontal": "Horizontal spiegeln",
+    "rotation_flip_vertical": "Vertikal spiegeln",
+    "rotation_degrees": "{{degrees}} Grad"
   },
   "montage": {
     "title": "Montage",
@@ -318,7 +323,16 @@
     "screen_limit": "Bildschirm auf {{columns}} Spalten begrenzt",
     "grid_applied": "Raster auf {{columns}} Spalten eingestellt",
     "cameras_count": "{{count}} Kameras",
-    "drag_hint": "Ziehen und ablegen zum Neuordnen"
+    "drag_hint": "Ziehen und ablegen zum Neuordnen",
+    "screen_too_small": "Bildschirmbreite ist für so viele Spalten zu klein",
+    "feed_fit": "Bildanpassung",
+    "fit_contain": "Anpassen (alles anzeigen)",
+    "fit_cover": "Abdecken (füllen & zuschneiden)",
+    "fit_fill": "Füllen (strecken)",
+    "fit_none": "Keine (nicht skalieren)",
+    "fit_scale_down": "Verkleinern (nur schrumpfen)",
+    "edit_layout": "Layout bearbeiten",
+    "done_editing": "Bearbeiten beenden"
   },
   "notification_history": {
     "title": "Benachrichtigungen",

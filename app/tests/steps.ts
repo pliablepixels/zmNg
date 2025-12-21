@@ -168,6 +168,12 @@ Then('I should see the monitor player', async ({ page }) => {
   await expect(page.getByTestId('monitor-player').first()).toBeVisible({ timeout: 10000 });
 });
 
+Then('I should see the monitor rotation status', async ({ page }) => {
+  const rotationStatus = page.getByTestId('monitor-rotation');
+  await expect(rotationStatus).toBeVisible();
+  await expect(rotationStatus).not.toBeEmpty();
+});
+
 Then('I should see the monitor grid', async ({ page }) => {
   await expect(page.getByTestId('monitor-grid')).toBeVisible();
 });

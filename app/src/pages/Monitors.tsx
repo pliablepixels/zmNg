@@ -87,9 +87,9 @@ export default function Monitors() {
     return (
       <div className="p-8 space-y-6">
         <div className="h-8 w-48 bg-muted rounded animate-pulse" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="space-y-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="aspect-video bg-muted rounded-xl animate-pulse" />
+            <div key={i} className="h-40 bg-muted rounded-xl animate-pulse" />
           ))}
         </div>
       </div>
@@ -132,7 +132,7 @@ export default function Monitors() {
             {t('monitors.no_cameras')}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6" data-testid="monitor-grid">
+          <div className="space-y-4" data-testid="monitor-grid">
             {allMonitors.map(({ Monitor, Monitor_Status }) => (
               <MonitorCard
                 key={Monitor.Id}

@@ -31,6 +31,7 @@ Feature: Full Application Walkthrough
     And I should see at least 1 monitor cards
     When I click into the first monitor detail page
     Then I should see the monitor player
+    And I should see the monitor rotation status
     When I navigate back
     Then I should see the monitor grid
 

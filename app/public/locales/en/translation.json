@@ -287,7 +287,12 @@
     "maximize": "Maximize",
     "pip": "Picture in Picture",
     "pip_failed": "Failed to enter Picture-in-Picture mode",
-    "ptz_failed": "PTZ control failed"
+    "ptz_failed": "PTZ control failed",
+    "rotation_label": "Rotation",
+    "rotation_none": "None",
+    "rotation_flip_horizontal": "Flip Horizontal",
+    "rotation_flip_vertical": "Flip Vertical",
+    "rotation_degrees": "{{degrees}} deg"
   },
   "montage": {
     "title": "Montage",
@@ -315,7 +320,16 @@
     "screen_limit": "Screen limited to {{columns}} columns",
     "grid_applied": "Grid set to {{columns}} columns",
     "cameras_count": "{{count}} Cameras",
-    "drag_hint": "Drag and drop to reorder monitors"
+    "drag_hint": "Drag and drop to reorder monitors",
+    "screen_too_small": "Screen width is too small for that many columns",
+    "feed_fit": "Feed Fit",
+    "fit_contain": "Contain (show all)",
+    "fit_cover": "Cover (fill & crop)",
+    "fit_fill": "Fill (stretch)",
+    "fit_none": "None (no scaling)",
+    "fit_scale_down": "Scale down (shrink only)",
+    "edit_layout": "Edit Layout",
+    "done_editing": "Done Editing"
   },
   "notification_history": {
     "title": "Notifications",

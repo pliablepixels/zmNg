@@ -29,6 +29,7 @@ import { controlMonitor } from '../api/monitors';
 import { filterEnabledMonitors } from '../lib/filters';
 import { log } from '../lib/logger';
 import { Platform } from '../lib/platform';
+import { parseMonitorRotation } from '../lib/monitor-rotation';
 
 export default function MonitorDetail() {
   const { id } = useParams<{ id: string }>();
@@ -143,6 +144,23 @@ export default function MonitorDetail() {
   const [cacheBuster, setCacheBuster] = useState(Date.now());
   const [displayedImageUrl, setDisplayedImageUrl] = useState<string>('');
   const imgRef = useRef<HTMLImageElement>(null);
+  const rotationStatus = useMemo(() => {
+    const rotation = parseMonitorRotation(monitor?.Monitor.Orientation);
+
+    switch (rotation.kind) {
+      case 'flip_horizontal':
+        return t('monitor_detail.rotation_flip_horizontal');
+      case 'flip_vertical':
+        return t('monitor_detail.rotation_flip_vertical');
+      case 'degrees':
+        return t('monitor_detail.rotation_degrees', { degrees: rotation.degrees });
+      case 'unknown':
+        return t('common.unknown');
+      case 'none':
+      default:
+        return t('monitor_detail.rotation_none');
+    }
+  }, [monitor?.Monitor.Orientation, t]);
 
   // Force regenerate connKey when component mounts or monitor changes
   useEffect(() => {
@@ -266,6 +284,10 @@ export default function MonitorDetail() {
                 monitor.Monitor.Function !== 'None' ? "bg-green-500" : "bg-red-500"
               )} />
               <span className="hidden sm:inline">{monitor.Monitor.Function} • </span>{monitor.Monitor.Width}x{monitor.Monitor.Height}
+              <span className="hidden sm:inline"> • </span>
+              <span data-testid="monitor-rotation">
+                {t('monitor_detail.rotation_label')}: {rotationStatus}
+              </span>
             </div>
           </div>
         </div>
