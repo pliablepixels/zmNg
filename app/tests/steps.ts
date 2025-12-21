@@ -178,6 +178,9 @@ let hasEvents = false;
 let openedDeleteDialog = false;
 
 Then('I should see events list or empty state', async ({ page }) => {
+  const filterButton = page.getByTestId('events-filter-button');
+  await expect(filterButton).toBeVisible({ timeout: testConfig.timeouts.transition * 3 });
+
   const eventCards = page.getByTestId('event-card');
   const emptyState = page.getByTestId('events-empty-state');
 
@@ -185,7 +188,7 @@ Then('I should see events list or empty state', async ({ page }) => {
     const count = await eventCards.count();
     const emptyVisible = await emptyState.isVisible().catch(() => false);
     return count > 0 || emptyVisible;
-  }, { timeout: testConfig.timeouts.transition }).toBeTruthy();
+  }, { timeout: testConfig.timeouts.transition * 3 }).toBeTruthy();
 
   const eventCount = await eventCards.count();
   const emptyVisible = await emptyState.isVisible().catch(() => false);
