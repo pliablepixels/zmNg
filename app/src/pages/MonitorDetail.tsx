@@ -19,7 +19,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Switch } from '../components/ui/switch';
 import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { ArrowLeft, Settings, Maximize2, Video, AlertTriangle, Download, ChevronUp, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Settings, Maximize2, Clock, AlertTriangle, Download, ChevronUp, ChevronDown } from 'lucide-react';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { cn } from '../lib/utils';
 import { useMonitorStore } from '../stores/monitors';
@@ -457,7 +457,7 @@ export default function MonitorDetail() {
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={() => navigate(`/events?monitorId=${monitor.Monitor.Id}`)} className="h-8 sm:h-9" title={t('monitor_detail.events')}>
-            <Video className="h-4 w-4 sm:mr-2" />
+            <Clock className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">{t('monitor_detail.events')}</span>
           </Button>
           <div className="flex items-center gap-2">
@@ -568,7 +568,7 @@ export default function MonitorDetail() {
                   title={t('monitor_detail.view_events')}
                   aria-label={t('monitor_detail.view_events')}
                 >
-                  <Video className="h-5 w-5" />
+                  <Clock className="h-5 w-5" />
                 </Button>
               </div>
               <div className="flex items-center gap-2">
@@ -679,97 +679,16 @@ export default function MonitorDetail() {
       </div>
 
       <Dialog open={showSettingsDialog} onOpenChange={setShowSettingsDialog}>
-        <DialogContent className="max-w-3xl" data-testid="monitor-settings-dialog">
+        <DialogContent
+          className="max-w-3xl w-[calc(100%-1.5rem)] max-h-[90vh] overflow-y-auto"
+          data-testid="monitor-settings-dialog"
+        >
           <DialogHeader>
             <DialogTitle>{t('monitor_detail.settings_title')}</DialogTitle>
             <DialogDescription>{t('monitor_detail.settings_desc')}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Card className="border-muted/60 shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold">{t('monitor_detail.overview_title')}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">{t('monitors.id')}</span>
-                  <span className="font-medium">{monitor.Monitor.Id}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">{t('monitors.type')}</span>
-                  <span className="font-medium">{monitor.Monitor.Type}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">{t('monitors.function')}</span>
-                  <span className="font-medium">{monitor.Monitor.Function}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">{t('common.enabled')}</span>
-                  <Badge variant={monitor.Monitor.Enabled === '1' ? 'secondary' : 'outline'}>
-                    {monitor.Monitor.Enabled === '1' ? t('common.enabled') : t('common.disabled')}
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">{t('monitors.controllable')}</span>
-                  <Badge variant={monitor.Monitor.Controllable === '1' ? 'secondary' : 'outline'}>
-                    {monitor.Monitor.Controllable === '1' ? t('common.yes') : t('common.no')}
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-muted/60 shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold">{t('monitor_detail.source_title')}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">{t('monitors.protocol')}</span>
-                  <span className="font-medium">{monitor.Monitor.Protocol || t('common.none')}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">{t('monitors.method')}</span>
-                  <span className="font-medium">{monitor.Monitor.Method || t('common.none')}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">{t('monitors.host')}</span>
-                  <div className="font-medium break-all">{monitor.Monitor.Host || t('common.none')}</div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">{t('monitors.port')}</span>
-                  <span className="font-medium">{monitor.Monitor.Port || t('common.none')}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">{t('monitors.path')}</span>
-                  <div className="font-medium break-all">{monitor.Monitor.Path || t('common.none')}</div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-muted/60 shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold">{t('monitor_detail.video_title')}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">{t('monitors.resolution')}</span>
-                  <span className="font-medium">{monitor.Monitor.Width}x{monitor.Monitor.Height}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">{t('monitors.colours')}</span>
-                  <span className="font-medium">{monitor.Monitor.Colours}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">{t('monitors.max_fps')}</span>
-                  <span className="font-medium">{monitor.Monitor.MaxFPS || t('monitors.unlimited')}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">{t('monitors.alarm_max_fps')}</span>
-                  <span className="font-medium">{monitor.Monitor.AlarmMaxFPS || t('monitors.same_as_max_fps')}</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-muted/60 shadow-sm">
+            <Card className="border-muted/60 shadow-sm sm:col-span-2">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-semibold">{t('monitor_detail.cycle_title')}</CardTitle>
               </CardHeader>
@@ -813,6 +732,62 @@ export default function MonitorDetail() {
                   <p className="text-xs text-muted-foreground">
                     {t('monitor_detail.cycle_help')}
                   </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-muted/60 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold">{t('monitor_detail.overview_title')}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">{t('monitors.id')}</span>
+                  <span className="font-medium">{monitor.Monitor.Id}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">{t('monitors.type')}</span>
+                  <span className="font-medium">{monitor.Monitor.Type}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">{t('monitors.function')}</span>
+                  <span className="font-medium">{monitor.Monitor.Function}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">{t('common.enabled')}</span>
+                  <Badge variant={monitor.Monitor.Enabled === '1' ? 'secondary' : 'outline'}>
+                    {monitor.Monitor.Enabled === '1' ? t('common.enabled') : t('common.disabled')}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">{t('monitors.controllable')}</span>
+                  <Badge variant={monitor.Monitor.Controllable === '1' ? 'secondary' : 'outline'}>
+                    {monitor.Monitor.Controllable === '1' ? t('common.yes') : t('common.no')}
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-muted/60 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold">{t('monitor_detail.video_title')}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">{t('monitors.resolution')}</span>
+                  <span className="font-medium">{monitor.Monitor.Width}x{monitor.Monitor.Height}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">{t('monitors.colours')}</span>
+                  <span className="font-medium">{monitor.Monitor.Colours}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">{t('monitors.max_fps')}</span>
+                  <span className="font-medium">{monitor.Monitor.MaxFPS || t('monitors.unlimited')}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">{t('monitors.alarm_max_fps')}</span>
+                  <span className="font-medium">{monitor.Monitor.AlarmMaxFPS || t('monitors.same_as_max_fps')}</span>
                 </div>
               </CardContent>
             </Card>
