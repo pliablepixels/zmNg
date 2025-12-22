@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### 🐛 Bug Fixes
 
-- Extend alarm status typing - ([8b3073b](https://github.com/pliablepixels/zmNg/commit/8b3073bbd4fb0de71772585f14ee2ffdab138195))
+- Resolve android splash resource conflict - ([3c707ed](https://github.com/pliablepixels/zmNg/commit/3c707ed95b107c54ff4833788eb9ce25dd136164))
 ## [zmNg-0.0.6](https://github.com/pliablepixels/zmNg/compare/zmNg-0.0.5..zmNg-0.0.6) - 2025-12-22
 
 ### ✨ Features
@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 
 ### 🐛 Bug Fixes
 
+- Extend alarm status typing - ([8b3073b](https://github.com/pliablepixels/zmNg/commit/8b3073bbd4fb0de71772585f14ee2ffdab138195))
 - Increase button sizes to meet iOS touch target guidelines - ([0438bd1](https://github.com/pliablepixels/zmNg/commit/0438bd1162c935da167617f7f131004bc403e2ab))
 - Stabilize events e2e - ([38dee20](https://github.com/pliablepixels/zmNg/commit/38dee207049891433db30e6f9b9f15f22359500d))
 - Align api test mocks - ([300a5f4](https://github.com/pliablepixels/zmNg/commit/300a5f4da989651d7f66fd9794b0760dd0b9750c))
@@ -27,6 +28,7 @@ All notable changes to this project will be documented in this file.
 
 ### 📚 Documentation
 
+- Update CHANGELOG.md for zmNg-0.0.6 - ([832287d](https://github.com/pliablepixels/zmNg/commit/832287de69d653aab0cd77328c38fb52aaa3b8c4))
 - Update CHANGELOG.md for zmNg-0.0.6 - ([f565e7f](https://github.com/pliablepixels/zmNg/commit/f565e7f09bbb0118b0236fee4a7028e13eb633ef))
 - Clarify profile-scoped settings and add feed fit controls - ([3c5f989](https://github.com/pliablepixels/zmNg/commit/3c5f9892b239d80afccd782988872596f29f46de))
 - Clarified claude and codex usage - ([f0b792a](https://github.com/pliablepixels/zmNg/commit/f0b792a2829f4d93a4565d05c295002ab27993aa))
