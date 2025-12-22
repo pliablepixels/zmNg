@@ -198,13 +198,12 @@ export default function Events() {
 
   useEffect(() => {
     const paramView = searchParams.get('view');
-    if (paramView === 'montage' && viewMode !== 'montage') {
-      setViewMode('montage');
-      if (currentProfile) {
-        updateSettings(currentProfile.id, { eventsViewMode: 'montage' });
-      }
+    if (paramView !== 'montage') return;
+    setViewMode('montage');
+    if (currentProfile) {
+      updateSettings(currentProfile.id, { eventsViewMode: 'montage' });
     }
-  }, [searchParams, viewMode, currentProfile, updateSettings]);
+  }, [searchParams, currentProfile, updateSettings]);
 
   useEffect(() => {
     if (!currentProfile) return;
@@ -241,11 +240,13 @@ export default function Events() {
     if (currentProfile) {
       updateSettings(currentProfile.id, { eventsViewMode: mode });
     }
+    const nextParams = new URLSearchParams(searchParams);
     if (mode === 'montage') {
-      setSearchParams({ view: 'montage' }, { replace: true });
+      nextParams.set('view', 'montage');
     } else {
-      setSearchParams({}, { replace: true });
+      nextParams.delete('view');
     }
+    setSearchParams(nextParams, { replace: true });
   };
 
   const handleApplyGridLayout = (cols: number) => {
@@ -344,26 +345,15 @@ export default function Events() {
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1">
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'outline'}
-                size="icon"
-                onClick={() => handleViewModeChange('list')}
-                aria-label={t('events.view_list')}
-                data-testid="events-view-list"
-              >
-                <List className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'montage' ? 'default' : 'outline'}
-                size="icon"
-                onClick={() => handleViewModeChange('montage')}
-                aria-label={t('events.view_montage')}
-                data-testid="events-view-montage"
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => handleViewModeChange(viewMode === 'list' ? 'montage' : 'list')}
+              aria-label={viewMode === 'list' ? t('events.view_montage') : t('events.view_list')}
+              data-testid="events-view-toggle"
+            >
+              {viewMode === 'list' ? <LayoutGrid className="h-4 w-4" /> : <List className="h-4 w-4" />}
+            </Button>
             {viewMode === 'montage' && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
