@@ -2,15 +2,41 @@
 
 All notable changes to this project will be documented in this file.
 
-## [zmNg-0.0.6](https://github.com/pliablepixels/zmNg/compare/zmNg-0.0.6..zmNg-0.0.6) - 2025-12-22
+## [zmNg-0.0.7](https://github.com/pliablepixels/zmNg/compare/zmNg-0.0.6..zmNg-0.0.7) - 2025-12-22
+
+### ✨ Features
+
+- Tighten monitor detail settings layout for mobile - ([199a219](https://github.com/pliablepixels/zmNg/commit/199a219030551d33eef03143bff6ada539f3be30))
+- Replace events view buttons with toggle - ([a4efaec](https://github.com/pliablepixels/zmNg/commit/a4efaec43a5afb320fc30eb48806546811367127))
+- Add monitor detail auto-cycle settings - ([7b3360d](https://github.com/pliablepixels/zmNg/commit/7b3360dc5104656988b6a044e7951753d9cd7f6e))
 
 ### 🐛 Bug Fixes
 
-- Interpret alarm status 2 as unarmed - ([3bb6afc](https://github.com/pliablepixels/zmNg/commit/3bb6afca11508f92d6997e62b645279261f71857))
+- Avoid duplicate git-cliff releases when retagging - ([c0147d1](https://github.com/pliablepixels/zmNg/commit/c0147d1646a1a70e8de3b5ef8656ef908279dbb0))
+- Update monitor alarm border status - ([901da9a](https://github.com/pliablepixels/zmNg/commit/901da9a80aa69fc8ec9f9e5e61388c710235cbd2))
+- Remove hover effects from monitor cards for better mobile UX - ([8c74310](https://github.com/pliablepixels/zmNg/commit/8c743109a2cf82d3a2f641a2583141cb786c0c1e))
+
+### ♻️ Refactor
+
+- Align monitor, events, and timeline icons across UI - ([6221b26](https://github.com/pliablepixels/zmNg/commit/6221b2622ba5c8946647c2161266baf5c5e66e01))
+- Improve code organization and add comprehensive test coverage - ([aa488d6](https://github.com/pliablepixels/zmNg/commit/aa488d6d423e0bdbed66e2931c281b9ceb72e5a8))
+
+### 📚 Documentation
+
+- Make commit rules explicit - ([bbca0f8](https://github.com/pliablepixels/zmNg/commit/bbca0f8f407bfce98ebf2d39cc4baeb47b4c41c5))
+
+### ✅ Tests
+
+- Align native adapter mocks and profile fixtures with types - ([508d725](https://github.com/pliablepixels/zmNg/commit/508d725656aaece7cdeae44d17c077d515bad1a2))
 
 ### 🔧 Miscellaneous
 
-- Update tauri config - ([d0853ee](https://github.com/pliablepixels/zmNg/commit/d0853ee7103cc15972357e4f3c275b4f6053594e))
+- Release bump - ([b60c163](https://github.com/pliablepixels/zmNg/commit/b60c1635c3f0a23059dbd5f5d3da7b0f8659e92a))
+- Remove old splash script - ([d7cc9c4](https://github.com/pliablepixels/zmNg/commit/d7cc9c4a367ebc13431ca187d10b9785f7ee8c50))
+
+### 📝 Other
+
+- Refactor/code-review into main - ([40b0af9](https://github.com/pliablepixels/zmNg/commit/40b0af94283999ea8b9d552832f6085d61d12534))
 ## [zmNg-0.0.6](https://github.com/pliablepixels/zmNg/compare/zmNg-0.0.5..zmNg-0.0.6) - 2025-12-22
 
 ### ✨ Features
@@ -22,6 +48,7 @@ All notable changes to this project will be documented in this file.
 
 ### 🐛 Bug Fixes
 
+- Interpret alarm status 2 as unarmed - ([3bb6afc](https://github.com/pliablepixels/zmNg/commit/3bb6afca11508f92d6997e62b645279261f71857))
 - Resolve android splash resource conflict - ([3c707ed](https://github.com/pliablepixels/zmNg/commit/3c707ed95b107c54ff4833788eb9ce25dd136164))
 - Extend alarm status typing - ([8b3073b](https://github.com/pliablepixels/zmNg/commit/8b3073bbd4fb0de71772585f14ee2ffdab138195))
 - Increase button sizes to meet iOS touch target guidelines - ([0438bd1](https://github.com/pliablepixels/zmNg/commit/0438bd1162c935da167617f7f131004bc403e2ab))
@@ -33,6 +60,7 @@ All notable changes to this project will be documented in this file.
 
 ### 📚 Documentation
 
+- Update CHANGELOG.md for zmNg-0.0.6 - ([947f4b0](https://github.com/pliablepixels/zmNg/commit/947f4b0832bed0daea557328d8c5f3e7aef691cc))
 - Update CHANGELOG.md for zmNg-0.0.6 - ([0134d45](https://github.com/pliablepixels/zmNg/commit/0134d454c2a91ead439e6c17db1ce266c89db2b5))
 - Update CHANGELOG.md for zmNg-0.0.6 - ([832287d](https://github.com/pliablepixels/zmNg/commit/832287de69d653aab0cd77328c38fb52aaa3b8c4))
 - Update CHANGELOG.md for zmNg-0.0.6 - ([f565e7f](https://github.com/pliablepixels/zmNg/commit/f565e7f09bbb0118b0236fee4a7028e13eb633ef))
@@ -44,6 +72,7 @@ All notable changes to this project will be documented in this file.
 
 ### 🔧 Miscellaneous
 
+- Update tauri config - ([d0853ee](https://github.com/pliablepixels/zmNg/commit/d0853ee7103cc15972357e4f3c275b4f6053594e))
 - Update startup flow and assets - ([cc5ab30](https://github.com/pliablepixels/zmNg/commit/cc5ab30386a79a0af019277e8de96b22d50b703f))
 - Run tests only on releases - ([efae3d4](https://github.com/pliablepixels/zmNg/commit/efae3d44b24a1c2ab876063231117bb188debaee))
 - Sync platform and auth messaging ([#4](https://github.com/pliablepixels/zmNg/issues/4)) - ([8d890c5](https://github.com/pliablepixels/zmNg/commit/8d890c5b806f5cab2a2ab1068cbe6c1779e6088e))
