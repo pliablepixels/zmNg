@@ -6,7 +6,11 @@ All notable changes to this project will be documented in this file.
 
 ### 🐛 Bug Fixes
 
-- Resolve android splash resource conflict - ([3c707ed](https://github.com/pliablepixels/zmNg/commit/3c707ed95b107c54ff4833788eb9ce25dd136164))
+- Interpret alarm status 2 as unarmed - ([3bb6afc](https://github.com/pliablepixels/zmNg/commit/3bb6afca11508f92d6997e62b645279261f71857))
+
+### 🔧 Miscellaneous
+
+- Update tauri config - ([d0853ee](https://github.com/pliablepixels/zmNg/commit/d0853ee7103cc15972357e4f3c275b4f6053594e))
 ## [zmNg-0.0.6](https://github.com/pliablepixels/zmNg/compare/zmNg-0.0.5..zmNg-0.0.6) - 2025-12-22
 
 ### ✨ Features
@@ -18,6 +22,7 @@ All notable changes to this project will be documented in this file.
 
 ### 🐛 Bug Fixes
 
+- Resolve android splash resource conflict - ([3c707ed](https://github.com/pliablepixels/zmNg/commit/3c707ed95b107c54ff4833788eb9ce25dd136164))
 - Extend alarm status typing - ([8b3073b](https://github.com/pliablepixels/zmNg/commit/8b3073bbd4fb0de71772585f14ee2ffdab138195))
 - Increase button sizes to meet iOS touch target guidelines - ([0438bd1](https://github.com/pliablepixels/zmNg/commit/0438bd1162c935da167617f7f131004bc403e2ab))
 - Stabilize events e2e - ([38dee20](https://github.com/pliablepixels/zmNg/commit/38dee207049891433db30e6f9b9f15f22359500d))
@@ -28,6 +33,7 @@ All notable changes to this project will be documented in this file.
 
 ### 📚 Documentation
 
+- Update CHANGELOG.md for zmNg-0.0.6 - ([0134d45](https://github.com/pliablepixels/zmNg/commit/0134d454c2a91ead439e6c17db1ce266c89db2b5))
 - Update CHANGELOG.md for zmNg-0.0.6 - ([832287d](https://github.com/pliablepixels/zmNg/commit/832287de69d653aab0cd77328c38fb52aaa3b8c4))
 - Update CHANGELOG.md for zmNg-0.0.6 - ([f565e7f](https://github.com/pliablepixels/zmNg/commit/f565e7f09bbb0118b0236fee4a7028e13eb633ef))
 - Clarify profile-scoped settings and add feed fit controls - ([3c5f989](https://github.com/pliablepixels/zmNg/commit/3c5f9892b239d80afccd782988872596f29f46de))
