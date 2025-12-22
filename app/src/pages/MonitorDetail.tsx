@@ -189,7 +189,7 @@ export default function MonitorDetail() {
     ? Number(alarmStatusNumeric)
     : Number.NaN;
   const isAlarmArmed =
-    Number.isFinite(parsedAlarmStatus) ? parsedAlarmStatus > 0 : (
+    Number.isFinite(parsedAlarmStatus) ? parsedAlarmStatus === 1 : (
       alarmStatusValue === 'on' ||
       alarmStatusValue === '1' ||
       alarmStatusValue === 'armed' ||
