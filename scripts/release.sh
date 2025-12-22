@@ -89,23 +89,10 @@ if ! command -v git-cliff &> /dev/null; then
     exit 1
 fi
 
-# Generate changelog with the upcoming tag
-git-cliff --tag "$TAG" -o CHANGELOG.md
-
-# Check if CHANGELOG.md was modified or is new
-if [[ -n $(git diff --name-only CHANGELOG.md 2>/dev/null) ]] || [[ -n $(git ls-files --others --exclude-standard CHANGELOG.md 2>/dev/null) ]]; then
-    echo "📝 CHANGELOG.md updated, committing..."
-    git add CHANGELOG.md
-    git commit -m "docs: update CHANGELOG.md for $TAG"
-    git push origin "$CURRENT_BRANCH"
-    echo "✅ CHANGELOG.md committed and pushed"
-else
-    echo "ℹ️  CHANGELOG.md unchanged"
-fi
-
 # Check if tag exists locally or remotely
 TAG_EXISTS_LOCALLY=false
 TAG_EXISTS_REMOTELY=false
+MOVE_TAG=false
 
 if git rev-parse "$TAG" >/dev/null 2>&1; then
     TAG_EXISTS_LOCALLY=true
@@ -137,13 +124,30 @@ if [ "$TAG_EXISTS_LOCALLY" = true ] || [ "$TAG_EXISTS_REMOTELY" = true ]; then
         echo "Release cancelled."
         exit 1
     fi
+    MOVE_TAG=true
 
-    # Delete local tag if it exists
+    # Remove local tag before generating CHANGELOG.md to avoid duplicate sections
     if [ "$TAG_EXISTS_LOCALLY" = true ]; then
         echo "Deleting local tag $TAG..."
         git tag -d "$TAG"
     fi
+fi
 
+# Generate changelog with the upcoming tag
+git-cliff --tag "$TAG" -o CHANGELOG.md
+
+# Check if CHANGELOG.md was modified or is new
+if [[ -n $(git diff --name-only CHANGELOG.md 2>/dev/null) ]] || [[ -n $(git ls-files --others --exclude-standard CHANGELOG.md 2>/dev/null) ]]; then
+    echo "📝 CHANGELOG.md updated, committing..."
+    git add CHANGELOG.md
+    git commit -m "docs: update CHANGELOG.md for $TAG"
+    git push origin "$CURRENT_BRANCH"
+    echo "✅ CHANGELOG.md committed and pushed"
+else
+    echo "ℹ️  CHANGELOG.md unchanged"
+fi
+
+if [ "$MOVE_TAG" = true ]; then
     # Delete remote tag if it exists
     if [ "$TAG_EXISTS_REMOTELY" = true ]; then
         echo "Deleting remote tag $TAG..."
@@ -166,4 +170,3 @@ fi
 echo ""
 echo "✅ Standard release triggered! Check GitHub Actions for progress."
 echo "   https://github.com/pliablepixels/zmNg/actions"
-
