@@ -111,7 +111,6 @@
     "no_monitors": "No se encontraron monitores",
     "no_signal": "Sin Señal",
     "live": "En Vivo",
-    "click_to_view": "Clic para ver",
     "download_snapshot": "Descargar Instantánea",
     "snapshot_downloaded": "Instantánea descargada",
     "snapshot_failed": "Fallo al descargar instantánea",

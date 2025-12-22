@@ -122,7 +122,7 @@ function MonitorCardComponent({
             ref={imgRef}
             src={displayedImageUrl || streamUrl}
             alt={monitor.Name}
-            className="w-full h-full transition-transform duration-500 group-hover:scale-105"
+            className="w-full h-full"
             style={{ objectFit: resolvedFit }}
             onError={handleImageError}
             data-testid="monitor-player"
@@ -142,20 +142,6 @@ function MonitorCardComponent({
             >
               {isRunning ? t('monitors.live') : t('monitors.offline')}
             </Badge>
-          </div>
-
-          {/* Quick View Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-between p-4">
-            <span className="text-white text-sm font-medium">{t('monitors.click_to_view')}</span>
-            <Button
-              variant="secondary"
-              size="icon"
-              className="h-8 w-8 shrink-0"
-              onClick={handleDownloadSnapshot}
-              title={t('monitors.download_snapshot')}
-            >
-              <Download className="h-4 w-4" />
-            </Button>
           </div>
         </div>
 
@@ -226,6 +212,16 @@ function MonitorCardComponent({
             >
               <Settings className="h-3 w-3 mr-1" />
               {t('sidebar.settings')}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs h-8"
+              onClick={handleDownloadSnapshot}
+              data-testid="monitor-download-button"
+            >
+              <Download className="h-3 w-3 mr-1" />
+              {t('monitors.download_snapshot')}
             </Button>
           </div>
         </div>
