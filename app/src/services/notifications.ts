@@ -9,47 +9,15 @@
 
 import { log } from '../lib/logger';
 
-export interface ZMEventServerConfig {
-  host: string; // e.g., "zm.example.com"
-  port: number; // default 9000
-  path?: string; // default "/"
-  ssl: boolean; // true for wss://, false for ws://
-  username: string;
-  password: string;
-  token?: string;
-  appVersion: string;
-  portalUrl: string; // ZoneMinder portal URL for constructing image URLs
-}
+import type {
+  ZMEventServerConfig,
+  ZMNotificationMessage,
+  ConnectionState,
+  NotificationEventCallback,
+  ConnectionStateCallback,
+} from '../types/notifications';
 
-export interface ZMAlarmEvent {
-  MonitorId: number;
-  MonitorName: string;
-  EventId: number;
-  Cause: string;
-  Name: string;
-  DetectionJson?: unknown[];
-  ImageUrl?: string; // URL to event snapshot/alarm frame
-}
 
-export interface ZMNotificationMessage {
-  event: 'auth' | 'alarm' | 'push' | 'control';
-  type: string;
-  status: 'Success' | 'Fail';
-  reason?: string;
-  version?: string;
-  events?: ZMAlarmEvent[];
-  supplementary?: string;
-}
-
-export type ConnectionState =
-  | 'disconnected'
-  | 'connecting'
-  | 'authenticating'
-  | 'connected'
-  | 'error';
-
-export type NotificationEventCallback = (event: ZMAlarmEvent) => void;
-export type ConnectionStateCallback = (state: ConnectionState) => void;
 
 interface PendingAuth {
   resolve: () => void;
@@ -81,9 +49,9 @@ export class ZMNotificationService {
    */
   public async connect(config: ZMEventServerConfig): Promise<void> {
     if (this.state === 'connected' || this.state === 'authenticating' || this.state === 'connecting') {
-      log.info('Already connected or connecting to notification server', { 
+      log.info('Already connected or connecting to notification server', {
         component: 'Notifications',
-        state: this.state 
+        state: this.state
       });
       return;
     }
@@ -318,7 +286,7 @@ export class ZMNotificationService {
 
     const protocol = this.config.ssl ? 'wss' : 'ws';
     const path = this.config.path || '/';
-    
+
     // Strip protocol if user entered it in host field
     let host = this.config.host;
     if (host.startsWith('wss://')) host = host.replace('wss://', '');
@@ -342,7 +310,7 @@ export class ZMNotificationService {
         if (this.ws !== ws) return;
         this._handleOpen();
       };
-      
+
       ws.onmessage = (event) => {
         if (this.ws !== ws) return;
         this._handleMessage(event);

@@ -3,10 +3,12 @@ import { persist } from 'zustand/middleware';
 import {
   getNotificationService,
   resetNotificationService,
+} from '../services/notifications';
+import {
   type ZMEventServerConfig,
   type ZMAlarmEvent,
   type ConnectionState,
-} from '../services/notifications';
+} from '../types/notifications';
 import { log } from '../lib/logger';
 import { useAuthStore } from './auth';
 import { getAppVersion } from '../lib/version';
@@ -149,12 +151,12 @@ export const useNotificationStore = create<NotificationState>()(
           const existing = profileSettings.monitorFilters.find((f) => f.monitorId === monitorId);
           const filters = existing
             ? profileSettings.monitorFilters.map((f) =>
-                f.monitorId === monitorId ? { ...f, enabled, checkInterval } : f
-              )
+              f.monitorId === monitorId ? { ...f, enabled, checkInterval } : f
+            )
             : [
-                ...profileSettings.monitorFilters,
-                { monitorId, enabled, checkInterval },
-              ];
+              ...profileSettings.monitorFilters,
+              { monitorId, enabled, checkInterval },
+            ];
 
           return {
             profileSettings: {
@@ -499,7 +501,6 @@ export const useNotificationStore = create<NotificationState>()(
 
             // Play sound if enabled
             if (settings.playSound) {
-              // TODO: Play notification sound
               log.info('Playing notification sound', { component: 'Notifications' });
             }
           }

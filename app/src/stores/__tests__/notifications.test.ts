@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useNotificationStore } from '../notifications';
-import type { ZMAlarmEvent } from '../../services/notifications';
+import type { ZMAlarmEvent } from '../../types/notifications';
 
 const mockService = {
   connect: vi.fn().mockResolvedValue(undefined),
