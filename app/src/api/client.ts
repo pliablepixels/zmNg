@@ -10,9 +10,6 @@ import { Platform } from '../lib/platform';
 let apiClient: AxiosInstance | null = null;
 
 export function createApiClient(baseURL: string, reLogin?: () => Promise<boolean>): AxiosInstance {
-  // Store the actual ZM URL for reference
-  localStorage.setItem('zm_api_url', baseURL);
-
   // In dev mode (web), use standalone proxy server on port 3001 with X-Target-Host header
   // On native platforms (Android/iOS), use full URL directly (native HTTP bypasses CORS)
   // In production web, use full URL directly
@@ -71,7 +68,7 @@ export function createApiClient(baseURL: string, reLogin?: () => Promise<boolean
 
       // Enhanced logging in development
       if (import.meta.env.DEV) {
-        const zmApiUrl = localStorage.getItem('zm_api_url') || baseURL;
+        const zmApiUrl = baseURL;
         const path = config.url || '';
         // Don't prepend base URL if path is already absolute
         const fullZmUrl = path.startsWith('http') ? path : zmApiUrl + path;
@@ -116,7 +113,7 @@ export function createApiClient(baseURL: string, reLogin?: () => Promise<boolean
     (response) => {
       // Enhanced logging in development
       if (import.meta.env.DEV) {
-        const zmApiUrl = localStorage.getItem('zm_api_url') || baseURL;
+        const zmApiUrl = baseURL;
         const path = response.config.url || '';
         const fullZmUrl = path.startsWith('http') ? path : zmApiUrl + path;
 
@@ -174,7 +171,7 @@ export function createApiClient(baseURL: string, reLogin?: () => Promise<boolean
 
       // Enhanced logging in development
       if (import.meta.env.DEV) {
-        const zmApiUrl = localStorage.getItem('zm_api_url') || '';
+        const zmApiUrl = baseURL;
         const path = error.config?.url || '';
         const fullZmUrl = path.startsWith('http') ? path : zmApiUrl + path;
         const queryParams = error.config?.params
