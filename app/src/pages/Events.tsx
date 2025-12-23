@@ -5,123 +5,36 @@
  * Uses virtualization for performance with large lists.
  */
 
-import { useMemo, useRef, useState, useEffect, useCallback } from 'react';
+import { useMemo, useRef, useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
-import { useVirtualizer } from '@tanstack/react-virtual';
-import { getEvents, getEventImageUrl } from '../api/events';
+import { getEvents } from '../api/events';
 import { getMonitors } from '../api/monitors';
 import { useProfileStore } from '../stores/profile';
 import { useAuthStore } from '../stores/auth';
 import { useSettingsStore } from '../stores/settings';
 import { useEventFilters } from '../hooks/useEventFilters';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import { useEventPagination } from '../hooks/useEventPagination';
+import { useEventMontageGrid } from '../hooks/useEventMontageGrid';
 import { PullToRefreshIndicator } from '../components/ui/pull-to-refresh-indicator';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { RefreshCw, Filter, AlertCircle, Video, Clock, Loader2, ArrowLeft, LayoutGrid, List } from 'lucide-react';
+import { RefreshCw, Filter, AlertCircle, ArrowLeft, LayoutGrid, List, Clock } from 'lucide-react';
 import { getEnabledMonitorIds, filterEnabledMonitors } from '../lib/filters';
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
-import { EventCard } from '../components/events/EventCard';
 import { EventHeatmap } from '../components/events/EventHeatmap';
+import { EventMontageView } from '../components/events/EventMontageView';
+import { EventListView } from '../components/events/EventListView';
+import { EventMontageGridControls } from '../components/events/EventMontageGridControls';
 import { useTranslation } from 'react-i18next';
 import { formatForServer, formatLocalDateTime } from '../lib/time';
 import { QuickDateRangeButtons } from '../components/ui/quick-date-range-buttons';
 import { MonitorFilterPopoverContent } from '../components/filters/MonitorFilterPopover';
 import { EmptyState } from '../components/ui/empty-state';
-import { Card } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
-import { SecureImage } from '../components/ui/secure-image';
-import { downloadEventVideo } from '../lib/download';
-import { toast } from 'sonner';
-import { format } from 'date-fns';
-import { ZM_CONSTANTS } from '../lib/constants';
-import { parseMonitorRotation } from '../lib/monitor-rotation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from '../components/ui/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '../components/ui/dialog';
-
-const GRID_GAP = 16;
-const MIN_CARD_WIDTH = 50;
-
-const getMaxColsForWidth = (width: number, minWidth: number, gap: number) => {
-  if (width <= 0) return 1;
-  const maxCols = Math.floor((width + gap) / (minWidth + gap));
-  return Math.max(1, maxCols);
-};
-
-/**
- * Calculate thumbnail dimensions that preserve monitor aspect ratio.
- *
- * For rotated monitors (90°/270°), we swap width/height because:
- * - The monitor's W/H are reported in its native orientation
- * - ZoneMinder rotates the snapshot image
- * - We need to request dimensions matching the rotated snapshot
- *
- * @param monitorWidth - Monitor's actual width in pixels
- * @param monitorHeight - Monitor's actual height in pixels
- * @param orientation - Monitor's orientation (rotation)
- * @param targetSize - Target size for the larger dimension (e.g., 160, 300)
- * @param scale - Scale multiplier for high-DPI displays (default: 2)
- * @returns Thumbnail dimensions that preserve aspect ratio and account for rotation
- */
-const calculateThumbnailDimensions = (
-  monitorWidth: number,
-  monitorHeight: number,
-  orientation: string | null | undefined,
-  targetSize: number,
-  scale: number = 2
-) => {
-  // Check if monitor is rotated 90 or 270 degrees
-  const rotation = parseMonitorRotation(orientation);
-  const isRotated = rotation.kind === 'degrees' &&
-    (((rotation.degrees % 360) + 360) % 360 === 90 ||
-     ((rotation.degrees % 360) + 360) % 360 === 270);
-
-  // If rotated, swap width and height for aspect ratio calculation
-  // This matches the rotated snapshot image from ZoneMinder
-  const effectiveWidth = isRotated ? monitorHeight : monitorWidth;
-  const effectiveHeight = isRotated ? monitorWidth : monitorHeight;
-
-  // Calculate aspect ratio
-  const aspectRatio = effectiveWidth / effectiveHeight;
-
-  // Calculate thumbnail dimensions preserving aspect ratio
-  // Fit to targetSize on the larger dimension
-  let thumbWidth: number;
-  let thumbHeight: number;
-
-  if (aspectRatio >= 1) {
-    // Landscape or square: width is larger
-    thumbWidth = targetSize;
-    thumbHeight = Math.round(targetSize / aspectRatio);
-  } else {
-    // Portrait: height is larger
-    thumbHeight = targetSize;
-    thumbWidth = Math.round(targetSize * aspectRatio);
-  }
-
-  // Apply scale for high-DPI displays (2x by default)
-  return {
-    width: Math.round(thumbWidth * scale),
-    height: Math.round(thumbHeight * scale)
-  };
-};
 
 export default function Events() {
   const navigate = useNavigate();
@@ -171,15 +84,6 @@ export default function Events() {
     }
     return settings.eventsViewMode;
   });
-  const [gridCols, setGridCols] = useState<number>(settings.eventMontageGridCols);
-  const [isCustomGridDialogOpen, setIsCustomGridDialogOpen] = useState(false);
-  const [customCols, setCustomCols] = useState<string>(settings.eventMontageGridCols.toString());
-  const [isScreenTooSmall, setIsScreenTooSmall] = useState(false);
-  const screenTooSmallRef = useRef(false);
-
-  // Pagination state
-  const [eventLimit, setEventLimit] = useState(settings.defaultEventLimit || 300);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   // Fetch monitors to filter by enabled ones
   const { data: monitorsData } = useQuery({
@@ -187,17 +91,24 @@ export default function Events() {
     queryFn: getMonitors,
   });
 
+  // Use pagination hook
+  const { eventLimit, isLoadingMore, loadNextPage } = useEventPagination({
+    defaultLimit: settings.defaultEventLimit || 300,
+    eventCount: 0, // Will be updated below
+    containerRef: parentRef,
+  });
 
   // Fetch events with configured limit
   const { data: eventsData, isLoading, error, refetch } = useQuery({
     queryKey: ['events', filters, eventLimit],
-    queryFn: () => getEvents({
-      ...filters,
-      // Convert local time inputs to server time for the API
-      startDateTime: filters.startDateTime ? formatForServer(new Date(filters.startDateTime)) : undefined,
-      endDateTime: filters.endDateTime ? formatForServer(new Date(filters.endDateTime)) : undefined,
-      limit: eventLimit
-    }),
+    queryFn: () =>
+      getEvents({
+        ...filters,
+        // Convert local time inputs to server time for the API
+        startDateTime: filters.startDateTime ? formatForServer(new Date(filters.startDateTime)) : undefined,
+        endDateTime: filters.endDateTime ? formatForServer(new Date(filters.endDateTime)) : undefined,
+        limit: eventLimit,
+      }),
   });
 
   // Pull-to-refresh gesture
@@ -207,13 +118,6 @@ export default function Events() {
     },
     enabled: true,
   });
-
-  // Load next batch of events
-  const loadNextPage = useCallback(() => {
-    setIsLoadingMore(true);
-    setEventLimit(prev => prev + (settings.defaultEventLimit || 300));
-    setIsLoadingMore(false);
-  }, [settings.defaultEventLimit]);
 
   // Memoize enabled monitor IDs and monitors
   const enabledMonitorIds = useMemo(
@@ -234,29 +138,15 @@ export default function Events() {
     return filtered;
   }, [eventsData?.events, enabledMonitorIds]);
 
-  // Detect scroll to bottom for infinite scroll
-  useEffect(() => {
-    const container = parentRef.current;
-    if (!container) return;
-
-    const handleScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = container;
-      // Trigger load when user scrolls within 500px of bottom
-      if (scrollHeight - (scrollTop + clientHeight) < 500 && !isLoadingMore && allEvents.length >= eventLimit) {
-        loadNextPage();
+  // Use grid management hook (only active when in montage mode)
+  const gridControls = useEventMontageGrid({
+    initialCols: settings.eventMontageGridCols,
+    containerRef: parentRef,
+    onGridChange: (cols) => {
+      if (currentProfile) {
+        updateSettings(currentProfile.id, { eventMontageGridCols: cols });
       }
-    };
-
-    container.addEventListener('scroll', handleScroll);
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, [eventLimit, isLoadingMore, loadNextPage, allEvents.length]);
-
-  // Virtualize the events list for better performance
-  const rowVirtualizer = useVirtualizer({
-    count: allEvents.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 140, // Approximate height of EventCard
-    overscan: 5, // Render 5 items above and below viewport
+    },
   });
 
   useEffect(() => {
@@ -271,32 +161,9 @@ export default function Events() {
   useEffect(() => {
     if (!currentProfile) return;
     setViewMode(settings.eventsViewMode);
-    setGridCols(settings.eventMontageGridCols);
-    setCustomCols(settings.eventMontageGridCols.toString());
+    gridControls.setGridCols(settings.eventMontageGridCols);
+    gridControls.setCustomCols(settings.eventMontageGridCols.toString());
   }, [currentProfile?.id, settings.eventsViewMode, settings.eventMontageGridCols]);
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (viewMode !== 'montage') {
-        setIsScreenTooSmall(false);
-        screenTooSmallRef.current = false;
-        return;
-      }
-      const width = parentRef.current?.clientWidth ?? window.innerWidth;
-      const maxCols = getMaxColsForWidth(width, MIN_CARD_WIDTH, GRID_GAP);
-      const tooSmall = gridCols > maxCols;
-      setIsScreenTooSmall(tooSmall);
-      if (tooSmall && !screenTooSmallRef.current) {
-        toast.error(t('eventMontage.screen_too_small'));
-      }
-      screenTooSmallRef.current = tooSmall;
-    };
-
-    window.addEventListener('resize', handleResize);
-    handleResize();
-
-    return () => window.removeEventListener('resize', handleResize);
-  }, [gridCols, t, viewMode]);
 
   const handleViewModeChange = (mode: 'list' | 'montage') => {
     setViewMode(mode);
@@ -311,42 +178,12 @@ export default function Events() {
     }
     setSearchParams(nextParams, { replace: true });
   };
+
   const handleThumbnailFitChange = (value: string) => {
     if (!currentProfile) return;
     updateSettings(currentProfile.id, {
       eventsThumbnailFit: (value === 'fill' ? 'contain' : value) as typeof settings.eventsThumbnailFit,
     });
-  };
-
-  const handleApplyGridLayout = (cols: number) => {
-    if (!currentProfile) return;
-
-    const width = parentRef.current?.clientWidth ?? window.innerWidth;
-    const maxCols = getMaxColsForWidth(width, MIN_CARD_WIDTH, GRID_GAP);
-    if (cols > maxCols) {
-      toast.error(t('eventMontage.screen_too_small'));
-      setIsScreenTooSmall(true);
-      screenTooSmallRef.current = true;
-      return;
-    }
-
-    setGridCols(cols);
-    setIsScreenTooSmall(false);
-    screenTooSmallRef.current = false;
-    updateSettings(currentProfile.id, { eventMontageGridCols: cols });
-    toast.success(t('eventMontage.grid_layout_applied', { cols }));
-  };
-
-  const handleCustomGridSubmit = () => {
-    const cols = parseInt(customCols, 10);
-
-    if (isNaN(cols) || cols < 1 || cols > 10) {
-      toast.error(t('eventMontage.invalid_columns'));
-      return;
-    }
-
-    handleApplyGridLayout(cols);
-    setIsCustomGridDialogOpen(false);
   };
 
   if (isLoading) {
@@ -395,484 +232,238 @@ export default function Events() {
           threshold={pullToRefresh.threshold}
         />
         <div className="flex flex-col gap-3 sm:gap-4 mb-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            {referrer && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate(referrer)}
-                title={t('common.go_back')}
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            )}
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{t('events.title')}</h1>
-              <p className="text-xs text-muted-foreground hidden sm:block">{t('events.subtitle')}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => handleViewModeChange(viewMode === 'list' ? 'montage' : 'list')}
-              aria-label={viewMode === 'list' ? t('events.view_montage') : t('events.view_list')}
-              data-testid="events-view-toggle"
-            >
-              {viewMode === 'list' ? <LayoutGrid className="h-4 w-4" /> : <List className="h-4 w-4" />}
-            </Button>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground hidden md:inline">{t('events.thumbnail_fit')}</span>
-              <Select value={normalizedThumbnailFit} onValueChange={handleThumbnailFitChange}>
-                <SelectTrigger className="h-8 sm:h-9 w-[160px]" data-testid="events-thumbnail-fit-select">
-                  <SelectValue placeholder={t('events.thumbnail_fit')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="contain" data-testid="events-thumbnail-fit-contain">
-                    {t('events.fit_contain')}
-                  </SelectItem>
-                  <SelectItem value="cover" data-testid="events-thumbnail-fit-cover">
-                    {t('events.fit_cover')}
-                  </SelectItem>
-                  <SelectItem value="none" data-testid="events-thumbnail-fit-none">
-                    {t('events.fit_none')}
-                  </SelectItem>
-                  <SelectItem value="scale-down" data-testid="events-thumbnail-fit-scale-down">
-                    {t('events.fit_scale_down')}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {viewMode === 'montage' && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" title={t('eventMontage.grid_layout')} className="h-8 sm:h-9">
-                    <LayoutGrid className="h-4 w-4 sm:mr-2" />
-                    <span className="hidden sm:inline">{t('eventMontage.columns', { count: gridCols })}</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => handleApplyGridLayout(1)}>
-                    <LayoutGrid className="h-4 w-4 mr-2" />
-                    {t('eventMontage.columns', { count: 1 })}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleApplyGridLayout(2)}>
-                    <LayoutGrid className="h-4 w-4 mr-2" />
-                    {t('eventMontage.columns', { count: 2 })}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleApplyGridLayout(3)}>
-                    <LayoutGrid className="h-4 w-4 mr-2" />
-                    {t('eventMontage.columns', { count: 3 })}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleApplyGridLayout(4)}>
-                    <LayoutGrid className="h-4 w-4 mr-2" />
-                    {t('eventMontage.columns', { count: 4 })}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleApplyGridLayout(5)}>
-                    <LayoutGrid className="h-4 w-4 mr-2" />
-                    {t('eventMontage.columns', { count: 5 })}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setIsCustomGridDialogOpen(true)}>
-                    <LayoutGrid className="h-4 w-4 mr-2" />
-                    {t('eventMontage.custom')}...
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-            <Popover>
-              <PopoverTrigger asChild>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              {referrer && (
                 <Button
-                  variant={activeFilterCount > 0 ? 'default' : 'outline'}
+                  variant="ghost"
                   size="icon"
-                  className="relative"
-                  aria-label={t('events.filters')}
-                  data-testid="events-filter-button"
+                  onClick={() => navigate(referrer)}
+                  title={t('common.go_back')}
                 >
-                  <Filter className="h-4 w-4" />
-                  {activeFilterCount > 0 && (
-                    <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500 border-2 border-background" />
-                  )}
+                  <ArrowLeft className="h-5 w-5" />
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent
-                className="w-[calc(100vw-2rem)] sm:w-80 max-w-sm max-h-[80vh] overflow-y-auto no-scrollbar"
-                data-testid="events-filter-panel"
+              )}
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{t('events.title')}</h1>
+                <p className="text-xs text-muted-foreground hidden sm:block">{t('events.subtitle')}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => handleViewModeChange(viewMode === 'list' ? 'montage' : 'list')}
+                aria-label={viewMode === 'list' ? t('events.view_montage') : t('events.view_list')}
+                data-testid="events-view-toggle"
               >
-                <MonitorFilterPopoverContent
-                  monitors={enabledMonitors}
-                  selectedMonitorIds={selectedMonitorIds}
-                  onSelectionChange={setSelectedMonitorIds}
-                  idPrefix="events"
+                {viewMode === 'list' ? <LayoutGrid className="h-4 w-4" /> : <List className="h-4 w-4" />}
+              </Button>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground hidden md:inline">{t('events.thumbnail_fit')}</span>
+                <Select value={normalizedThumbnailFit} onValueChange={handleThumbnailFitChange}>
+                  <SelectTrigger className="h-8 sm:h-9 w-[160px]" data-testid="events-thumbnail-fit-select">
+                    <SelectValue placeholder={t('events.thumbnail_fit')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="contain" data-testid="events-thumbnail-fit-contain">
+                      {t('events.fit_contain')}
+                    </SelectItem>
+                    <SelectItem value="cover" data-testid="events-thumbnail-fit-cover">
+                      {t('events.fit_cover')}
+                    </SelectItem>
+                    <SelectItem value="none" data-testid="events-thumbnail-fit-none">
+                      {t('events.fit_none')}
+                    </SelectItem>
+                    <SelectItem value="scale-down" data-testid="events-thumbnail-fit-scale-down">
+                      {t('events.fit_scale_down')}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {viewMode === 'montage' && (
+                <EventMontageGridControls
+                  gridCols={gridControls.gridCols}
+                  customCols={gridControls.customCols}
+                  isCustomGridDialogOpen={gridControls.isCustomGridDialogOpen}
+                  onApplyGridLayout={gridControls.handleApplyGridLayout}
+                  onCustomColsChange={gridControls.setCustomCols}
+                  onCustomGridDialogOpenChange={gridControls.setIsCustomGridDialogOpen}
+                  onCustomGridSubmit={gridControls.handleCustomGridSubmit}
                 />
-                <div className="grid gap-4 mt-4">
-                  <div className="grid gap-2">
-                    <div className="grid gap-2">
-                      <Label htmlFor="start-date">{t('events.date_range')} ({t('events.start')})</Label>
-                      <Input
-                        id="start-date"
-                        type="datetime-local"
-                        value={startDateInput}
-                        onChange={(e) => setStartDateInput(e.target.value)}
-                        step="1"
-                        data-testid="events-start-date"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="end-date">{t('events.date_range')} ({t('events.end')})</Label>
-                      <Input
-                        id="end-date"
-                        type="datetime-local"
-                        value={endDateInput}
-                        onChange={(e) => setEndDateInput(e.target.value)}
-                        step="1"
-                        data-testid="events-end-date"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label className="text-xs text-muted-foreground">{t('events.quick_ranges')}</Label>
-                      <QuickDateRangeButtons
-                        onRangeSelect={({ start, end }) => {
-                          setStartDateInput(formatLocalDateTime(start));
-                          setEndDateInput(formatLocalDateTime(end));
-                        }}
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <Button onClick={applyFilters} size="sm" className="flex-1" data-testid="events-apply-filters">
-                        {t('common.filter')}
-                      </Button>
-                      <Button onClick={clearFilters} size="sm" variant="outline" className="flex-1" data-testid="events-clear-filters">
-                        {t('common.clear')}
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-
-            <Button
-              onClick={() => refetch()}
-              variant="outline"
-              size="icon"
-              aria-label={t('events.refresh')}
-              data-testid="events-refresh-button"
-            >
-              <RefreshCw className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-        {viewMode === 'montage' && isScreenTooSmall && (
-          <p className="text-xs text-destructive">
-            {t('eventMontage.screen_too_small')}
-          </p>
-        )}
-      </div>
-
-      {/* Event Heatmap */}
-      {allEvents.length > 0 && (() => {
-        // Use explicit date filters if available, otherwise infer from events
-        let startDate: Date;
-        let endDate: Date;
-
-        if (filters.startDateTime && filters.endDateTime) {
-          startDate = new Date(filters.startDateTime);
-          endDate = new Date(filters.endDateTime);
-        } else {
-          // Infer date range from events
-          const eventDates = allEvents.map(e => new Date(e.Event.StartDateTime));
-          startDate = new Date(Math.min(...eventDates.map(d => d.getTime())));
-          endDate = new Date(Math.max(...eventDates.map(d => d.getTime())));
-        }
-
-        return (
-          <EventHeatmap
-            events={allEvents}
-            startDate={startDate}
-            endDate={endDate}
-            onTimeRangeClick={(startDateTime, endDateTime) => {
-              setStartDateInput(formatLocalDateTime(new Date(startDateTime)));
-              setEndDateInput(formatLocalDateTime(new Date(endDateTime)));
-              applyFilters();
-            }}
-          />
-        );
-      })()}
-
-      {/* Events List */}
-      {allEvents.length === 0 ? (
-        <div data-testid="events-empty-state">
-          <EmptyState
-            icon={Clock}
-            title={t('events.no_events')}
-            action={
-              filters.monitorId || filters.startDateTime || filters.endDateTime
-                ? {
-                    label: t('events.clear_filters'),
-                    onClick: clearFilters,
-                    variant: 'link',
-                  }
-                : undefined
-            }
-          />
-        </div>
-      ) : viewMode === 'montage' ? (
-        <div className="min-h-0" data-testid="events-montage-grid">
-          <div
-            className="grid gap-4"
-            style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}
-          >
-                  {allEvents.map((eventData) => {
-                    const event = eventData.Event;
-                    const monitorData = enabledMonitors.find((m) => m.Monitor.Id === event.MonitorId)?.Monitor;
-                    const monitorName = monitorData?.Name || `Camera ${event.MonitorId}`;
-                    const startTime = new Date(event.StartDateTime.replace(' ', 'T'));
-
-              // Get monitor dimensions (use event dimensions as fallback)
-              const monitorWidth = parseInt(monitorData?.Width || event.Width || '640', 10);
-              const monitorHeight = parseInt(monitorData?.Height || event.Height || '480', 10);
-
-              const { width: thumbnailWidth, height: thumbnailHeight } = calculateThumbnailDimensions(
-                monitorWidth,
-                monitorHeight,
-                monitorData?.Orientation ?? event.Orientation,
-                ZM_CONSTANTS.eventMontageImageWidth  // Target size for montage view (300)
-              );
-              const imageUrl = currentProfile
-                ? getEventImageUrl(currentProfile.portalUrl, event.Id, 'snapshot', {
-                  token: accessToken || undefined,
-                  width: thumbnailWidth,
-                  height: thumbnailHeight,
-                  apiUrl: currentProfile.apiUrl,
-                })
-                : '';
-
-              const hasVideo = event.Videoed === '1';
-              const aspectRatio = thumbnailWidth / thumbnailHeight;
-
-              return (
-                <Card
-                  key={event.Id}
-                  className="group overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary transition-all"
-                  onClick={() => navigate(`/events/${event.Id}`)}
+              )}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={activeFilterCount > 0 ? 'default' : 'outline'}
+                    size="icon"
+                    className="relative"
+                    aria-label={t('events.filters')}
+                    data-testid="events-filter-button"
+                  >
+                    <Filter className="h-4 w-4" />
+                    {activeFilterCount > 0 && (
+                      <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500 border-2 border-background" />
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-[calc(100vw-2rem)] sm:w-80 max-w-sm max-h-[80vh] overflow-y-auto no-scrollbar"
+                  data-testid="events-filter-panel"
                 >
-                  <div className="relative bg-black" style={{ aspectRatio: aspectRatio.toString() }}>
-                    <SecureImage
-                      src={imageUrl}
-                      alt={event.Name}
-                      className="w-full h-full"
-                      style={{ objectFit: normalizedThumbnailFit }}
-                      onError={(e) => {
-                        const img = e.target as HTMLImageElement;
-                        img.src = 'data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"300\" height=\"200\"%3E%3Crect fill=\"%231a1a1a\" width=\"300\" height=\"200\"/%3E%3Ctext fill=\"%23444\" x=\"50%\" y=\"50%\" text-anchor=\"middle\" font-family=\"sans-serif\"%3ENo Image%3C/text%3E%3C/svg%3E';
-                      }}
-                    />
-                    <div className="absolute top-2 right-2">
-                      <Badge variant="secondary" className="text-xs">
-                        {event.Length}s
-                      </Badge>
-                    </div>
-
-                    {hasVideo && (
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          className="gap-2"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (currentProfile) {
-                              downloadEventVideo(
-                                currentProfile.portalUrl,
-                                event.Id,
-                                event.Name,
-                                accessToken || undefined
-                              )
-                                .then(() => toast.success(t('eventMontage.video_download_started')))
-                                .catch(() => toast.error(t('eventMontage.video_download_failed')));
-                            }
+                  <MonitorFilterPopoverContent
+                    monitors={enabledMonitors}
+                    selectedMonitorIds={selectedMonitorIds}
+                    onSelectionChange={setSelectedMonitorIds}
+                    idPrefix="events"
+                  />
+                  <div className="grid gap-4 mt-4">
+                    <div className="grid gap-2">
+                      <div className="grid gap-2">
+                        <Label htmlFor="start-date">
+                          {t('events.date_range')} ({t('events.start')})
+                        </Label>
+                        <Input
+                          id="start-date"
+                          type="datetime-local"
+                          value={startDateInput}
+                          onChange={(e) => setStartDateInput(e.target.value)}
+                          step="1"
+                          data-testid="events-start-date"
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="end-date">
+                          {t('events.date_range')} ({t('events.end')})
+                        </Label>
+                        <Input
+                          id="end-date"
+                          type="datetime-local"
+                          value={endDateInput}
+                          onChange={(e) => setEndDateInput(e.target.value)}
+                          step="1"
+                          data-testid="events-end-date"
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label className="text-xs text-muted-foreground">{t('events.quick_ranges')}</Label>
+                        <QuickDateRangeButtons
+                          onRangeSelect={({ start, end }) => {
+                            setStartDateInput(formatLocalDateTime(start));
+                            setEndDateInput(formatLocalDateTime(end));
                           }}
-                          title={t('eventMontage.download_video')}
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Button onClick={applyFilters} size="sm" className="flex-1" data-testid="events-apply-filters">
+                          {t('common.filter')}
+                        </Button>
+                        <Button
+                          onClick={clearFilters}
+                          size="sm"
+                          variant="outline"
+                          className="flex-1"
+                          data-testid="events-clear-filters"
                         >
-                          <Video className="h-4 w-4" />
-                          {t('eventMontage.download_video')}
+                          {t('common.clear')}
                         </Button>
                       </div>
-                    )}
+                    </div>
                   </div>
-                  <div className="p-3 space-y-1">
-                    <div className="font-medium text-sm truncate" title={event.Name}>
-                      {event.Name}
-                    </div>
-                    <div className="text-xs text-muted-foreground truncate">
-                      {monitorName}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {format(startTime, 'MMM d, HH:mm:ss')}
-                    </div>
-                    {event.Cause && (
-                      <Badge variant="outline" className="text-xs">
-                        {event.Cause}
-                      </Badge>
-                    )}
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
+                </PopoverContent>
+              </Popover>
 
-          <div className="text-center py-4 space-y-3">
-            <div className="text-xs text-muted-foreground">
-              {t('events.showing_events', { count: allEvents.length })}
-              {allEvents.length >= eventLimit && ` (${t('events.more_available')})`}
-            </div>
-            {allEvents.length >= eventLimit && (
               <Button
-                onClick={loadNextPage}
-                disabled={isLoadingMore}
+                onClick={() => refetch()}
                 variant="outline"
-                size="sm"
-                className="w-full"
-                data-testid="events-load-more"
+                size="icon"
+                aria-label={t('events.refresh')}
+                data-testid="events-refresh-button"
               >
-                {isLoadingMore ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    {t('common.loading')}
-                  </>
-                ) : (
-                  t('events.load_more')
-                )}
+                <RefreshCw className="h-4 w-4" />
               </Button>
-            )}
-          </div>
-        </div>
-      ) : (
-        <div className="min-h-0" data-testid="event-list">
-          <div
-            style={{
-              height: `${rowVirtualizer.getTotalSize()}px`,
-              width: '100%',
-              position: 'relative',
-            }}
-          >
-            {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-              const { Event } = allEvents[virtualRow.index];
-              const monitorData = enabledMonitors.find((m) => m.Monitor.Id === Event.MonitorId)?.Monitor;
-
-              // Get monitor dimensions (use event dimensions as fallback)
-              const monitorWidth = parseInt(monitorData?.Width || Event.Width || '640', 10);
-              const monitorHeight = parseInt(monitorData?.Height || Event.Height || '480', 10);
-
-              const { width: thumbnailWidth, height: thumbnailHeight } = calculateThumbnailDimensions(
-                monitorWidth,
-                monitorHeight,
-                monitorData?.Orientation ?? Event.Orientation,
-                160  // Target size for list view
-              );
-              const thumbnailUrl = currentProfile
-                ? getEventImageUrl(currentProfile.portalUrl, Event.Id, 'snapshot', {
-                  token: accessToken || undefined,
-                  width: thumbnailWidth,
-                  height: thumbnailHeight,
-                  apiUrl: currentProfile.apiUrl,
-                })
-                : '';
-
-              const monitorName =
-                monitorData?.Name ||
-                `Camera ${Event.MonitorId}`;
-
-              return (
-                <div
-                  key={Event.Id}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: `${virtualRow.size}px`,
-                    transform: `translateY(${virtualRow.start}px)`,
-                  }}
-                  className="pb-3"
-                >
-                  <EventCard
-                    event={Event}
-                    monitorName={monitorName}
-                    thumbnailUrl={thumbnailUrl}
-                    objectFit={normalizedThumbnailFit}
-                    thumbnailWidth={thumbnailWidth}
-                    thumbnailHeight={thumbnailHeight}
-                  />
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="text-center py-4 space-y-3">
-            <div className="text-xs text-muted-foreground">
-              {t('events.showing_events', { count: allEvents.length })}
-              {allEvents.length >= eventLimit && ` (${t('events.more_available')})`}
             </div>
-            {allEvents.length >= eventLimit && (
-              <Button
-                onClick={loadNextPage}
-                disabled={isLoadingMore}
-                variant="outline"
-                size="sm"
-                className="w-full"
-                data-testid="events-load-more"
-              >
-                {isLoadingMore ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    {t('common.loading')}
-                  </>
-                ) : (
-                  t('events.load_more')
-                )}
-              </Button>
-            )}
           </div>
+          {viewMode === 'montage' && gridControls.isScreenTooSmall && (
+            <p className="text-xs text-destructive">{t('eventMontage.screen_too_small')}</p>
+          )}
         </div>
-      )}
-      </div>
-      <Dialog open={isCustomGridDialogOpen} onOpenChange={setIsCustomGridDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('eventMontage.custom_grid_title')}</DialogTitle>
-            <DialogDescription>
-              {t('eventMontage.custom_grid_desc')}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="custom-cols">{t('eventMontage.columns_label')}</Label>
-              <Input
-                id="custom-cols"
-                type="number"
-                min="1"
-                max="10"
-                value={customCols}
-                onChange={(e) => setCustomCols(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleCustomGridSubmit();
-                  }
+
+        {/* Event Heatmap */}
+        {allEvents.length > 0 &&
+          (() => {
+            // Use explicit date filters if available, otherwise infer from events
+            let startDate: Date;
+            let endDate: Date;
+
+            if (filters.startDateTime && filters.endDateTime) {
+              startDate = new Date(filters.startDateTime);
+              endDate = new Date(filters.endDateTime);
+            } else {
+              // Infer date range from events
+              const eventDates = allEvents.map((e) => new Date(e.Event.StartDateTime));
+              startDate = new Date(Math.min(...eventDates.map((d) => d.getTime())));
+              endDate = new Date(Math.max(...eventDates.map((d) => d.getTime())));
+            }
+
+            return (
+              <EventHeatmap
+                events={allEvents}
+                startDate={startDate}
+                endDate={endDate}
+                onTimeRangeClick={(startDateTime, endDateTime) => {
+                  setStartDateInput(formatLocalDateTime(new Date(startDateTime)));
+                  setEndDateInput(formatLocalDateTime(new Date(endDateTime)));
+                  applyFilters();
                 }}
               />
-            </div>
+            );
+          })()}
+
+        {/* Events List or Montage View */}
+        {allEvents.length === 0 ? (
+          <div data-testid="events-empty-state">
+            <EmptyState
+              icon={Clock}
+              title={t('events.no_events')}
+              action={
+                filters.monitorId || filters.startDateTime || filters.endDateTime
+                  ? {
+                      label: t('events.clear_filters'),
+                      onClick: clearFilters,
+                      variant: 'link',
+                    }
+                  : undefined
+              }
+            />
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCustomGridDialogOpen(false)}>
-              {t('common.cancel')}
-            </Button>
-            <Button onClick={handleCustomGridSubmit}>{t('common.apply')}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        ) : viewMode === 'montage' ? (
+          <EventMontageView
+            events={allEvents}
+            monitors={enabledMonitors}
+            gridCols={gridControls.gridCols}
+            thumbnailFit={normalizedThumbnailFit}
+            portalUrl={currentProfile?.portalUrl || ''}
+            accessToken={accessToken || undefined}
+            eventLimit={eventLimit}
+            isLoadingMore={isLoadingMore}
+            onLoadMore={loadNextPage}
+          />
+        ) : (
+          <EventListView
+            events={allEvents}
+            monitors={enabledMonitors}
+            thumbnailFit={normalizedThumbnailFit}
+            portalUrl={currentProfile?.portalUrl || ''}
+            accessToken={accessToken || undefined}
+            eventLimit={eventLimit}
+            isLoadingMore={isLoadingMore}
+            onLoadMore={loadNextPage}
+            parentRef={parentRef}
+          />
+        )}
+      </div>
     </>
   );
 }
