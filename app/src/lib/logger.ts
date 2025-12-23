@@ -17,8 +17,6 @@ import { useLogStore } from '../stores/logs';
 import { sanitizeLogMessage, sanitizeObject, sanitizeLogArgs } from './log-sanitizer';
 import { LogLevel } from './log-level';
 
-export type LogLevel = typeof LogLevel[keyof typeof LogLevel];
-
 interface LogContext {
   component?: string;
   action?: string;
@@ -308,7 +306,7 @@ class Logger {
 export const logger = new Logger();
 
 // Export convenience methods
-export { LogLevel };
+export { LogLevel } from './log-level';
 
 export const log = {
   debug: (message: string, context?: LogContext, ...args: unknown[]) =>
