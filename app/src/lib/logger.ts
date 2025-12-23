@@ -10,19 +10,12 @@
  * - Automatic sanitization of sensitive data (passwords, tokens)
  * - Context-aware logging (component, action)
  * - Specialized helpers for common domains (API, Auth, Profile, Monitor)
- * - Persists log level preference to localStorage
+ * - Supports log level preferences managed by profile settings
  */
 
 import { useLogStore } from '../stores/logs';
 import { sanitizeLogMessage, sanitizeObject, sanitizeLogArgs } from './log-sanitizer';
-
-export const LogLevel = {
-  DEBUG: 0,
-  INFO: 1,
-  WARN: 2,
-  ERROR: 3,
-  NONE: 4,
-} as const;
+import { LogLevel } from './log-level';
 
 export type LogLevel = typeof LogLevel[keyof typeof LogLevel];
 
@@ -38,15 +31,8 @@ class Logger {
 
   constructor() {
     this.isDev = this.resolveIsDev();
-    // Check for saved log level
-    const savedLevel = typeof localStorage !== 'undefined' ? localStorage.getItem('zm_log_level') : null;
-
-    if (savedLevel !== null && !isNaN(parseInt(savedLevel, 10))) {
-      this.level = parseInt(savedLevel, 10) as LogLevel;
-    } else {
-      // Default to INFO in production to ensure logs are visible in simulator/device
-      this.level = this.isDev ? LogLevel.DEBUG : LogLevel.INFO;
-    }
+    // Default to INFO in production to ensure logs are visible in simulator/device
+    this.level = this.isDev ? LogLevel.DEBUG : LogLevel.INFO;
   }
 
   private resolveIsDev(): boolean {
@@ -61,13 +47,9 @@ class Logger {
 
   /**
    * Set the current log level.
-   * Persists the choice to localStorage.
    */
   setLevel(level: LogLevel): void {
     this.level = level;
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('zm_log_level', level.toString());
-    }
   }
 
   /**
@@ -326,6 +308,8 @@ class Logger {
 export const logger = new Logger();
 
 // Export convenience methods
+export { LogLevel };
+
 export const log = {
   debug: (message: string, context?: LogContext, ...args: unknown[]) =>
     logger.debug(message, context, ...args),

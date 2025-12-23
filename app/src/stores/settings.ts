@@ -1,15 +1,19 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Layouts } from 'react-grid-layout';
+import { LogLevel } from '../lib/log-level';
 
 export type ViewMode = 'snapshot' | 'streaming';
 export type DisplayMode = 'normal' | 'compact';
 export type MonitorFeedFit = 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
 export type EventsViewMode = 'list' | 'montage';
+export type ThemePreference = 'dark' | 'light' | 'system';
 
 export interface ProfileSettings {
   viewMode: ViewMode;
   displayMode: DisplayMode;
+  theme: ThemePreference;
+  logLevel: LogLevel;
   snapshotRefreshInterval: number; // in seconds
   streamMaxFps: number; // Max FPS for live streams
   streamScale: number; // Scale percentage for live streams (1-100)
@@ -63,9 +67,15 @@ const getDefaultDisplayMode = (): DisplayMode => {
   return 'normal';
 };
 
+const getDefaultLogLevel = (): LogLevel => (
+  typeof import.meta !== 'undefined' && import.meta.env?.DEV ? LogLevel.DEBUG : LogLevel.INFO
+);
+
 const DEFAULT_SETTINGS: ProfileSettings = {
   viewMode: 'snapshot',
   displayMode: getDefaultDisplayMode(),
+  theme: 'light',
+  logLevel: getDefaultLogLevel(),
   snapshotRefreshInterval: 3,
   streamMaxFps: 10,
   streamScale: 50,

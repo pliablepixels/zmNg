@@ -1,5 +1,7 @@
 import { useLogStore } from '../stores/logs';
 import { logger, LogLevel } from '../lib/logger';
+import { useProfileStore } from '../stores/profile';
+import { useSettingsStore } from '../stores/settings';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
@@ -59,14 +61,20 @@ export default function Logs() {
     const { toast } = useToast();
     const { t } = useTranslation();
     const isNative = Capacitor.isNativePlatform();
-    const [logLevel, setLogLevel] = useState<string>(logger.getLevel().toString());
+    const currentProfile = useProfileStore((state) => state.currentProfile());
+    const logLevel = useSettingsStore(
+        (state) => state.getProfileSettings(currentProfile?.id || '').logLevel
+    );
+    const updateProfileSettings = useSettingsStore((state) => state.updateProfileSettings);
     const [selectedComponents, setSelectedComponents] = useState<string[]>([]);
     const unassignedComponentValue = 'unassigned';
 
     const handleLevelChange = (value: string) => {
         const level = parseInt(value, 10) as LogLevel;
         logger.setLevel(level);
-        setLogLevel(value);
+        if (currentProfile?.id) {
+            updateProfileSettings(currentProfile.id, { logLevel: level });
+        }
         toast({
             title: t('common.success'),
             description: t('logs.level_updated'),
@@ -145,7 +153,7 @@ export default function Logs() {
         value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
     // Filter logs based on selected level and components
-    const currentLevel = parseInt(logLevel, 10);
+    const currentLevel = logLevel;
     const filteredLogs = logs.filter((log) => {
         const passesLevel = logLevelValue(log.level) >= currentLevel;
         if (!passesLevel) return false;
@@ -244,15 +252,15 @@ export default function Logs() {
                     </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                    <Select value={logLevel} onValueChange={handleLevelChange}>
+                    <Select value={logLevel.toString()} onValueChange={handleLevelChange}>
                         <SelectTrigger className="w-[100px] h-8" data-testid="log-level-select">
                             <SelectValue placeholder={t('logs.level_placeholder')} />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value={LogLevel.DEBUG.toString()} data-testid="log-level-option-DEBUG">DEBUG</SelectItem>
-                            <SelectItem value={LogLevel.INFO.toString()} data-testid="log-level-option-INFO">INFO</SelectItem>
-                            <SelectItem value={LogLevel.WARN.toString()} data-testid="log-level-option-WARN">WARN</SelectItem>
-                            <SelectItem value={LogLevel.ERROR.toString()} data-testid="log-level-option-ERROR">ERROR</SelectItem>
+                            <SelectItem value={LogLevel.DEBUG.toString()} data-testid="log-level-option-DEBUG">{t('logs.level_debug')}</SelectItem>
+                            <SelectItem value={LogLevel.INFO.toString()} data-testid="log-level-option-INFO">{t('logs.level_info')}</SelectItem>
+                            <SelectItem value={LogLevel.WARN.toString()} data-testid="log-level-option-WARN">{t('logs.level_warn')}</SelectItem>
+                            <SelectItem value={LogLevel.ERROR.toString()} data-testid="log-level-option-ERROR">{t('logs.level_error')}</SelectItem>
                         </SelectContent>
                     </Select>
                     <div data-testid="log-component-filter">

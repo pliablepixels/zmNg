@@ -6,14 +6,15 @@
  * CSS class to the document root.
  */
 
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useMemo, useState } from "react"
+import { useProfileStore } from '../stores/profile';
+import { useSettingsStore } from '../stores/settings';
 
 type Theme = "dark" | "light" | "system"
 
 type ThemeProviderProps = {
     children: React.ReactNode
     defaultTheme?: Theme
-    storageKey?: string
 }
 
 type ThemeProviderState = {
@@ -39,11 +40,20 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState)
 export function ThemeProvider({
     children,
     defaultTheme = "system",
-    storageKey = "vite-ui-theme",
 }: ThemeProviderProps) {
-    const [theme, setTheme] = useState<Theme>(
-        () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
-    )
+    const currentProfileId = useProfileStore((state) => state.currentProfileId);
+    const profileTheme = useSettingsStore(
+        (state) => (currentProfileId ? state.getProfileSettings(currentProfileId).theme : undefined)
+    );
+    const updateProfileSettings = useSettingsStore((state) => state.updateProfileSettings);
+    const resolvedDefault = useMemo(() => profileTheme || defaultTheme, [defaultTheme, profileTheme]);
+    const [theme, setTheme] = useState<Theme>(resolvedDefault);
+
+    useEffect(() => {
+        if (profileTheme && profileTheme !== theme) {
+            setTheme(profileTheme);
+        }
+    }, [profileTheme, theme]);
 
     useEffect(() => {
         const root = window.document.documentElement
@@ -66,8 +76,10 @@ export function ThemeProvider({
     const value = {
         theme,
         setTheme: (theme: Theme) => {
-            localStorage.setItem(storageKey, theme)
             setTheme(theme)
+            if (currentProfileId) {
+                updateProfileSettings(currentProfileId, { theme });
+            }
         },
     }
 

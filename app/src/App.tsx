@@ -19,7 +19,7 @@ import { RouteErrorBoundary } from './components/RouteErrorBoundary';
 import { useTokenRefresh } from './hooks/useTokenRefresh';
 import AppLayout from './components/layout/AppLayout';
 import { NotificationHandler } from './components/NotificationHandler';
-import { log, LogLevel } from './lib/logger';
+import { log, LogLevel, logger } from './lib/logger';
 
 // Lazy load route components for code splitting
 const ProfileForm = lazy(() => import('./pages/ProfileForm'));
@@ -69,6 +69,9 @@ function AppRoutes() {
   const displayMode = useSettingsStore(
     (state) => state.getProfileSettings(currentProfile?.id || '').displayMode
   );
+  const logLevel = useSettingsStore(
+    (state) => state.getProfileSettings(currentProfile?.id || '').logLevel
+  );
 
   // Enable automatic token refresh
   useTokenRefresh();
@@ -84,6 +87,10 @@ function AppRoutes() {
       }
     }
   }, [displayMode]);
+
+  useEffect(() => {
+    logger.setLevel(logLevel);
+  }, [logLevel]);
 
   // Log app mount and profile state
   useEffect(() => {
@@ -280,7 +287,7 @@ function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider defaultTheme="light" storageKey="zmng-ui-theme">
+        <ThemeProvider defaultTheme="light">
           <div
             className={isBootstrapping ? 'pointer-events-none select-none' : ''}
             aria-busy={isBootstrapping}
