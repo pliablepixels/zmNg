@@ -50,12 +50,19 @@ export const EventListView = ({
     overscan: 5, // Render 5 items above and below viewport
   });
 
+  const scrollElement = parentRef.current;
   log.eventDetail('EventListView render', LogLevel.DEBUG, {
     hasParentElement: !!parentElement,
     hasParentRef: !!parentRef.current,
+    parentSame: parentElement === parentRef.current,
     eventsCount: events.length,
     totalSize: rowVirtualizer.getTotalSize(),
     virtualItemsCount: rowVirtualizer.getVirtualItems().length,
+    scrollElement: scrollElement ? {
+      clientHeight: scrollElement.clientHeight,
+      scrollHeight: scrollElement.scrollHeight,
+      offsetHeight: scrollElement.offsetHeight,
+    } : null,
   });
 
   // Don't render content until we have a parent element (iOS timing fix)
@@ -71,10 +78,24 @@ export const EventListView = ({
     );
   }
 
+  const virtualItems = rowVirtualizer.getVirtualItems();
   log.eventDetail('EventListView: rendering list', LogLevel.INFO, {
     totalSize: rowVirtualizer.getTotalSize(),
-    virtualItemsCount: rowVirtualizer.getVirtualItems().length,
+    virtualItemsCount: virtualItems.length,
+    scrollElement: scrollElement ? {
+      clientHeight: scrollElement.clientHeight,
+      scrollHeight: scrollElement.scrollHeight,
+      offsetHeight: scrollElement.offsetHeight,
+    } : null,
   });
+
+  if (virtualItems.length === 0) {
+    log.eventDetail('EventListView: virtualizer returned 0 items but we have events', LogLevel.ERROR, {
+      eventsCount: events.length,
+      totalSize: rowVirtualizer.getTotalSize(),
+      scrollElement: scrollElement ? 'exists' : 'null',
+    });
+  }
 
   return (
     <div className="min-h-0" data-testid="event-list">
@@ -85,7 +106,7 @@ export const EventListView = ({
           position: 'relative',
         }}
       >
-        {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+        {virtualItems.map((virtualRow) => {
           const { Event } = events[virtualRow.index];
           const monitorData = monitors.find((m) => m.Monitor.Id === Event.MonitorId)?.Monitor;
 
