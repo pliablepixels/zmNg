@@ -4,18 +4,33 @@ All notable changes to this project will be documented in this file.
 
 ## [zmNg-0.1.0](https://github.com/pliablepixels/zmNg/compare/zmNg-0.0.9..zmNg-0.1.0) - 2025-12-24
 
+### ✨ Features
+
+- **Route Persistence**: App now remembers your last visited page and returns to it on restart - ([dc2cb2c](https://github.com/pliablepixels/zmNg/commit/dc2cb2cfc5c805f2345095e24462b9f585dff2d2))
+  - Each profile independently tracks its last visited route
+  - First-time setup now navigates to Monitors view instead of Dashboard
+  - Route persistence saved per-profile in settings
+  - Excludes setup/profile management routes from being saved
+
 ### 🐛 Bug Fixes
 
 - Add missing comma in package.json - ([997e545](https://github.com/pliablepixels/zmNg/commit/997e545a65774e2e94203857930152c1c0239438))
+- Remove redundant module-level failsafe that caused E2E test failures - ([dc2cb2c](https://github.com/pliablepixels/zmNg/commit/dc2cb2cfc5c805f2345095e24462b9f585dff2d2))
+  - Removed 3-second failsafe from profile store that was triggering prematurely
+  - Now relies solely on React-based 5-second timeout in App.tsx
+  - Fixes flaky E2E tests by giving initialization more time
+- Fix flaky "clear event filters" E2E test - ([dc2cb2c](https://github.com/pliablepixels/zmNg/commit/dc2cb2cfc5c805f2345095e24462b9f585dff2d2))
+  - Removed `{ force: true }` from click action
+  - Added proper wait for button visibility before clicking
 - Add failsafes to prevent Android splash screen hang on app restart - ([31d97c7](https://github.com/pliablepixels/zmNg/commit/31d97c744df141e5e50e9793493f21f566c1cb91))
 
 ### 🔧 Miscellaneous
 
 - Updated release message - ([57f37d1](https://github.com/pliablepixels/zmNg/commit/57f37d17ad4b41c44d5a7d2f4caffb4289ceaa81))
-- 0.1.0 - ([dc2cb2c](https://github.com/pliablepixels/zmNg/commit/dc2cb2cfc5c805f2345095e24462b9f585dff2d2))
 
 ### 📝 Other
 
+- Preparing release for: zmNg-0.1.0 - ([31d2909](https://github.com/pliablepixels/zmNg/commit/31d29090c6122219c99b3a54ac278963b5fd9527))
 - Preparing release for: zmNg-0.1.0 - ([0bee4d6](https://github.com/pliablepixels/zmNg/commit/0bee4d61b8552502a9e0a2690b16ffd9fa5eaa9c))
 ## [zmNg-0.0.9](https://github.com/pliablepixels/zmNg/compare/zmNg-0.0.8..zmNg-0.0.9) - 2025-12-24
 
