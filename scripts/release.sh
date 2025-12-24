@@ -140,7 +140,7 @@ git-cliff --tag "$TAG" -o CHANGELOG.md
 if [[ -n $(git diff --name-only CHANGELOG.md 2>/dev/null) ]] || [[ -n $(git ls-files --others --exclude-standard CHANGELOG.md 2>/dev/null) ]]; then
     echo "📝 CHANGELOG.md updated, committing..."
     git add CHANGELOG.md
-    git commit -m "docs: update CHANGELOG.md for $TAG"
+    git commit -m "Preparing release for: $TAG"
     git push origin "$CURRENT_BRANCH"
     echo "✅ CHANGELOG.md committed and pushed"
 else
