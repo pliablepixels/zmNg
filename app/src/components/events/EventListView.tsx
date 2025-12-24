@@ -41,11 +41,19 @@ export const EventListView = ({
   const [isParentReady, setIsParentReady] = useState(false);
 
   // Wait for parentRef to be available (iOS timing fix)
+  // Check on every render cycle, not just when parentRef changes
   useEffect(() => {
-    if (parentRef.current) {
+    if (parentRef.current && !isParentReady) {
       setIsParentReady(true);
     }
-  }, [parentRef]);
+  });
+
+  // Reset ready state when component unmounts to ensure clean state on re-mount
+  useEffect(() => {
+    return () => {
+      setIsParentReady(false);
+    };
+  }, []);
 
   // Virtualize the events list for better performance
   const rowVirtualizer = useVirtualizer({
