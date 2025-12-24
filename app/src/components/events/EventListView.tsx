@@ -6,6 +6,7 @@
 
 import { useTranslation } from 'react-i18next';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import { useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { EventCard } from './EventCard';
@@ -49,6 +50,19 @@ export const EventListView = ({
     estimateSize: () => 140, // Approximate height of EventCard
     overscan: 5, // Render 5 items above and below viewport
   });
+
+  // Force virtualizer to re-measure when parentElement becomes available (iOS fix)
+  useEffect(() => {
+    if (parentElement) {
+      log.eventDetail('EventListView: forcing virtualizer to measure', LogLevel.INFO, {
+        scrollElement: {
+          clientHeight: parentElement.clientHeight,
+          scrollHeight: parentElement.scrollHeight,
+        },
+      });
+      rowVirtualizer.measure();
+    }
+  }, [parentElement, rowVirtualizer]);
 
   const scrollElement = parentRef.current;
   log.eventDetail('EventListView render', LogLevel.DEBUG, {
