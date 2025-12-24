@@ -35,7 +35,6 @@ import { QuickDateRangeButtons } from '../components/ui/quick-date-range-buttons
 import { MonitorFilterPopoverContent } from '../components/filters/MonitorFilterPopover';
 import { EmptyState } from '../components/ui/empty-state';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { log, LogLevel } from '../lib/logger';
 
 export default function Events() {
   const navigate = useNavigate();
@@ -221,11 +220,6 @@ export default function Events() {
     <>
       <div
         ref={(el) => {
-          log.eventDetail('Events callback ref fired', LogLevel.DEBUG, {
-            el: el ? 'DIV element' : 'null',
-            clientHeight: el?.clientHeight,
-            scrollHeight: el?.scrollHeight,
-          });
           parentRef.current = el;
           pullToRefresh.containerRef.current = el;
           setParentElement(el); // Trigger re-render when ref is set (iOS fix)

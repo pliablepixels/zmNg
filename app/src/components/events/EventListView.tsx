@@ -13,7 +13,6 @@ import { EventCard } from './EventCard';
 import { getEventImageUrl } from '../../api/events';
 import { calculateThumbnailDimensions, EVENT_GRID_CONSTANTS } from '../../lib/event-utils';
 import type { Monitor } from '../../api/types';
-import { log, LogLevel } from '../../lib/logger';
 
 interface EventListViewProps {
   events: any[];
@@ -53,36 +52,14 @@ export const EventListView = ({
 
   // Force virtualizer to re-measure when parentElement becomes available (iOS fix)
   useEffect(() => {
-    if (parentElement) {
-      log.eventDetail('EventListView: forcing virtualizer to measure', LogLevel.INFO, {
-        scrollElement: {
-          clientHeight: parentElement.clientHeight,
-          scrollHeight: parentElement.scrollHeight,
-        },
-      });
+    if (parentElement && rowVirtualizer.measure) {
       rowVirtualizer.measure();
     }
   }, [parentElement, rowVirtualizer]);
 
-  const scrollElement = parentRef.current;
-  log.eventDetail('EventListView render', LogLevel.DEBUG, {
-    hasParentElement: !!parentElement,
-    hasParentRef: !!parentRef.current,
-    parentSame: parentElement === parentRef.current,
-    eventsCount: events.length,
-    totalSize: rowVirtualizer.getTotalSize(),
-    virtualItemsCount: rowVirtualizer.getVirtualItems().length,
-    scrollElement: scrollElement ? {
-      clientHeight: scrollElement.clientHeight,
-      scrollHeight: scrollElement.scrollHeight,
-      offsetHeight: scrollElement.offsetHeight,
-    } : null,
-  });
-
   // Don't render content until we have a parent element (iOS timing fix)
   // Parent component will trigger re-render via callback ref state update
   if (!parentElement) {
-    log.eventDetail('EventListView: no parentElement, showing loading', LogLevel.WARN);
     return (
       <div className="min-h-0 p-4" data-testid="event-list-loading">
         <div className="text-center text-muted-foreground">
@@ -93,23 +70,6 @@ export const EventListView = ({
   }
 
   const virtualItems = rowVirtualizer.getVirtualItems();
-  log.eventDetail('EventListView: rendering list', LogLevel.INFO, {
-    totalSize: rowVirtualizer.getTotalSize(),
-    virtualItemsCount: virtualItems.length,
-    scrollElement: scrollElement ? {
-      clientHeight: scrollElement.clientHeight,
-      scrollHeight: scrollElement.scrollHeight,
-      offsetHeight: scrollElement.offsetHeight,
-    } : null,
-  });
-
-  if (virtualItems.length === 0) {
-    log.eventDetail('EventListView: virtualizer returned 0 items but we have events', LogLevel.ERROR, {
-      eventsCount: events.length,
-      totalSize: rowVirtualizer.getTotalSize(),
-      scrollElement: scrollElement ? 'exists' : 'null',
-    });
-  }
 
   return (
     <div className="min-h-0" data-testid="event-list">
