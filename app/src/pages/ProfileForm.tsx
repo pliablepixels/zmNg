@@ -82,6 +82,7 @@ export default function ProfileForm() {
 
       log.profileForm('Testing connection', LogLevel.INFO, { portalUrl });
 
+      let confirmedPortalUrl: string;
       let apiUrl: string;
       let cgiUrl: string;
 
@@ -105,9 +106,15 @@ export default function ProfileForm() {
           );
         }
 
+        // Ensure portal URL has protocol for manual mode
+        confirmedPortalUrl = portalUrl;
+        if (!confirmedPortalUrl.startsWith('http://') && !confirmedPortalUrl.startsWith('https://')) {
+          confirmedPortalUrl = `https://${confirmedPortalUrl}`;
+        }
+
         apiUrl = manualApiUrl;
         cgiUrl = manualCgiUrl;
-        log.profileForm('Manual URLs set', LogLevel.INFO, { apiUrl, cgiUrl });
+        log.profileForm('Manual URLs set', LogLevel.INFO, { portalUrl: confirmedPortalUrl, apiUrl, cgiUrl });
 
         // Initialize API client with manual URL
         const client = createApiClient(apiUrl);
@@ -116,9 +123,10 @@ export default function ProfileForm() {
         // Discover URLs from portal URL
         log.profileForm('Discovering URLs', LogLevel.INFO);
         const discovered = await discoverUrls(portalUrl);
+        confirmedPortalUrl = discovered.portalUrl;
         apiUrl = discovered.apiUrl;
         cgiUrl = discovered.cgiUrl;
-        log.profileForm('URLs discovered', LogLevel.INFO, { apiUrl, cgiUrl });
+        log.profileForm('URLs discovered', LogLevel.INFO, { portalUrl: confirmedPortalUrl, apiUrl, cgiUrl });
       }
 
       // If credentials are provided, try to login
@@ -138,14 +146,9 @@ export default function ProfileForm() {
           // After successful login, try to fetch the ZMS path from server config
           const zmsPath = await fetchZmsPath();
           if (zmsPath) {
-            // Successfully fetched ZMS path - construct the full CGI URL
-            let baseUrl = portalUrl;
-            if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
-              baseUrl = `https://${baseUrl}`;
-            }
-
+            // Successfully fetched ZMS path - construct the full CGI URL using confirmed portal URL
             try {
-              const url = new URL(baseUrl);
+              const url = new URL(confirmedPortalUrl);
               const newCgiUrl = `${url.origin}${zmsPath}`;
               log.profileForm('ZMS path fetched, updating CGI URL', LogLevel.INFO, {
                 oldCgiUrl: cgiUrl,
@@ -155,7 +158,7 @@ export default function ProfileForm() {
               cgiUrl = newCgiUrl;
             } catch (urlError) {
               log.profileForm('Failed to construct CGI URL from ZMS path, using inferred URL', LogLevel.WARN, {
-                portalUrl,
+                confirmedPortalUrl,
                 zmsPath,
                 error: urlError
               });
@@ -174,17 +177,11 @@ export default function ProfileForm() {
       setSuccess(true);
       setError('');
 
-      // Ensure portalUrl has a protocol before saving
-      let finalPortalUrl = portalUrl;
-      if (!finalPortalUrl.startsWith('http://') && !finalPortalUrl.startsWith('https://')) {
-        finalPortalUrl = `https://${finalPortalUrl}`;
-      }
-
       // Generate profile name if not provided
       const finalProfileName = profileName.trim() || (
-        finalPortalUrl.includes('demo.zoneminder.com')
+        confirmedPortalUrl.includes('demo.zoneminder.com')
           ? 'Demo Server'
-          : finalPortalUrl.includes('isaac')
+          : confirmedPortalUrl.includes('isaac')
             ? 'Isaac Server'
             : 'My ZoneMinder'
       );
@@ -192,7 +189,7 @@ export default function ProfileForm() {
       log.profileForm('Adding new profile', LogLevel.INFO, { profileName: finalProfileName });
       const newProfileId = await addProfile({
         name: finalProfileName,
-        portalUrl: finalPortalUrl,
+        portalUrl: confirmedPortalUrl,
         apiUrl,
         cgiUrl,
         username: normalizedUsername || undefined,
