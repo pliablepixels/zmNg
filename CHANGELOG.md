@@ -2,12 +2,77 @@
 
 All notable changes to this project will be documented in this file.
 
+## [zmNg-0.0.9](https://github.com/pliablepixels/zmNg/compare/zmNg-0.0.8..zmNg-0.0.9) - 2025-12-24
+
+### ✨ Features
+
+- Move insomnia toggle to sidebar with Eye/EyeOff icons and toast notifications - ([ddcbc2a](https://github.com/pliablepixels/zmNg/commit/ddcbc2afa630e78d8135a13d9acdac785694bd27))
+- Add Insomnia feature to prevent screen sleep on monitor pages - ([7c9a2b5](https://github.com/pliablepixels/zmNg/commit/7c9a2b5fbcf14786a69b7a64824ba969ed18c4e7))
+- Add internationalization and data-testids for testing - ([ce09c2d](https://github.com/pliablepixels/zmNg/commit/ce09c2d7ce05e0226ceb11b2d5eb38a4e5cb0eae))
+- Move theme and logLevel to profile-scoped settings - ([0068648](https://github.com/pliablepixels/zmNg/commit/0068648574b0f80c99a0912716013bed3f473080))
+
+### 🐛 Bug Fixes
+
+- Change default event montage grid columns from 5 to 2 - ([460de57](https://github.com/pliablepixels/zmNg/commit/460de5744baeb9b26f302224b4f9060b996a2490))
+- Protocol mismatch when saving profiles after discovery - ([941b502](https://github.com/pliablepixels/zmNg/commit/941b5024bfbc788347df50bb62da27efa730a007))
+- Respect validateStatus in Tauri adapter for discovery 401 handling - ([decf647](https://github.com/pliablepixels/zmNg/commit/decf6478aff262cf3ac36668c7b0982f97a4e770))
+- Force virtualizer to re-measure when scroll element becomes available - ([7614cf6](https://github.com/pliablepixels/zmNg/commit/7614cf6d5487702d126d89d80679e932702d26c1))
+- Resolve EventListView rendering on iOS by passing parentElement state - ([89ae089](https://github.com/pliablepixels/zmNg/commit/89ae089043cfd8cef58edf7d25dee3dd05d167b7))
+- Apply Sheet mobile fix to Montage page grid controls (iOS) - ([d5c2045](https://github.com/pliablepixels/zmNg/commit/d5c204550c5ea314156fc056feab7d731bdfdd53))
+- Resolve Rules of Hooks violation in EventListView - ([2d52b16](https://github.com/pliablepixels/zmNg/commit/2d52b1674f9520998e8885bea4ab4e609e6f90a9))
+- Replace DropdownMenu with Sheet on mobile for grid controls (iOS) - ([24a777f](https://github.com/pliablepixels/zmNg/commit/24a777f60209baee201bb92d6752e0eb2e15adcc))
+- Use callback ref to trigger re-render for EventListView on iOS - ([f95087d](https://github.com/pliablepixels/zmNg/commit/f95087dc60c4a470a19bd51d39d09be14762d542))
+- Use location.key for EventListView to ensure re-mount on navigation - ([db51de0](https://github.com/pliablepixels/zmNg/commit/db51de05540d4cad9363d9a99365c348a49dc5ed))
+- Force EventListView re-mount on navigation to fix virtualizer (iOS) - ([3e64747](https://github.com/pliablepixels/zmNg/commit/3e647479f4070bb9af988912118265addbf0894a))
+- Ensure EventListView renders correctly on navigation back (iOS) - ([efd3839](https://github.com/pliablepixels/zmNg/commit/efd3839b3587a90290e0b86ef7b4e46d02cb900c))
+- Resolve EventListView rendering issue on iOS devices - ([1d2b63d](https://github.com/pliablepixels/zmNg/commit/1d2b63d59ff7fe24ceb121949efd0903a4355681))
+- Resolve TypeScript export conflict in logger - ([16a8100](https://github.com/pliablepixels/zmNg/commit/16a8100ff10f89b346a49b3a832ae234f7c34a0a))
+
+### ♻️ Refactor
+
+- Shorten insomnia toast messages for better readability - ([8205961](https://github.com/pliablepixels/zmNg/commit/8205961f061e6ceb17183a2365bd36eda2cd6153))
+- Improve download UI in event montage and monitor cards - ([92dac56](https://github.com/pliablepixels/zmNg/commit/92dac5689d5b61e91193453c4552a5c05bb50fd0))
+- Reduce EventMontage.tsx from 787 to 314 lines (-60%) - ([fc973e4](https://github.com/pliablepixels/zmNg/commit/fc973e4d9c56d95d300d7dec009a08a250c50cab))
+- Reduce Events.tsx from 878 to 469 lines (-46%) - ([d08a8d1](https://github.com/pliablepixels/zmNg/commit/d08a8d15378d981e5fe3e7257e7baed0ed815997))
+- Extract reusable event view and filter components - ([9729b2b](https://github.com/pliablepixels/zmNg/commit/9729b2bc70b628d4f745699b7512d414cdf2f601))
+- Extract shared event utilities and custom hooks - ([eee5c2d](https://github.com/pliablepixels/zmNg/commit/eee5c2d83645e815f52685a7a2cc405bb67ee333))
+- Remove localStorage usage from API client - ([0a71e72](https://github.com/pliablepixels/zmNg/commit/0a71e727f7be13f06ced91419d45ac5296837d19))
+- Extract LogLevel enum to separate module - ([c7498ce](https://github.com/pliablepixels/zmNg/commit/c7498ceccca5a65be7954ff7af87de491b418142))
+
+### 📚 Documentation
+
+- Update language addition workflow for bundled translations - ([ddcac2d](https://github.com/pliablepixels/zmNg/commit/ddcac2dc8e2254091ef79c281172c3f10f78ef54))
+- Reminder to test mobile stack - ([23dc6fb](https://github.com/pliablepixels/zmNg/commit/23dc6fbfa739702e9ef2c276b54eec46991fb50f))
+- Enhance development guidelines in AGENTS.md - ([51b85db](https://github.com/pliablepixels/zmNg/commit/51b85db6b545a6c5403abc6daf370ae02493b59b))
+
+### ⚡ Performance
+
+- Bundle translations inline to eliminate iOS startup delay - ([42e0acf](https://github.com/pliablepixels/zmNg/commit/42e0acf63863965eb729a7e1820318b8fb7433ef))
+
+### ✅ Tests
+
+- Add domain-specific E2E feature files for comprehensive coverage - ([f6f3fef](https://github.com/pliablepixels/zmNg/commit/f6f3fefbf5b5be17747160a62810644021db6b6b))
+
+### 🔧 Miscellaneous
+
+- 0.0.9 - ([b793190](https://github.com/pliablepixels/zmNg/commit/b793190b5d12baa9b12f4f67a181e243e4e6bdfa))
+- Remove debug logging from EventListView iOS fix - ([de5c85e](https://github.com/pliablepixels/zmNg/commit/de5c85eddc7a91ff3c0f8d7ea828d47e8322e738))
+- Reworked logs to map to components, added component selection to UI - ([a425fc3](https://github.com/pliablepixels/zmNg/commit/a425fc35e671fa3da923e5bf88845326c7cec2f3))
+
+### 📝 Other
+
+- Add scroll element dimensions logging to EventListView - ([c4b7fb4](https://github.com/pliablepixels/zmNg/commit/c4b7fb402066dac80897c9d0ad7ed703460ddb92))
+- Add logging to diagnose EventListView iOS rendering issue - ([0c29e8f](https://github.com/pliablepixels/zmNg/commit/0c29e8ff4a0b7969cfd2cca9a2198402fc194579))
 ## [zmNg-0.0.8](https://github.com/pliablepixels/zmNg/compare/zmNg-0.0.7..zmNg-0.0.8) - 2025-12-23
 
 ### 🐛 Bug Fixes
 
 - Correct event thumbnail aspect ratios for rotated monitors - ([a860616](https://github.com/pliablepixels/zmNg/commit/a86061620b05b99e64d2983fb4480bd8ce97b74f))
 - Avoid undici dependency for dev proxy - ([98ea63a](https://github.com/pliablepixels/zmNg/commit/98ea63affded4230c13339bb40917e57f3682e7b))
+
+### 📚 Documentation
+
+- Update CHANGELOG.md for zmNg-0.0.8 - ([9289864](https://github.com/pliablepixels/zmNg/commit/92898646c297449fc21eafed1944fa749deafc5d))
 
 ### 🔧 Miscellaneous
 
