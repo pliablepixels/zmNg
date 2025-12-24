@@ -452,6 +452,7 @@ export default function Events() {
           />
         ) : (
           <EventListView
+            key={`event-list-${allEvents.length}`}
             events={allEvents}
             monitors={enabledMonitors}
             thumbnailFit={normalizedThumbnailFit}

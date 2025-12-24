@@ -38,7 +38,7 @@ export const EventListView = ({
   parentRef,
 }: EventListViewProps) => {
   const { t } = useTranslation();
-  const [isParentReady, setIsParentReady] = useState(false);
+  const [isParentReady, setIsParentReady] = useState(!!parentRef.current);
 
   // Wait for parentRef to be available (iOS timing fix)
   // Check on every render cycle, not just when parentRef changes
@@ -56,11 +56,13 @@ export const EventListView = ({
   }, []);
 
   // Virtualize the events list for better performance
+  // Pass enabled flag to prevent initialization until parent is ready
   const rowVirtualizer = useVirtualizer({
-    count: events.length,
+    count: isParentReady ? events.length : 0,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 140, // Approximate height of EventCard
     overscan: 5, // Render 5 items above and below viewport
+    enabled: isParentReady, // Only enable virtualization when parent is ready
   });
 
   // Guard: Don't render virtualized list until parentRef is available
