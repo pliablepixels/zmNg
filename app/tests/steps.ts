@@ -299,9 +299,11 @@ When('I apply event filters', async ({ page }) => {
 When('I clear event filters', async ({ page }) => {
   const panel = page.getByTestId('events-filter-panel');
   if (!(await panel.isVisible().catch(() => false))) {
-    await page.getByTestId('events-filter-button').click({ force: true });
+    const filterButton = page.getByTestId('events-filter-button');
+    await filterButton.waitFor({ state: 'visible', timeout: testConfig.timeouts.element });
+    await filterButton.click();
+    await expect(panel).toBeVisible({ timeout: testConfig.timeouts.transition });
   }
-  await expect(panel).toBeVisible({ timeout: testConfig.timeouts.transition });
   await page.getByTestId('events-clear-filters').click();
 });
 

@@ -72,6 +72,18 @@ function AppRoutes() {
   const logLevel = useSettingsStore(
     (state) => state.getProfileSettings(currentProfile?.id || '').logLevel
   );
+  const lastRoute = useSettingsStore(
+    (state) => state.getProfileSettings(currentProfile?.id || '').lastRoute
+  );
+
+  // Debug: Log last route on mount and when it changes
+  useEffect(() => {
+    log.app('Last route from settings', LogLevel.DEBUG, {
+      lastRoute,
+      currentProfileId: currentProfile?.id,
+      currentProfileName: currentProfile?.name,
+    });
+  }, [lastRoute, currentProfile?.id, currentProfile?.name]);
 
   // Enable automatic token refresh
   useTokenRefresh();
@@ -143,7 +155,7 @@ function AppRoutes() {
           path="/"
           element={
             currentProfile ? (
-              <Navigate to="/dashboard" replace />
+              <Navigate to={lastRoute || '/monitors'} replace />
             ) : (
               <Navigate to="/profiles/new" replace />
             )
@@ -164,7 +176,6 @@ function AppRoutes() {
         />
 
         <Route element={<AppLayout />}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
           <Route
             path="dashboard"
             element={

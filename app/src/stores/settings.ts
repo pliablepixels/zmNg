@@ -41,6 +41,7 @@ export interface ProfileSettings {
     endDate: string;
   };
   disableLogRedaction: boolean;
+  lastRoute: string; // Last visited route for this profile
 }
 
 interface SettingsState {
@@ -106,6 +107,7 @@ const DEFAULT_SETTINGS: ProfileSettings = {
     endDate: '',
   },
   disableLogRedaction: false,
+  lastRoute: '/monitors',
 };
 
 export const useSettingsStore = create<SettingsState>()(

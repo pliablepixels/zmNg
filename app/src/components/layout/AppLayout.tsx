@@ -13,6 +13,7 @@ import { useSettingsStore } from '../../stores/settings';
 import { useShallow } from 'zustand/react/shallow';
 import { Button } from '../ui/button';
 import { ModeToggle } from '../mode-toggle';
+import { log, LogLevel } from '../../lib/logger';
 import { ProfileSwitcher } from '../profile-switcher';
 import { useToast } from '../../hooks/use-toast';
 import { useInsomnia } from '../../hooks/useInsomnia';
@@ -287,6 +288,8 @@ export default function AppLayout() {
   const settings = useSettingsStore(
     useShallow((state) => state.getProfileSettings(currentProfile?.id || ''))
   );
+  const updateProfileSettings = useSettingsStore((state) => state.updateProfileSettings);
+  const location = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(256); // 256px = w-64
   const [isDragging, setIsDragging] = useState(false);
@@ -295,6 +298,30 @@ export default function AppLayout() {
   const MIN_WIDTH = 60;
   const MAX_WIDTH = 256;
   const { t } = useTranslation();
+
+  // Track route changes and save to settings
+  useEffect(() => {
+    if (!currentProfile?.id) return;
+
+    // Exclude setup/profile routes from being saved as lastRoute
+    const excludedRoutes = ['/profiles/new', '/setup', '/profiles'];
+    const shouldSave = !excludedRoutes.includes(location.pathname);
+
+    log.app('Route tracking', LogLevel.DEBUG, {
+      pathname: location.pathname,
+      profileId: currentProfile.id,
+      shouldSave,
+      excluded: excludedRoutes.includes(location.pathname),
+    });
+
+    if (shouldSave) {
+      updateProfileSettings(currentProfile.id, { lastRoute: location.pathname });
+      log.app('Saved lastRoute to settings', LogLevel.DEBUG, {
+        lastRoute: location.pathname,
+        profileId: currentProfile.id,
+      });
+    }
+  }, [location.pathname, currentProfile?.id, updateProfileSettings]);
 
   // Apply global insomnia setting
   useInsomnia({ enabled: settings.insomnia });
