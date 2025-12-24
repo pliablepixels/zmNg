@@ -30,6 +30,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../components/ui/dialog';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '../components/ui/sheet';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { RefreshCw, Video, AlertCircle, LayoutDashboard, Grid2x2, Grid3x3, GripVertical, Maximize, Minimize, X, LayoutGrid, Pencil, Moon } from 'lucide-react';
@@ -86,6 +92,8 @@ export default function Montage() {
   const screenTooSmallRef = useRef(false);
   const [layout, setLayout] = useState<Layout[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isGridSheetOpen, setIsGridSheetOpen] = useState(false);
 
   // Track container width for toast notifications
   const currentWidthRef = useRef(window.innerWidth);
@@ -325,6 +333,19 @@ export default function Montage() {
     return () => window.removeEventListener('resize', handleResize);
   }, [gridCols, isFullscreen]);
 
+  // Detect mobile viewport for grid controls
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640); // sm breakpoint
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const handleGridSelection = (cols: number) => {
+    handleApplyGridLayout(cols);
+    setIsGridSheetOpen(false);
+  };
+
   const handleLayoutChange = (nextLayout: Layout[]) => {
     setLayout((prev) => (areLayoutsEqual(prev, nextLayout) ? prev : nextLayout));
     if (isEditMode && currentProfile) {
@@ -415,41 +436,117 @@ export default function Montage() {
               </div>
             </div>
             <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" title={t('montage.layout')} className="h-8 sm:h-9">
+              {/* Grid layout controls - Sheet on mobile, DropdownMenu on desktop */}
+              {isMobile ? (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    title={t('montage.layout')}
+                    className="h-8 sm:h-9"
+                    onClick={() => setIsGridSheetOpen(true)}
+                  >
                     <LayoutDashboard className="h-4 w-4 sm:mr-2" />
                     <span className="hidden sm:inline">{gridCols} {t('montage.columns_label')}</span>
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => handleApplyGridLayout(1)}>
-                    <LayoutGrid className="h-4 w-4 mr-2" />
-                    {t('montage.1col')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleApplyGridLayout(2)}>
-                    <Grid2x2 className="h-4 w-4 mr-2" />
-                    {t('montage.2col')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleApplyGridLayout(3)}>
-                    <Grid3x3 className="h-4 w-4 mr-2" />
-                    {t('montage.3col')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleApplyGridLayout(4)}>
-                    <LayoutGrid className="h-4 w-4 mr-2" />
-                    {t('montage.4col')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleApplyGridLayout(5)}>
-                    <LayoutGrid className="h-4 w-4 mr-2" />
-                    {t('montage.5col')}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setIsCustomGridDialogOpen(true)}>
-                    <GripVertical className="h-4 w-4 mr-2" />
-                    {t('montage.custom')}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  <Sheet open={isGridSheetOpen} onOpenChange={setIsGridSheetOpen}>
+                    <SheetContent side="bottom">
+                      <SheetHeader>
+                        <SheetTitle>{t('montage.layout')}</SheetTitle>
+                      </SheetHeader>
+                      <div className="grid gap-2 py-4">
+                        <Button
+                          variant={gridCols === 1 ? "default" : "outline"}
+                          onClick={() => handleGridSelection(1)}
+                          className="justify-start"
+                        >
+                          <LayoutGrid className="h-4 w-4 mr-2" />
+                          {t('montage.1col')}
+                        </Button>
+                        <Button
+                          variant={gridCols === 2 ? "default" : "outline"}
+                          onClick={() => handleGridSelection(2)}
+                          className="justify-start"
+                        >
+                          <Grid2x2 className="h-4 w-4 mr-2" />
+                          {t('montage.2col')}
+                        </Button>
+                        <Button
+                          variant={gridCols === 3 ? "default" : "outline"}
+                          onClick={() => handleGridSelection(3)}
+                          className="justify-start"
+                        >
+                          <Grid3x3 className="h-4 w-4 mr-2" />
+                          {t('montage.3col')}
+                        </Button>
+                        <Button
+                          variant={gridCols === 4 ? "default" : "outline"}
+                          onClick={() => handleGridSelection(4)}
+                          className="justify-start"
+                        >
+                          <LayoutGrid className="h-4 w-4 mr-2" />
+                          {t('montage.4col')}
+                        </Button>
+                        <Button
+                          variant={gridCols === 5 ? "default" : "outline"}
+                          onClick={() => handleGridSelection(5)}
+                          className="justify-start"
+                        >
+                          <LayoutGrid className="h-4 w-4 mr-2" />
+                          {t('montage.5col')}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setIsGridSheetOpen(false);
+                            setIsCustomGridDialogOpen(true);
+                          }}
+                          className="justify-start"
+                        >
+                          <GripVertical className="h-4 w-4 mr-2" />
+                          {t('montage.custom')}
+                        </Button>
+                      </div>
+                    </SheetContent>
+                  </Sheet>
+                </>
+              ) : (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" title={t('montage.layout')} className="h-8 sm:h-9">
+                      <LayoutDashboard className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">{gridCols} {t('montage.columns_label')}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleApplyGridLayout(1)}>
+                      <LayoutGrid className="h-4 w-4 mr-2" />
+                      {t('montage.1col')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleApplyGridLayout(2)}>
+                      <Grid2x2 className="h-4 w-4 mr-2" />
+                      {t('montage.2col')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleApplyGridLayout(3)}>
+                      <Grid3x3 className="h-4 w-4 mr-2" />
+                      {t('montage.3col')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleApplyGridLayout(4)}>
+                      <LayoutGrid className="h-4 w-4 mr-2" />
+                      {t('montage.4col')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleApplyGridLayout(5)}>
+                      <LayoutGrid className="h-4 w-4 mr-2" />
+                      {t('montage.5col')}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => setIsCustomGridDialogOpen(true)}>
+                      <GripVertical className="h-4 w-4 mr-2" />
+                      {t('montage.custom')}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
               <div className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground hidden md:inline">{t('montage.feed_fit')}</span>
                 <Select value={settings.montageFeedFit} onValueChange={handleFeedFitChange}>
