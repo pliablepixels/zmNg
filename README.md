@@ -10,7 +10,7 @@
 
 <img src="app/assets/logo.png" align="right" width="120" />
 
-A modern web and mobile application for ZoneMinder, providing a clean, intuitive interface for viewing live camera feeds, reviewing events, and managing multiple server profiles. It is a ground-up rewrite of the original [zmNinja](https://zmninja.zoneminder.com/) application, using modern web technologies and a more intuitive user interface. The code was 99% Claude CLI generated when I first started. I am finding both `codex` and `claude` to be very comparable and am switching between them the most. `codex` seems to run out of tokens less compared to `claude`.
+A modern web and mobile application for ZoneMinder, providing a clean, intuitive interface for viewing live camera feeds, reviewing events, and managing multiple server profiles. It is a ground-up rewrite of the original [zmNinja](https://zmninja.zoneminder.com/) application, using modern web technologies and a more intuitive user interface. The code was 99% Claude CLI generated when I first started. Since then, I've been using `codex`, `antigravity` and `copilot w/Gemini3` depending on where I have tokens. `claude` is still head and shoulders above the rest, but codex isn't bad. 
 
 Watch a video of the demo [HERE](https://youtu.be/ces_2ap-htc)
 
