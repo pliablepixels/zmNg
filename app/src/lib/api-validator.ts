@@ -79,24 +79,14 @@ export function validateApiResponse<T extends ZodSchema>(
                   path: e.path,
                   message: e.message,
                   })),
-//               ...context,
-//                 rawIssues: error.issues,
-//                 formattedIssues: formattedErrors,
-//                 rawData: data,
           },
      );
 
       throw new ApiValidationError(
         `ZOD-API response validation failed for ${context.method ?? 'UNKNOWN'} ${context.endpoint ?? 'unknown endpoint'}`,
-//         {
             error,
             formattedErrors,
             data
-//           issues: error.issues,
-//           formattedIssues: formattedErrors,
-//           rawData: data,
-//         },
-//         data
       );
     }
     throw error;

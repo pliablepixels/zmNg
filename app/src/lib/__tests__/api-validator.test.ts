@@ -12,7 +12,6 @@ import {
   formatZodIssues,
 } from '../api-validator';
 import { log, LogLevel } from '../logger';
-// import type {FormattedZodIssue,} from '../api-validator'
 
 // Mock the logger
 vi.mock('../logger', () => ({
