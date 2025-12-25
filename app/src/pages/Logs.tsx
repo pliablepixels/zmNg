@@ -6,18 +6,20 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { ScrollText, Trash2, Download, Share2, ChevronDown, ChevronUp } from 'lucide-react';
+import { ScrollText, Trash2, Download, Share2, ChevronDown, ChevronUp, Server, Smartphone } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { Capacitor } from '@capacitor/core';
 import { Share } from '@capacitor/share';
 import { useToast } from '../hooks/use-toast';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAppVersion } from '../lib/version';
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
 import { Checkbox } from '../components/ui/checkbox';
 import { Label } from '../components/ui/label';
 import type { LogEntry } from '../stores/logs';
+import { getZMLogs, getZMLogLevel, getUniqueZMComponents } from '../api/logs';
+import type { ZMLog } from '../api/types';
 
 function LogCodeBlock({ content }: { content: string }) {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -55,6 +57,8 @@ function LogCodeBlock({ content }: { content: string }) {
     );
 }
 
+type LogSource = 'zmng' | 'server';
+
 export default function Logs() {
     const logs = useLogStore((state) => state.logs);
     const clearLogs = useLogStore((state) => state.clearLogs);
@@ -66,8 +70,40 @@ export default function Logs() {
         (state) => state.getProfileSettings(currentProfile?.id || '').logLevel
     );
     const updateProfileSettings = useSettingsStore((state) => state.updateProfileSettings);
-    const [selectedComponents, setSelectedComponents] = useState<string[]>([]);
+    const [selectedComponentsZmng, setSelectedComponentsZmng] = useState<string[]>([]);
+    const [selectedComponentsServer, setSelectedComponentsServer] = useState<string[]>([]);
+    const [logSource, setLogSource] = useState<LogSource>('zmng');
+    const [zmLogs, setZmLogs] = useState<ZMLog[]>([]);
+    const [isLoadingZmLogs, setIsLoadingZmLogs] = useState(false);
     const unassignedComponentValue = 'unassigned';
+
+    // Use the appropriate component filter based on log source
+    const selectedComponents = logSource === 'zmng' ? selectedComponentsZmng : selectedComponentsServer;
+    const setSelectedComponents = logSource === 'zmng' ? setSelectedComponentsZmng : setSelectedComponentsServer;
+
+    // Fetch ZM logs when switching to server view
+    useEffect(() => {
+        if (logSource === 'server') {
+            setIsLoadingZmLogs(true);
+            getZMLogs({ limit: 100 })
+                .then((response) => {
+                    const logs = response.logs.map((logData) => logData.Log);
+                    setZmLogs(logs);
+                })
+                .catch((error) => {
+                    toast({
+                        title: t('common.error'),
+                        description: t('logs.zm_fetch_failed'),
+                        variant: 'destructive',
+                    });
+                    console.error('Failed to fetch ZM logs:', error);
+                })
+                .finally(() => {
+                    setIsLoadingZmLogs(false);
+                });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [logSource]);
 
     const handleLevelChange = (value: string) => {
         const level = parseInt(value, 10) as LogLevel;
@@ -104,14 +140,20 @@ export default function Logs() {
         const components = new Set<string>();
         let hasUnassigned = false;
 
-        logs.forEach((log) => {
-            const component = log.context?.component;
-            if (typeof component === 'string' && component.trim().length > 0) {
-                components.add(component);
-            } else {
-                hasUnassigned = true;
-            }
-        });
+        if (logSource === 'zmng') {
+            logs.forEach((log) => {
+                const component = log.context?.component;
+                if (typeof component === 'string' && component.trim().length > 0) {
+                    components.add(component);
+                } else {
+                    hasUnassigned = true;
+                }
+            });
+        } else {
+            // ZM server logs
+            const zmComponents = getUniqueZMComponents(zmLogs);
+            zmComponents.forEach((component) => components.add(component));
+        }
 
         const sortedComponents = Array.from(components).sort((a, b) => a.localeCompare(b));
         const options = sortedComponents.map((component) => ({
@@ -119,7 +161,7 @@ export default function Logs() {
             label: component,
         }));
 
-        if (hasUnassigned) {
+        if (hasUnassigned && logSource === 'zmng') {
             options.push({
                 value: unassignedComponentValue,
                 label: t('logs.component_unassigned'),
@@ -127,7 +169,7 @@ export default function Logs() {
         }
 
         return options;
-    }, [logs, t]);
+    }, [logs, zmLogs, logSource, t]);
 
     const toggleComponent = (value: string) => {
         setSelectedComponents((prev) => (
@@ -152,13 +194,32 @@ export default function Logs() {
     const toTestId = (value: string) =>
         value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
+    // Convert ZM logs to unified display format
+    const zmLogsAsDisplay = useMemo(() => {
+        return zmLogs.map((zmLog) => ({
+            id: zmLog.Id.toString(),
+            timestamp: new Date(parseFloat(zmLog.TimeKey) * 1000).toLocaleString(),
+            level: getZMLogLevel(zmLog.Level),
+            message: zmLog.Message,
+            context: {
+                component: zmLog.Component,
+                file: zmLog.File,
+                line: zmLog.Line,
+                pid: zmLog.Pid,
+            },
+            args: [],
+        }));
+    }, [zmLogs]);
+
     // Filter logs based on selected level and components
     const currentLevel = logLevel;
-    const filteredLogs = logs.filter((log) => {
+    const filteredLogs = (logSource === 'zmng' ? logs : zmLogsAsDisplay).filter((log) => {
         const passesLevel = logLevelValue(log.level) >= currentLevel;
         if (!passesLevel) return false;
         if (selectedComponents.length === 0) return true;
-        const componentValue = getLogComponentValue(log);
+        const componentValue = logSource === 'zmng'
+            ? getLogComponentValue(log as LogEntry)
+            : (log.context?.component as string || '');
         return selectedComponents.includes(componentValue);
     });
 
@@ -197,7 +258,11 @@ export default function Logs() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `zmng-logs-${new Date().toISOString().split('T')[0]}.txt`;
+        const dateStr = new Date().toISOString().split('T')[0];
+        const filename = logSource === 'zmng'
+            ? `zmng-logs-${dateStr}.txt`
+            : `zm-server-logs-${dateStr}.txt`;
+        a.download = filename;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -248,10 +313,32 @@ export default function Logs() {
                         <Badge variant="outline" className="text-xs">v{appVersion}</Badge>
                     </div>
                     <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                        {t('logs.subtitle')}
+                        {logSource === 'zmng' ? t('logs.subtitle') : 'ZoneMinder Server Logs'}
                     </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
+                    <div className="inline-flex h-8 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground" data-testid="log-source-tabs">
+                        <Button
+                            variant={logSource === 'zmng' ? 'default' : 'ghost'}
+                            size="sm"
+                            className="h-6 px-3 text-xs"
+                            onClick={() => setLogSource('zmng')}
+                            data-testid="log-source-zmng"
+                        >
+                            <Smartphone className="h-3 w-3 mr-1.5" />
+                            zmNg
+                        </Button>
+                        <Button
+                            variant={logSource === 'server' ? 'default' : 'ghost'}
+                            size="sm"
+                            className="h-6 px-3 text-xs"
+                            onClick={() => setLogSource('server')}
+                            data-testid="log-source-server"
+                        >
+                            <Server className="h-3 w-3 mr-1.5" />
+                            Server
+                        </Button>
+                    </div>
                     <Select value={logLevel.toString()} onValueChange={handleLevelChange}>
                         <SelectTrigger className="w-[100px] h-8" data-testid="log-level-select">
                             <SelectValue placeholder={t('logs.level_placeholder')} />
@@ -328,7 +415,7 @@ export default function Logs() {
                             variant="outline"
                             size="sm"
                             onClick={handleShareLogs}
-                            disabled={logs.length === 0}
+                            disabled={filteredLogs.length === 0}
                             data-testid="logs-share-button"
                         >
                             <Share2 className="h-4 w-4 mr-2" />
@@ -339,23 +426,25 @@ export default function Logs() {
                             variant="outline"
                             size="sm"
                             onClick={handleSaveLogs}
-                            disabled={logs.length === 0}
+                            disabled={filteredLogs.length === 0}
                             data-testid="logs-save-button"
                         >
                             <Download className="h-4 w-4 mr-2" />
                             {t('logs.save')}
                         </Button>
                     )}
-                    <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={clearLogs}
-                        disabled={logs.length === 0}
-                        data-testid="logs-clear-button"
-                    >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        {t('logs.clear_logs')}
-                    </Button>
+                    {logSource === 'zmng' && (
+                        <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={clearLogs}
+                            disabled={logs.length === 0}
+                            data-testid="logs-clear-button"
+                        >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            {t('logs.clear_logs')}
+                        </Button>
+                    )}
                 </div>
             </div>
 
@@ -367,10 +456,15 @@ export default function Logs() {
                     </div>
                 </CardHeader>
                 <CardContent className="p-0 flex-1 overflow-y-auto font-mono text-xs sm:text-sm">
-                    {filteredLogs.length === 0 ? (
+                    {isLoadingZmLogs ? (
+                        <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8">
+                            <ScrollText className="h-12 w-12 mb-4 opacity-20 animate-pulse" />
+                            <p>Loading server logs...</p>
+                        </div>
+                    ) : filteredLogs.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8" data-testid="logs-empty-state">
                             <ScrollText className="h-12 w-12 mb-4 opacity-20" />
-                            <p>{t('logs.no_logs_available')}</p>
+                            <p>{logSource === 'zmng' ? t('logs.no_logs_available') : 'No server logs available'}</p>
                         </div>
                     ) : (
                         <div className="divide-y" data-testid="log-entries">

@@ -108,7 +108,12 @@ describe('Monitors API', () => {
   });
 
   it('triggers and cancels alarms', async () => {
-    mockGet.mockResolvedValue({});
+    mockGet.mockResolvedValue({
+      data: {
+        status: 'ok',
+        output: 'Command sent successfully'
+      }
+    });
 
     await triggerAlarm('5');
     await cancelAlarm('5');
@@ -127,12 +132,18 @@ describe('Monitors API', () => {
   });
 
   it('gets daemon status', async () => {
-    mockGet.mockResolvedValue({ data: { status: 'running' } });
+    mockGet.mockResolvedValue({
+      data: {
+        status: 'ok',
+        statustext: 'running'
+      }
+    });
 
     const status = await getDaemonStatus('7', 'zmc');
 
     expect(mockGet).toHaveBeenCalledWith('/monitors/daemonStatus/id:7/daemon:zmc.json');
-    expect(status.status).toBe('running');
+    expect(status.status).toBe('ok');
+    expect(status.statustext).toBe('running');
   });
 
   it('builds monitor stream URL via url builder', () => {

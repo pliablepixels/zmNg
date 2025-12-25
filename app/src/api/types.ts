@@ -15,6 +15,14 @@ export const LoginResponseSchema = z.object({
 
 export type LoginResponse = z.infer<typeof LoginResponseSchema>;
 
+// Version types
+export const VersionResponseSchema = z.object({
+  version: z.string(),
+  apiversion: z.string(),
+});
+
+export type VersionResponse = z.infer<typeof VersionResponseSchema>;
+
 // Host types
 export const HostTimeZoneResponseSchema = z.object({
   DateTime: z.object({
@@ -173,6 +181,37 @@ export type MonitorStatus = z.infer<typeof MonitorStatusSchema>;
 export type MonitorData = z.infer<typeof MonitorDataSchema>;
 export type MonitorsResponse = z.infer<typeof MonitorsResponseSchema>;
 
+// Monitor update response (for updateMonitor endpoint)
+export const MonitorUpdateResponseSchema = z.object({
+  monitor: MonitorDataSchema,
+});
+
+export type MonitorUpdateResponse = z.infer<typeof MonitorUpdateResponseSchema>;
+
+// Monitor alarm status response (for getAlarmStatus and alarm control endpoints)
+// ZM alarm() function returns different structures based on command and success/failure:
+// - Success with 'status' command: { status: number, output: number }
+// - Success with 'on'/'off' commands: { status: string, output: string }
+// - Error: { status: 'false', code: number, error: string }
+export const AlarmStatusResponseSchema = z.object({
+  status: z.union([z.string(), z.coerce.number()]),
+  output: z.union([z.string(), z.coerce.number()]).optional(),
+  // Error response fields
+  code: z.coerce.number().optional(),
+  error: z.string().optional(),
+});
+
+export type AlarmStatusResponse = z.infer<typeof AlarmStatusResponseSchema>;
+
+// Monitor daemon status response (for getDaemonStatus endpoint)
+// ZM daemonControl() returns: { status: 'ok', statustext: string }
+export const DaemonStatusResponseSchema = z.object({
+  status: z.string(),
+  statustext: z.string().optional(), // The actual status message
+});
+
+export type DaemonStatusResponse = z.infer<typeof DaemonStatusResponseSchema>;
+
 export const ZMControlSchema = z.object({
   Id: z.coerce.string(),
   Name: z.string(),
@@ -298,6 +337,24 @@ export type Event = z.infer<typeof EventSchema>;
 export type EventData = z.infer<typeof EventDataSchema>;
 export type EventsResponse = z.infer<typeof EventsResponseSchema>;
 
+// Single event response (for getEvent endpoint)
+export const EventResponseSchema = z.object({
+  event: EventDataSchema,
+});
+
+export type EventResponse = z.infer<typeof EventResponseSchema>;
+
+// Console events response (for getConsoleEvents endpoint)
+// API can return either an object (record) or an array, so we handle both
+export const ConsoleEventsResponseSchema = z.object({
+  results: z.union([
+    z.record(z.string(), z.coerce.number()),
+    z.array(z.unknown()),
+  ]).optional(),
+});
+
+export type ConsoleEventsResponse = z.infer<typeof ConsoleEventsResponseSchema>;
+
 // Config types
 export const ConfigSchema = z.object({
   Id: z.string(),
@@ -335,6 +392,72 @@ export const ZmsPathResponseSchema = z.object({
 });
 
 export type ZmsPathResponse = z.infer<typeof ZmsPathResponseSchema>;
+
+// ZoneMinder server log types
+export const ZMLogSchema = z.object({
+  Id: z.coerce.number(),
+  TimeKey: z.string(),
+  Component: z.string(),
+  ServerId: z.coerce.number().nullable(),
+  Pid: z.coerce.number().nullable(),
+  Level: z.coerce.number(),
+  Code: z.string(),
+  Message: z.string(),
+  File: z.string().nullable(),
+  Line: z.coerce.number().nullable(),
+});
+
+export const ZMLogDataSchema = z.object({
+  Log: ZMLogSchema,
+});
+
+export const ZMLogsResponseSchema = z.object({
+  logs: z.array(ZMLogDataSchema),
+  pagination: z.object({
+    page: z.number(),
+    current: z.number(),
+    count: z.number(),
+    prevPage: z.boolean(),
+    nextPage: z.boolean(),
+    pageCount: z.number(),
+    order: z.record(z.string(), z.string()).optional(),
+    limit: z.number(),
+    options: z.object({
+      conditions: z.array(z.unknown()),
+    }).optional(),
+    paramType: z.string().optional(),
+    queryScope: z.unknown().nullable().optional(),
+  }),
+});
+
+export type ZMLog = z.infer<typeof ZMLogSchema>;
+export type ZMLogData = z.infer<typeof ZMLogDataSchema>;
+export type ZMLogsResponse = z.infer<typeof ZMLogsResponseSchema>;
+
+// State types
+export const StateSchema = z.object({
+  Id: z.coerce.string(),
+  Name: z.string(),
+  Definition: z.string(),
+  IsActive: z.coerce.string(),
+});
+
+export const StateDataSchema = z.object({
+  State: z.object({
+    Id: z.coerce.number(),
+    Name: z.string(),
+    Definition: z.string(),
+    IsActive: z.coerce.number(),
+  }),
+});
+
+export const StatesResponseSchema = z.object({
+  states: z.array(StateDataSchema).optional(),
+});
+
+export type State = z.infer<typeof StateSchema>;
+export type StateData = z.infer<typeof StateDataSchema>;
+export type StatesResponse = z.infer<typeof StatesResponseSchema>;
 
 // Profile types (app-specific, not from ZM API)
 export interface Profile {

@@ -6,8 +6,8 @@
  */
 
 import { getApiClient } from './client';
-import type { MonitorsResponse, MonitorData, ControlData } from './types';
-import { MonitorsResponseSchema, MonitorDataSchema, ControlDataSchema } from './types';
+import type { MonitorsResponse, MonitorData, ControlData, AlarmStatusResponse, DaemonStatusResponse } from './types';
+import { MonitorsResponseSchema, MonitorDataSchema, ControlDataSchema, MonitorUpdateResponseSchema, AlarmStatusResponseSchema, DaemonStatusResponseSchema } from './types';
 import { Platform } from '../lib/platform';
 import { validateApiResponse } from '../lib/api-validator';
 import {
@@ -66,9 +66,9 @@ export async function getControl(controlId: string): Promise<ControlData> {
 
 /**
  * Update monitor settings.
- * 
+ *
  * Sends a PUT request to update specific monitor fields.
- * 
+ *
  * @param monitorId - The ID of the monitor to update
  * @param updates - Object containing fields to update
  * @returns Promise resolving to updated MonitorData
@@ -88,7 +88,14 @@ export async function updateMonitor(
       'Content-Type': 'application/x-www-form-urlencoded',
     },
   });
-  return response.data.monitor;
+
+  // Validate response with Zod
+  const validated = validateApiResponse(MonitorUpdateResponseSchema, response.data, {
+    endpoint: `/monitors/${monitorId}.json`,
+    method: 'POST',
+  });
+
+  return validated.monitor;
 }
 
 /**
@@ -126,47 +133,78 @@ export async function setMonitorEnabled(monitorId: string, enabled: boolean): Pr
 
 /**
  * Trigger alarm on a monitor.
- * 
+ *
  * Forces an alarm state on the monitor.
- * 
+ *
  * @param monitorId - The ID of the monitor
+ * @throws Error if alarm trigger fails (ZM returns status: 'false' with error)
  */
 export async function triggerAlarm(monitorId: string): Promise<void> {
   const client = getApiClient();
-  await client.get(`/monitors/alarm/id:${monitorId}/command:on.json`);
+  const response = await client.get(`/monitors/alarm/id:${monitorId}/command:on.json`);
+
+  // Validate response with Zod to catch failures
+  const validated = validateApiResponse(AlarmStatusResponseSchema, response.data, {
+    endpoint: `/monitors/alarm/id:${monitorId}/command:on.json`,
+    method: 'GET',
+  });
+
+  // Check for error response
+  if (validated.status === 'false' && validated.error) {
+    throw new Error(`Failed to trigger alarm: ${validated.error} (code: ${validated.code})`);
+  }
 }
 
 /**
  * Cancel alarm on a monitor.
- * 
+ *
  * Forces an alarm state off on the monitor.
- * 
+ *
  * @param monitorId - The ID of the monitor
+ * @throws Error if alarm cancel fails (ZM returns status: 'false' with error)
  */
 export async function cancelAlarm(monitorId: string): Promise<void> {
   const client = getApiClient();
-  await client.get(`/monitors/alarm/id:${monitorId}/command:off.json`);
+  const response = await client.get(`/monitors/alarm/id:${monitorId}/command:off.json`);
+
+  // Validate response with Zod to catch failures
+  const validated = validateApiResponse(AlarmStatusResponseSchema, response.data, {
+    endpoint: `/monitors/alarm/id:${monitorId}/command:off.json`,
+    method: 'GET',
+  });
+
+  // Check for error response
+  if (validated.status === 'false' && validated.error) {
+    throw new Error(`Failed to cancel alarm: ${validated.error} (code: ${validated.code})`);
+  }
 }
 
 /**
  * Get alarm status of a monitor.
- * 
+ *
  * Checks if the monitor is currently in alarm state.
- * 
+ *
  * @param monitorId - The ID of the monitor
  * @returns Promise resolving to object with status string
  */
-export async function getAlarmStatus(monitorId: string): Promise<{ status: string; output?: string | number }> {
+export async function getAlarmStatus(monitorId: string): Promise<AlarmStatusResponse> {
   const client = getApiClient();
   const response = await client.get(`/monitors/alarm/id:${monitorId}/command:status.json`);
-  return response.data;
+
+  // Validate response with Zod
+  const validated = validateApiResponse(AlarmStatusResponseSchema, response.data, {
+    endpoint: `/monitors/alarm/id:${monitorId}/command:status.json`,
+    method: 'GET',
+  });
+
+  return validated;
 }
 
 /**
  * Get daemon status for a monitor.
- * 
+ *
  * Checks status of zmc (capture) or zma (analysis) daemons.
- * 
+ *
  * @param monitorId - The ID of the monitor
  * @param daemon - 'zmc' or 'zma'
  * @returns Promise resolving to object with status string
@@ -174,10 +212,17 @@ export async function getAlarmStatus(monitorId: string): Promise<{ status: strin
 export async function getDaemonStatus(
   monitorId: string,
   daemon: 'zmc' | 'zma'
-): Promise<{ status: string }> {
+): Promise<DaemonStatusResponse> {
   const client = getApiClient();
   const response = await client.get(`/monitors/daemonStatus/id:${monitorId}/daemon:${daemon}.json`);
-  return response.data;
+
+  // Validate response with Zod
+  const validated = validateApiResponse(DaemonStatusResponseSchema, response.data, {
+    endpoint: `/monitors/daemonStatus/id:${monitorId}/daemon:${daemon}.json`,
+    method: 'GET',
+  });
+
+  return validated;
 }
 
 /**

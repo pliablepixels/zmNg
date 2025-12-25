@@ -61,16 +61,8 @@ const DaemonCheckSchema = z.object({
 
 // ========== Types ==========
 
-export interface Server {
-  Id: string;
-  Name: string;
-  Hostname?: string;
-  State_Id?: number;
-  Status?: string;
-  CpuLoad?: number;
-  TotalMem?: number;
-  FreeMem?: number;
-}
+export type Server = z.infer<typeof ServerSchema>;
+export type ServersResponse = z.infer<typeof ServersResponseSchema>;
 
 export interface ServerLoad {
   load: number | number[];

@@ -7,7 +7,7 @@
 
 import { getApiClient } from './client';
 import type { EventsResponse, EventData } from './types';
-import { EventsResponseSchema } from './types';
+import { EventsResponseSchema, EventResponseSchema, ConsoleEventsResponseSchema } from './types';
 import { log, LogLevel } from '../lib/logger';
 import { Platform } from '../lib/platform';
 import { validateApiResponse } from '../lib/api-validator';
@@ -149,14 +149,21 @@ export async function getEvents(filters: EventFilters = {}): Promise<EventsRespo
 
 /**
  * Get a single event by ID.
- * 
+ *
  * @param eventId - The ID of the event to fetch
  * @returns Promise resolving to EventData
  */
 export async function getEvent(eventId: string): Promise<EventData> {
   const client = getApiClient();
-  const response = await client.get<{ event: EventData }>(`/events/${eventId}.json`);
-  return response.data.event;
+  const response = await client.get(`/events/${eventId}.json`);
+
+  // Validate response with Zod
+  const validated = validateApiResponse(EventResponseSchema, response.data, {
+    endpoint: `/events/${eventId}.json`,
+    method: 'GET',
+  });
+
+  return validated.event;
 }
 
 /**
@@ -171,7 +178,7 @@ export async function deleteEvent(eventId: string): Promise<void> {
 
 /**
  * Archive or unarchive an event.
- * 
+ *
  * @param eventId - The ID of the event
  * @param archived - True to archive, false to unarchive
  * @returns Promise resolving to updated EventData
@@ -181,14 +188,21 @@ export async function setEventArchived(eventId: string, archived: boolean): Prom
   const response = await client.put(`/events/${eventId}.json`, {
     'Event[Archived]': archived ? '1' : '0',
   });
-  return response.data.event;
+
+  // Validate response with Zod
+  const validated = validateApiResponse(EventResponseSchema, response.data, {
+    endpoint: `/events/${eventId}.json`,
+    method: 'PUT',
+  });
+
+  return validated.event;
 }
 
 /**
  * Get event count for console (recent events per monitor).
- * 
+ *
  * Returns event counts per monitor within the specified interval.
- * 
+ *
  * @param interval - Time interval string (e.g. '1 hour', '1 day')
  * @returns Promise resolving to object mapping monitor IDs to event counts
  */
@@ -196,9 +210,26 @@ export async function getConsoleEvents(interval: string = '1 hour'): Promise<Rec
   const client = getApiClient();
   const response = await client.get(`/events/consoleEvents/${encodeURIComponent(interval)}.json`);
 
-  // The response is an object where keys are monitor IDs and values are event counts
-  // Example: { "1": 5, "2": 3, "3": 0 }
-  return response.data.results || {};
+  // Validate response with Zod
+  const validated = validateApiResponse(ConsoleEventsResponseSchema, response.data, {
+    endpoint: `/events/consoleEvents/${interval}.json`,
+    method: 'GET',
+  });
+
+  // The response should be an object where keys are monitor IDs and values are event counts
+  // Example: { results: { "1": 5, "2": 3, "3": 0 } }
+  // According to ZoneMinder source, this should always be an object/record.
+  // However, some ZM versions may return an empty array instead of empty object.
+  if (Array.isArray(validated.results)) {
+    log.api(
+      'consoleEvents returned array instead of object (likely ZM version difference or no results)',
+      LogLevel.WARN,
+      { interval, resultsType: 'array', resultsLength: validated.results.length }
+    );
+    return {};
+  }
+
+  return validated.results || {};
 }
 
 /**
