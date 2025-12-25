@@ -97,7 +97,8 @@ export default function Logs() {
                     setIsLoadingZmLogs(false);
                 });
         }
-    }, [logSource, toast, t]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [logSource]);
 
     const handleLevelChange = (value: string) => {
         const level = parseInt(value, 10) as LogLevel;
