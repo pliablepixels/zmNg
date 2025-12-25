@@ -70,6 +70,18 @@ export function validateApiResponse<T extends ZodSchema>(
     if (error instanceof z.ZodError) {
       const formattedErrors = formatZodIssues(error.issues);
 
+      // Safely stringify the response data for logging
+      let responsePreview: string;
+      try {
+        const stringified = JSON.stringify(data);
+        // Truncate very large responses to 500 chars
+        responsePreview = stringified.length > 500
+          ? stringified.substring(0, 500) + '...[truncated]'
+          : stringified;
+      } catch {
+        responsePreview = String(data);
+      }
+
       log.api('API response validation failed',
           LogLevel.ERROR,
           {
@@ -79,6 +91,7 @@ export function validateApiResponse<T extends ZodSchema>(
                   path: e.path,
                   message: e.message,
                   })),
+              rawResponse: responsePreview,
           },
      );
 
