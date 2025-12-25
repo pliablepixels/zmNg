@@ -216,8 +216,13 @@ export async function getConsoleEvents(interval: string = '1 hour'): Promise<Rec
     method: 'GET',
   });
 
-  // The response is an object where keys are monitor IDs and values are event counts
+  // The response should be an object where keys are monitor IDs and values are event counts
   // Example: { "1": 5, "2": 3, "3": 0 }
+  // If API returns an array instead, return empty object for backward compatibility
+  if (Array.isArray(validated.results)) {
+    return {};
+  }
+
   return validated.results || {};
 }
 

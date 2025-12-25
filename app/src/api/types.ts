@@ -336,8 +336,12 @@ export const EventResponseSchema = z.object({
 export type EventResponse = z.infer<typeof EventResponseSchema>;
 
 // Console events response (for getConsoleEvents endpoint)
+// API can return either an object (record) or an array, so we handle both
 export const ConsoleEventsResponseSchema = z.object({
-  results: z.record(z.string(), z.coerce.number()).optional(),
+  results: z.union([
+    z.record(z.string(), z.coerce.number()),
+    z.array(z.unknown()),
+  ]).optional(),
 });
 
 export type ConsoleEventsResponse = z.infer<typeof ConsoleEventsResponseSchema>;
