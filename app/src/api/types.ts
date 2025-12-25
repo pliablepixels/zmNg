@@ -393,6 +393,47 @@ export const ZmsPathResponseSchema = z.object({
 
 export type ZmsPathResponse = z.infer<typeof ZmsPathResponseSchema>;
 
+// ZoneMinder server log types
+export const ZMLogSchema = z.object({
+  Id: z.coerce.number(),
+  TimeKey: z.string(),
+  Component: z.string(),
+  ServerId: z.coerce.number().nullable(),
+  Pid: z.coerce.number().nullable(),
+  Level: z.coerce.number(),
+  Code: z.string(),
+  Message: z.string(),
+  File: z.string().nullable(),
+  Line: z.coerce.number().nullable(),
+});
+
+export const ZMLogDataSchema = z.object({
+  Log: ZMLogSchema,
+});
+
+export const ZMLogsResponseSchema = z.object({
+  logs: z.array(ZMLogDataSchema),
+  pagination: z.object({
+    page: z.number(),
+    current: z.number(),
+    count: z.number(),
+    prevPage: z.boolean(),
+    nextPage: z.boolean(),
+    pageCount: z.number(),
+    order: z.record(z.string(), z.string()).optional(),
+    limit: z.number(),
+    options: z.object({
+      conditions: z.array(z.unknown()),
+    }).optional(),
+    paramType: z.string().optional(),
+    queryScope: z.unknown().nullable().optional(),
+  }),
+});
+
+export type ZMLog = z.infer<typeof ZMLogSchema>;
+export type ZMLogData = z.infer<typeof ZMLogDataSchema>;
+export type ZMLogsResponse = z.infer<typeof ZMLogsResponseSchema>;
+
 // State types
 export const StateSchema = z.object({
   Id: z.coerce.string(),
