@@ -156,7 +156,12 @@ class Logger {
         break;
       case LogLevel.ERROR:
         if (details !== undefined && details !== null && !(typeof details === 'object' && Object.keys(details as object).length === 0)) {
-          this.error(message, context, details);
+            if (typeof details === 'object') {
+                this.error(message, context, JSON.stringify(details, null, 2))
+            }
+            else {
+                this.error(message, context, details);
+            }
         } else {
           this.error(message, context);
         }

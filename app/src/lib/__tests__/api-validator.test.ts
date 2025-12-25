@@ -9,6 +9,7 @@ import {
   safeValidateApiResponse,
   validateArrayItems,
   ApiValidationError,
+  formatZodIssues,
 } from '../api-validator';
 import { log, LogLevel } from '../logger';
 
@@ -58,7 +59,8 @@ describe('ApiValidationError', () => {
     ]);
 
     const rawData = { name: 123 };
-    const error = new ApiValidationError('Test error', zodError, rawData);
+    const zFormat = formatZodIssues(zodError.issues);
+    const error = new ApiValidationError('Test error', zodError, zFormat, rawData);
 
     expect(error).toBeInstanceOf(Error);
     expect(error).toBeInstanceOf(ApiValidationError);
@@ -70,7 +72,8 @@ describe('ApiValidationError', () => {
 
   it('has correct prototype chain', () => {
     const zodError = new z.ZodError([]);
-    const error = new ApiValidationError('Test', zodError, {});
+    const zFormat = formatZodIssues(zodError.issues);
+    const error = new ApiValidationError('Test', zodError,zFormat, {});
 
     expect(error instanceof Error).toBe(true);
     expect(error instanceof ApiValidationError).toBe(true);

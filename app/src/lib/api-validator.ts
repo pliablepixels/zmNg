@@ -8,22 +8,42 @@
 import { z, type ZodSchema } from 'zod';
 import { log, LogLevel } from './logger';
 
+export interface FormattedZodIssue {
+  path: string;
+  message: string;
+  code: z.ZodIssue['code'];
+  expected?: unknown;
+  received?: unknown;
+}
+
 export class ApiValidationError extends Error {
   public readonly zodError: z.ZodError;
+  public readonly formattedIssues: FormattedZodIssue[];
   public readonly rawData: unknown;
 
   constructor(
     message: string,
     zodError: z.ZodError,
+    formattedIssues: FormattedZodIssue[],
     rawData: unknown
   ) {
     super(message);
     this.name = 'ApiValidationError';
     this.zodError = zodError;
+    this.formattedIssues = formattedIssues;
     this.rawData = rawData;
   }
 }
 
+export function formatZodIssues(issues: z.ZodIssue[]): FormattedZodIssue[] {
+  return issues.map(issue => ({
+    path: issue.path.length ? issue.path.join('.') : '(root)',
+    message: issue.message,
+    code: issue.code,
+    expected: (issue as any).expected,
+    received: (issue as any).received,
+  }));
+}
 /**
  * Validate API response data against a Zod schema.
  *
@@ -48,14 +68,25 @@ export function validateApiResponse<T extends ZodSchema>(
     return schema.parse(data);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      log.api('API response validation failed', LogLevel.ERROR, { ...context,
-        errors: error.issues,
-        rawData: data, });
+      const formattedErrors = formatZodIssues(error.issues);
+
+      log.api('API response validation failed',
+          LogLevel.ERROR,
+          {
+              endpoint: context.endpoint,
+              method: context.method,
+              errors: formattedErrors.map(e => ({
+                  path: e.path,
+                  message: e.message,
+                  })),
+          },
+     );
 
       throw new ApiValidationError(
-        `API response validation failed for ${context.endpoint || 'unknown endpoint'}`,
-        error,
-        data
+        `API response validation failed for ${context.method ?? 'UNKNOWN'} ${context.endpoint ?? 'unknown endpoint'}`,
+            error,
+            formattedErrors,
+            data
       );
     }
     throw error;
