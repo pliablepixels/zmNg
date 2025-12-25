@@ -28,7 +28,7 @@ const ServersResponseSchema = z.object({
 
 const LoadSchema = z.object({
   load: z.union([
-    z.array(z.number()),
+    z.array(z.coerce.number()),
     z.coerce.number(),
     z.string().transform((val) => parseFloat(val)),
   ]),
