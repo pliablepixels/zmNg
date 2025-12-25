@@ -6,8 +6,8 @@
  */
 
 import { getApiClient } from './client';
-import type { LoginResponse, ZmsPathResponse } from './types';
-import { LoginResponseSchema, ZmsPathResponseSchema } from './types';
+import type { LoginResponse, ZmsPathResponse, VersionResponse } from './types';
+import { LoginResponseSchema, ZmsPathResponseSchema, VersionResponseSchema } from './types';
 import { log, LogLevel } from '../lib/logger';
 
 export interface LoginCredentials {
@@ -112,15 +112,18 @@ export async function refreshToken(refreshToken: string): Promise<LoginResponse>
 
 /**
  * Get API version.
- * 
+ *
  * Fetches version information from /host/getVersion.json.
- * 
+ *
  * @returns Promise resolving to object with version and apiversion strings
  */
-export async function getVersion(): Promise<{ version: string; apiversion: string }> {
+export async function getVersion(): Promise<VersionResponse> {
   const client = getApiClient();
   const response = await client.get('/host/getVersion.json');
-  return response.data;
+
+  // Validate response with Zod
+  const validated = VersionResponseSchema.parse(response.data);
+  return validated;
 }
 
 /**
