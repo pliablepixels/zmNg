@@ -217,9 +217,15 @@ export async function getConsoleEvents(interval: string = '1 hour'): Promise<Rec
   });
 
   // The response should be an object where keys are monitor IDs and values are event counts
-  // Example: { "1": 5, "2": 3, "3": 0 }
-  // If API returns an array instead, return empty object for backward compatibility
+  // Example: { results: { "1": 5, "2": 3, "3": 0 } }
+  // According to ZoneMinder source, this should always be an object/record.
+  // However, some ZM versions may return an empty array instead of empty object.
   if (Array.isArray(validated.results)) {
+    log.api(
+      'consoleEvents returned array instead of object (likely ZM version difference or no results)',
+      LogLevel.WARN,
+      { interval, resultsType: 'array', resultsLength: validated.results.length }
+    );
     return {};
   }
 
