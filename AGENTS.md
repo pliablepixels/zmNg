@@ -425,6 +425,17 @@ npm run test:e2e -- --debug
 npm run test:e2e -- dashboard.feature:10
 ```
 
+### E2E Test Requirements
+- Tests use **dynamic selectors** (`.first()`, `at least 1`) not hardcoded monitor names
+- Configure test server in `.env` file:
+  ```bash
+  ZM_HOST_1=http://your-server:port
+  ZM_USER_1=admin
+  ZM_PASSWORD_1=password
+  ```
+- Server must have at least 1 monitor for tests to pass
+- Tests work with any ZoneMinder server configuration
+
 ### Type Checking & Build
 ```bash
 # Type check only (no emit)
