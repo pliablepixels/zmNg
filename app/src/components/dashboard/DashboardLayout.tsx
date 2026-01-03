@@ -22,7 +22,7 @@ import GridLayout, { WidthProvider } from 'react-grid-layout';
 import type { Layout } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const WrappedGridLayout = WidthProvider(GridLayout);
@@ -59,7 +59,7 @@ export function DashboardLayout() {
         return widgets.map((w) => ({ ...w.layout, i: w.id }));
     }, [widgets]);
 
-    const areLayoutsEqual = (a: Layout[], b: Layout[]) => {
+    const areLayoutsEqual = useCallback((a: Layout[], b: Layout[]) => {
         if (a.length !== b.length) return false;
         const map = new Map(a.map((item) => [item.i, item]));
         return b.every((item) => {
@@ -72,18 +72,18 @@ export function DashboardLayout() {
                 match.h === item.h
             );
         });
-    };
+    }, []);
 
     useEffect(() => {
         setLayout((prev) => (areLayoutsEqual(prev, layouts) ? prev : layouts));
-    }, [layouts]);
+    }, [layouts, areLayoutsEqual]);
 
-    const handleLayoutChange = (nextLayout: Layout[]) => {
+    const handleLayoutChange = useCallback((nextLayout: Layout[]) => {
         setLayout((prev) => (areLayoutsEqual(prev, nextLayout) ? prev : nextLayout));
         if (!isEditing) return;
 
         updateLayouts(profileId, { lg: nextLayout });
-    };
+    }, [areLayoutsEqual, isEditing, profileId, updateLayouts]);
 
     if (widgets.length === 0) {
         return (

@@ -356,7 +356,7 @@ export default function Montage() {
       const normalizedLayout = normalizeLayout(prev, gridCols, width, isFullscreen ? 0 : GRID_MARGIN);
       return normalizedLayout;
     });
-  }, [gridCols, isFullscreen, currentProfile, t, updateSettings, setGridCols, setIsScreenTooSmall, setHasWidth, setLayout]);
+  }, [gridCols, isFullscreen, currentProfile, t, updateSettings]);
 
   // Callback ref to measure container width when element mounts
   const containerRef = useCallback((element: HTMLDivElement | null) => {
