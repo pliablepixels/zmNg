@@ -115,6 +115,16 @@ export default function Montage() {
   // ResizeObserver to measure container width
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
 
+  // Use refs for values we need in callbacks but don't want as dependencies
+  const currentProfileRef = useRef(currentProfile);
+  const updateSettingsRef = useRef(updateSettings);
+
+  // Keep refs updated
+  useEffect(() => {
+    currentProfileRef.current = currentProfile;
+    updateSettingsRef.current = updateSettings;
+  }, [currentProfile, updateSettings]);
+
   // Auto-hide overlay after 5 seconds (only on desktop)
   useEffect(() => {
     if (showFullscreenOverlay && window.innerWidth >= 768) {
@@ -332,8 +342,9 @@ export default function Montage() {
         setGridCols(maxCols);
         setIsScreenTooSmall(false);
         screenTooSmallRef.current = false;
-        if (currentProfile) {
-          updateSettings(currentProfile.id, {
+        // Use ref to access current profile without making it a dependency
+        if (currentProfileRef.current) {
+          updateSettingsRef.current(currentProfileRef.current.id, {
             montageGridCols: maxCols,
           });
         }
@@ -356,7 +367,7 @@ export default function Montage() {
       const normalizedLayout = normalizeLayout(prev, gridCols, width, isFullscreen ? 0 : GRID_MARGIN);
       return normalizedLayout;
     });
-  }, [gridCols, isFullscreen, currentProfile, t, updateSettings]);
+  }, [gridCols, isFullscreen, t]);
 
   // Callback ref to measure container width when element mounts
   const containerRef = useCallback((element: HTMLDivElement | null) => {
