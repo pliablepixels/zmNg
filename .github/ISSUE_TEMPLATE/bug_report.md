@@ -7,6 +7,8 @@ assignees: ''
 
 ---
 
+**NOTE**: Please read the [self support](https://github.com/pliablepixels/zmNg/blob/main/README.md#agentic-ai-you-and-me) guidelines. You are free to post issues, but there is no guarantee I will respond. 
+
 **zmNg version**
 You will find the version in the logs menu option
 
