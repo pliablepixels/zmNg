@@ -178,6 +178,7 @@ function MontageMonitorComponent({
           alt={monitor.Name}
           className="w-full h-full"
           style={{ objectFit: resolvedFit }}
+          loading="lazy"
           onError={(e) => {
             const img = e.target as HTMLImageElement;
             // Only retry if we haven't retried too recently (basic debounce)

@@ -86,6 +86,7 @@ export const EventMontageView = ({
                   alt={event.Name}
                   className="w-full h-full"
                   style={{ objectFit: thumbnailFit }}
+                  loading="lazy"
                   onError={(e) => {
                     const img = e.target as HTMLImageElement;
                     img.src =
