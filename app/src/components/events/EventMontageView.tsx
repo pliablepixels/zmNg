@@ -2,6 +2,10 @@
  * Event Montage View
  *
  * Grid view of events with thumbnails and metadata.
+ * Features:
+ * - Responsive grid layout
+ * - Haptic feedback on downloads (native platforms)
+ * - Touch-optimized download buttons
  */
 
 import { useNavigate } from 'react-router-dom';
@@ -18,6 +22,7 @@ import { getEventImageUrl } from '../../api/events';
 import { calculateThumbnailDimensions } from '../../lib/event-utils';
 import { ZM_INTEGRATION } from '../../lib/zmng-constants';
 import type { Monitor } from '../../api/types';
+import { Capacitor } from '@capacitor/core';
 
 interface EventMontageViewProps {
   events: any[];
@@ -44,6 +49,18 @@ export const EventMontageView = ({
 }: EventMontageViewProps) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+
+  // Haptic feedback helper
+  const triggerHaptic = async () => {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const { Haptics, ImpactStyle } = await import('@capacitor/haptics');
+        await Haptics.impact({ style: ImpactStyle.Light });
+      } catch {
+        // Haptics not available, silently ignore
+      }
+    }
+  };
 
   return (
     <div className="min-h-0" data-testid="events-montage-grid">
@@ -101,9 +118,10 @@ export const EventMontageView = ({
                     <Button
                       variant="secondary"
                       size="icon"
-                      className="h-7 w-7"
-                      onClick={(e) => {
+                      className="h-8 w-8"
+                      onClick={async (e) => {
                         e.stopPropagation();
+                        await triggerHaptic();
                         downloadEventVideo(portalUrl, event.Id, event.Name, accessToken)
                           .then(() => toast.success(t('eventMontage.video_download_started')))
                           .catch(() => toast.error(t('eventMontage.video_download_failed')));
