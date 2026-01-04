@@ -11,6 +11,8 @@ PODS:
   - CapacitorFilesystem (7.1.5):
     - Capacitor
     - IONFilesystemLib (~> 1.0.1)
+  - CapacitorHaptics (7.0.3):
+    - Capacitor
   - CapacitorPreferences (7.0.3):
     - Capacitor
   - CapacitorPushNotifications (7.0.4):
@@ -31,6 +33,7 @@ DEPENDENCIES:
   - "CapacitorCommunityMedia (from `../../node_modules/@capacitor-community/media`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorFilesystem (from `../../node_modules/@capacitor/filesystem`)"
+  - "CapacitorHaptics (from `../../node_modules/@capacitor/haptics`)"
   - "CapacitorPreferences (from `../../node_modules/@capacitor/preferences`)"
   - "CapacitorPushNotifications (from `../../node_modules/@capacitor/push-notifications`)"
   - "CapacitorShare (from `../../node_modules/@capacitor/share`)"
@@ -53,6 +56,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/ios"
   CapacitorFilesystem:
     :path: "../../node_modules/@capacitor/filesystem"
+  CapacitorHaptics:
+    :path: "../../node_modules/@capacitor/haptics"
   CapacitorPreferences:
     :path: "../../node_modules/@capacitor/preferences"
   CapacitorPushNotifications:
@@ -68,6 +73,7 @@ SPEC CHECKSUMS:
   CapacitorCommunityMedia: d1538b56a3303298e7cf45a18b11e624fbcbdc8e
   CapacitorCordova: bf648a636f3c153f652d312ae145fb508b6ffced
   CapacitorFilesystem: 609d5cceca1ed93d7f25839dbfdfd224bfe78209
+  CapacitorHaptics: ce15be8f287fa2c61c7d2d9e958885b90cf0bebc
   CapacitorPreferences: 913eef88272c13eb6445b21e51fe8ef6635412cc
   CapacitorPushNotifications: 7604512af53bbfdf1dd8fb2256b9ef1e8a69cdc2
   CapacitorShare: a4f4f86eabd4b3ff52ba6a11b754713c6926a8d1
@@ -76,6 +82,6 @@ SPEC CHECKSUMS:
   KeychainSwift: 4a71a45c802fd9e73906457c2dcbdbdc06c9419d
   SDWebImage: d0184764be51240d49c761c37f53dd017e1ccaaf
 
-PODFILE CHECKSUM: 80ee95a5f424d9cd6d273156620b175a97a1b37a
+PODFILE CHECKSUM: a4eaf8d1d996b6865b92273a87dbfef4946f2896
 
 COCOAPODS: 1.16.2

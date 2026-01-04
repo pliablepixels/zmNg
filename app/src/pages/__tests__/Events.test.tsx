@@ -75,6 +75,10 @@ vi.mock('../../components/events/EventHeatmap', () => ({
   EventHeatmap: () => <div data-testid="event-heatmap" />,
 }));
 
+vi.mock('../../components/events/EventMontageView', () => ({
+  EventMontageView: () => <div data-testid="events-montage-grid" />,
+}));
+
 vi.mock('../../components/filters/MonitorFilterPopover', () => ({
   MonitorFilterPopoverContent: () => <div data-testid="monitor-filter" />,
 }));

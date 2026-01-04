@@ -99,3 +99,33 @@ global.AudioContext = vi.fn(() => ({
   destination: {},
   currentTime: 0,
 })) as unknown as typeof AudioContext;
+
+// Mock Capacitor
+vi.mock('@capacitor/core', () => ({
+  Capacitor: {
+    isNativePlatform: () => false,
+    getPlatform: () => 'web',
+  },
+}));
+
+// Mock Capacitor Haptics
+vi.mock('@capacitor/haptics', () => ({
+  Haptics: {
+    impact: vi.fn().mockResolvedValue(undefined),
+    notification: vi.fn().mockResolvedValue(undefined),
+    vibrate: vi.fn().mockResolvedValue(undefined),
+    selectionStart: vi.fn().mockResolvedValue(undefined),
+    selectionChanged: vi.fn().mockResolvedValue(undefined),
+    selectionEnd: vi.fn().mockResolvedValue(undefined),
+  },
+  ImpactStyle: {
+    Heavy: 'Heavy',
+    Medium: 'Medium',
+    Light: 'Light',
+  },
+  NotificationType: {
+    Success: 'Success',
+    Warning: 'Warning',
+    Error: 'Error',
+  },
+}));

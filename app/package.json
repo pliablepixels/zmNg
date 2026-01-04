@@ -46,6 +46,7 @@
     "@capacitor/cli": "^7.4.4",
     "@capacitor/core": "^7.4.4",
     "@capacitor/filesystem": "^7.1.5",
+    "@capacitor/haptics": "^7.0.3",
     "@capacitor/ios": "^7.4.4",
     "@capacitor/preferences": "^7.0.2",
     "@capacitor/push-notifications": "^7.0.3",
