@@ -2,7 +2,7 @@
 
 ## Quick Reference
 1. **Internationalization**: Update ALL language files (en, de, es, fr, zh + any future)
-2. **Cross-platform**: iOS, Android, Desktop, mobile portrait
+2. **Cross-platform**: iOS, Android, Desktop, mobile portrait + landscape
 3. **Settings**: Must be profile-scoped; read/write via profile settings only
 4. **Testing**: MANDATORY - Write tests first, run AND verify pass before commit
 5. **Logging**: Use component-specific helpers (e.g., `log.secureStorage(msg, LogLevel.INFO, details)`), never `console.*`
@@ -524,7 +524,6 @@ When removing or reverting functionality:
 
 4. **Update or remove translations**:
    - Remove translation keys if feature is permanently removed
-   - Keep keys if backward compatibility needed
 
 5. **Verify no breakage**:
    - Run full test suite: `npm test && npm run test:e2e`
