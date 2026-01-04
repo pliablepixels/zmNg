@@ -10,7 +10,7 @@ import { Label } from '../components/ui/label';
 import { RefreshCw, Filter, Activity, AlertCircle, Clock } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { filterEnabledMonitors } from '../lib/filters';
-import { ZM_CONSTANTS } from '../lib/constants';
+import { TIMELINE } from '../lib/zmng-constants';
 import { escapeHtml } from '../lib/utils';
 import { formatForServer } from '../lib/time';
 import { Timeline as VisTimeline } from 'vis-timeline/standalone';
@@ -177,8 +177,8 @@ export default function Timeline() {
       showCurrentTime: true,
       showMajorLabels: true,
       showMinorLabels: true,
-      zoomMin: ZM_CONSTANTS.timelineZoomMin, // 1 minute
-      zoomMax: ZM_CONSTANTS.timelineZoomMax, // 1 week
+      zoomMin: TIMELINE.zoomMin, // 1 minute
+      zoomMax: TIMELINE.zoomMax, // 1 week
       moveable: true,
       zoomable: true,
       selectable: true,

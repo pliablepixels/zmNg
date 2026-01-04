@@ -281,7 +281,7 @@ describe('getEventZmsUrl', () => {
 
 describe('getZmsControlUrl', () => {
   const portalUrl = 'https://zm.com';
-  const command = 1; // CMD_PLAY
+  const command = 1; // ZMS_COMMANDS.cmdPlay
   const connkey = 'conn123';
 
   it('generates ZMS control URL', () => {

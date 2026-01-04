@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { log, LogLevel } from '../lib/logger';
 import type { MonitorFeedFit } from './settings';
+import { GRID_LAYOUT } from '../lib/zmng-constants';
 
 export type WidgetType = 'monitor' | 'events' | 'timeline' | 'heatmap';
 
@@ -52,7 +53,6 @@ export const useDashboardStore = create<DashboardState>()(
 
             addWidget: (profileId, widget) =>
                 set((state) => {
-                    const DEFAULT_COLS = 12;
                     const id = crypto.randomUUID();
                     const profileWidgets = state.widgets[profileId] || [];
                     // Simple auto-placement: put at the bottom
@@ -82,7 +82,7 @@ export const useDashboardStore = create<DashboardState>()(
                                     ...widget,
                                     id,
                                     layout: initialLayout,
-                                    layouts: { lg: { ...initialLayout, w: Math.min(initialLayout.w, DEFAULT_COLS) } }
+                                    layouts: { lg: { ...initialLayout, w: Math.min(initialLayout.w, GRID_LAYOUT.cols) } }
                                 },
                             ]
                         },
@@ -144,7 +144,6 @@ export const useDashboardStore = create<DashboardState>()(
 
             resetWidgetWidths: (profileId) => {
                 set((state) => {
-                    const fullWidth = 12;
                     const widgetCount = (state.widgets[profileId] || []).length;
                     log.dashboard('Resetting dashboard widget widths to full width', LogLevel.INFO, { profileId,
                         widgetCount });
@@ -160,13 +159,13 @@ export const useDashboardStore = create<DashboardState>()(
                                     const existingLayout = w.layouts?.[bp] || w.layout;
                                     updatedLayouts[bp] = {
                                         ...existingLayout,
-                                        w: fullWidth,
+                                        w: GRID_LAYOUT.cols,
                                     };
                                 });
 
                                 return {
                                     ...w,
-                                    layout: { ...(updatedLayouts.lg || w.layout), w: fullWidth },
+                                    layout: { ...(updatedLayouts.lg || w.layout), w: GRID_LAYOUT.cols },
                                     layouts: updatedLayouts
                                 };
                             })

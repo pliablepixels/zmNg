@@ -13,7 +13,7 @@
 
 import { useEffect } from 'react';
 import { useAuthStore } from '../stores/auth';
-import { ZM_CONSTANTS } from '../lib/constants';
+import { ZM_INTEGRATION } from '../lib/zmng-constants';
 import { log, LogLevel } from '../lib/logger';
 
 /**
@@ -33,7 +33,7 @@ export function useTokenRefresh(): void {
         const timeUntilExpiry = accessTokenExpires - Date.now();
         // Refresh 5 minutes before expiry
         if (
-          timeUntilExpiry < ZM_CONSTANTS.accessTokenLeewayMs &&
+          timeUntilExpiry < ZM_INTEGRATION.accessTokenLeewayMs &&
           timeUntilExpiry > 0
         ) {
           try {
@@ -51,7 +51,7 @@ export function useTokenRefresh(): void {
     checkAndRefresh();
 
     // Then check every minute
-    const interval = setInterval(checkAndRefresh, ZM_CONSTANTS.tokenCheckInterval);
+    const interval = setInterval(checkAndRefresh, ZM_INTEGRATION.tokenCheckInterval);
 
     return () => clearInterval(interval);
   }, [isAuthenticated, accessTokenExpires, refreshAccessToken]);

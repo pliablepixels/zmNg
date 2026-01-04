@@ -13,6 +13,7 @@
 import { useDashboardStore } from '../../stores/dashboard';
 import { useProfileStore } from '../../stores/profile';
 import { useShallow } from 'zustand/react/shallow';
+import { GRID_LAYOUT } from '../../lib/zmng-constants';
 import { DashboardWidget } from './DashboardWidget';
 import { MonitorWidget } from './widgets/MonitorWidget';
 import { EventsWidget } from './widgets/EventsWidget';
@@ -26,10 +27,6 @@ import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const WrappedGridLayout = WidthProvider(GridLayout);
-const GRID_COLS = 12;
-/** Height of each row in pixels */
-const ROW_HEIGHT = 100;
-const GRID_MARGIN = 16;
 
 export function DashboardLayout() {
     const { t } = useTranslation();
@@ -132,13 +129,13 @@ export function DashboardLayout() {
             <WrappedGridLayout
                 className="layout"
                 layout={activeLayout}
-                cols={GRID_COLS}
-                rowHeight={ROW_HEIGHT}
+                cols={GRID_LAYOUT.cols}
+                rowHeight={GRID_LAYOUT.rowHeight}
                 onLayoutChange={handleLayoutChange}
                 isDraggable={isEditing}
                 isResizable={isEditing}
                 draggableHandle=".drag-handle"
-                margin={[GRID_MARGIN, GRID_MARGIN]}
+                margin={[GRID_LAYOUT.margin, GRID_LAYOUT.margin]}
                 containerPadding={[0, 0]}
                 compactType="vertical"
                 preventCollision={false}

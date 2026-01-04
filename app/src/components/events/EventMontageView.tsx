@@ -16,7 +16,7 @@ import { SecureImage } from '../ui/secure-image';
 import { downloadEventVideo } from '../../lib/download';
 import { getEventImageUrl } from '../../api/events';
 import { calculateThumbnailDimensions } from '../../lib/event-utils';
-import { ZM_CONSTANTS } from '../../lib/constants';
+import { ZM_INTEGRATION } from '../../lib/zmng-constants';
 import type { Monitor } from '../../api/types';
 
 interface EventMontageViewProps {
@@ -62,7 +62,7 @@ export const EventMontageView = ({
             monitorWidth,
             monitorHeight,
             monitorData?.Orientation ?? event.Orientation,
-            ZM_CONSTANTS.eventMontageImageWidth
+            ZM_INTEGRATION.eventMontageImageWidth
           );
 
           const imageUrl = getEventImageUrl(portalUrl, event.Id, 'snapshot', {

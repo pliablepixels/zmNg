@@ -8,6 +8,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useShallow } from 'zustand/react/shallow';
 import { getMonitors } from '../api/monitors';
+import { GRID_LAYOUT } from '../lib/zmng-constants';
 import { useProfileStore } from '../stores/profile';
 import { useAuthStore } from '../stores/auth';
 import { useSettingsStore } from '../stores/settings';
@@ -54,10 +55,6 @@ import { getMonitorAspectRatio } from '../lib/monitor-rotation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { useCallback } from 'react';
 
-// Default column configuration
-const GRID_ROW_HEIGHT = 10;
-const GRID_MARGIN = 16;
-const MIN_CARD_WIDTH = 50;
 const WrappedGridLayout = WidthProvider(GridLayout);
 
 const getMaxColsForWidth = (width: number, minWidth: number, margin: number) => {
@@ -173,8 +170,8 @@ export default function Montage() {
   const handleApplyGridLayout = (cols: number) => {
     if (!currentProfile) return;
 
-    const margin = isFullscreen ? 0 : GRID_MARGIN;
-    const maxCols = getMaxColsForWidth(currentWidthRef.current, MIN_CARD_WIDTH, margin);
+    const margin = isFullscreen ? 0 : GRID_LAYOUT.margin;
+    const maxCols = getMaxColsForWidth(currentWidthRef.current, GRID_LAYOUT.minCardWidth, margin);
     if (cols > maxCols) {
       toast.error(t('montage.screen_too_small'));
       setIsScreenTooSmall(true);
@@ -272,7 +269,7 @@ export default function Montage() {
     const columnWidth = (gridWidth - margin * (cols - 1)) / cols;
     const itemWidth = columnWidth * widthUnits + margin * (widthUnits - 1);
     const heightPx = itemWidth * aspectRatio;
-    const unit = (heightPx + margin) / (GRID_ROW_HEIGHT + margin);
+    const unit = (heightPx + margin) / (GRID_LAYOUT.montageRowHeight + margin);
     const result = Math.max(2, Math.round(unit));
 
     return result;
@@ -281,7 +278,7 @@ export default function Montage() {
   const buildDefaultLayout = (monitorList: typeof monitors, cols: number, gridWidth: number) => {
     return monitorList.map(({ Monitor }, index) => {
       const widthUnits = 1;
-      const heightUnits = calculateHeightUnits(Monitor.Id, widthUnits, gridWidth, cols, GRID_MARGIN);
+      const heightUnits = calculateHeightUnits(Monitor.Id, widthUnits, gridWidth, cols, GRID_LAYOUT.margin);
       return {
         i: Monitor.Id,
         x: index % cols,
@@ -324,7 +321,7 @@ export default function Montage() {
       nextLayout = buildDefaultLayout(monitors, gridCols, currentWidthRef.current);
     }
 
-    const normalized = normalizeLayout(nextLayout, gridCols, currentWidthRef.current, GRID_MARGIN);
+    const normalized = normalizeLayout(nextLayout, gridCols, currentWidthRef.current, GRID_LAYOUT.margin);
 
     setLayout((prev) => (areLayoutsEqual(prev, normalized) ? prev : normalized));
   }, [monitors, gridCols, monitorMap, settings.montageLayouts, hasWidth]);
@@ -333,7 +330,7 @@ export default function Montage() {
     const isFirstMeasurement = currentWidthRef.current === 0;
     currentWidthRef.current = width;
 
-    const maxCols = getMaxColsForWidth(width, MIN_CARD_WIDTH, isFullscreen ? 0 : GRID_MARGIN);
+    const maxCols = getMaxColsForWidth(width, GRID_LAYOUT.minCardWidth, isFullscreen ? 0 : GRID_LAYOUT.margin);
     const tooSmall = gridCols > maxCols;
 
     if (isFirstMeasurement) {
@@ -364,7 +361,7 @@ export default function Montage() {
     screenTooSmallRef.current = tooSmall;
 
     setLayout((prev) => {
-      const normalizedLayout = normalizeLayout(prev, gridCols, width, isFullscreen ? 0 : GRID_MARGIN);
+      const normalizedLayout = normalizeLayout(prev, gridCols, width, isFullscreen ? 0 : GRID_LAYOUT.margin);
       return normalizedLayout;
     });
   }, [gridCols, isFullscreen, t]);
@@ -422,7 +419,7 @@ export default function Montage() {
       newItem.w,
       currentWidthRef.current,
       gridCols,
-      isFullscreen ? 0 : GRID_MARGIN
+      isFullscreen ? 0 : GRID_LAYOUT.margin
     );
 
     setLayout((prev) => {
@@ -747,8 +744,8 @@ export default function Montage() {
             <WrappedGridLayout
               layout={layout}
               cols={gridCols}
-              rowHeight={GRID_ROW_HEIGHT}
-              margin={[isFullscreen ? 0 : GRID_MARGIN, isFullscreen ? 0 : GRID_MARGIN]}
+              rowHeight={GRID_LAYOUT.montageRowHeight}
+              margin={[isFullscreen ? 0 : GRID_LAYOUT.margin, isFullscreen ? 0 : GRID_LAYOUT.margin]}
               containerPadding={[0, 0]}
               compactType="vertical"
               preventCollision={false}
