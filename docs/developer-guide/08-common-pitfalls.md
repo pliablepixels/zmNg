@@ -70,7 +70,82 @@ useEffect(() => {
 }, []);
 ```
 
-### 3. Mutating State Directly
+### 3. Rendering Streams Before Connection Key is Valid (Zombie Streams)
+
+**Problem:**
+
+```tsx
+const [connKey, setConnKey] = useState(0);
+
+// Generate connKey in effect
+useEffect(() => {
+  const newKey = regenerateConnKey(monitorId);
+  setConnKey(newKey);
+}, [monitorId]);
+
+// Build stream URL immediately (connKey is still 0!)
+const streamUrl = getStreamUrl(cgiUrl, monitorId, {
+  connkey: connKey,  // ❌ connKey is 0 on first render
+  // ...
+});
+
+return <img src={streamUrl} />;  // ❌ Starts stream with connKey=0
+```
+
+**Why it's wrong:**
+
+- Initial state has `connKey=0` (invalid)
+- Stream URL is built with `connKey=0`
+- Image renders and starts a ZMS stream on the server
+- Effect runs and generates valid `connKey` (e.g., 12345)
+- Stream URL updates, image re-renders with new URL
+- Second ZMS stream starts on server with valid `connKey`
+- On unmount, only the stream with valid `connKey` gets terminated
+- **Result: Zombie stream with `connKey=0` left running on server**
+- Viewing N monitors creates 2*N streams instead of N
+
+**Solution:**
+
+```tsx
+const [connKey, setConnKey] = useState(0);
+
+useEffect(() => {
+  const newKey = regenerateConnKey(monitorId);
+  setConnKey(newKey);
+}, [monitorId]);
+
+// Only build URL when we have a valid connKey
+const streamUrl = connKey !== 0  // ✅ Check for valid connKey first
+  ? getStreamUrl(cgiUrl, monitorId, {
+      connkey: connKey,
+      // ...
+    })
+  : '';  // Return empty string until connKey is valid
+
+// Cleanup: send CMD_QUIT on unmount
+useEffect(() => {
+  return () => {
+    if (connKey !== 0 && profile) {
+      const controlUrl = getZmsControlUrl(
+        profile.portalUrl,
+        ZMS_COMMANDS.cmdQuit,
+        connKey.toString()
+      );
+      httpGet(controlUrl).catch(() => {});  // ✅ Terminate stream
+    }
+  };
+}, []);  // Empty deps - only run on unmount
+
+return <img src={streamUrl} />;  // ✅ Only renders when connKey is valid
+```
+
+**Key principles for stream lifecycle:**
+- Never render a stream without a valid connection key
+- Always send `CMD_QUIT` to terminate streams on unmount
+- Use refs to access latest values in cleanup effects
+- Check `connKey !== 0` before building stream URLs
+
+### 4. Mutating State Directly
 
 **Problem:**
 
@@ -103,7 +178,7 @@ const addItem = (item) => {
 };
 ```
 
-### 4. Missing Keys in Lists
+### 5. Missing Keys in Lists
 
 **Problem:**
 
@@ -134,7 +209,7 @@ const addItem = (item) => {
 ))}
 ```
 
-### 5. Conditional Hooks
+### 6. Conditional Hooks
 
 **Problem:**
 
@@ -167,7 +242,7 @@ function Component({ userId }) {
 
 ## Zustand Pitfalls
 
-### 6. Using Store Values as Dependencies
+### 7. Using Store Values as Dependencies
 
 **Problem:**
 
@@ -210,7 +285,7 @@ useEffect(() => {
 }, [profileId]);  // ✅ ID is a primitive, stable when unchanged
 ```
 
-### 7. Forgetting to Initialize Store State
+### 8. Forgetting to Initialize Store State
 
 **Problem:**
 
@@ -246,7 +321,7 @@ export const useMyStore = create<MyState>((set) => ({
 
 ## React Query Pitfalls
 
-### 8. Missing enabled Flag
+### 9. Missing enabled Flag
 
 **Problem:**
 
@@ -273,7 +348,7 @@ const { data } = useQuery({
 });
 ```
 
-### 9. Not Invalidating Queries After Mutations
+### 10. Not Invalidating Queries After Mutations
 
 **Problem:**
 
@@ -307,7 +382,7 @@ const mutation = useMutation({
 });
 ```
 
-### 10. Incorrect Query Keys
+### 11. Incorrect Query Keys
 
 **Problem:**
 
@@ -349,7 +424,7 @@ const { data } = useQuery({
 
 ## Testing Pitfalls
 
-### 11. Hardcoded Values in E2E Tests
+### 12. Hardcoded Values in E2E Tests
 
 **Problem:**
 
@@ -371,7 +446,7 @@ When I select the first monitor     # ✅ Dynamic
 Then I should see at least 1 event  # ✅ Flexible count
 ```
 
-### 12. Not Mocking Dependencies in Unit Tests
+### 13. Not Mocking Dependencies in Unit Tests
 
 **Problem:**
 
@@ -409,7 +484,7 @@ it('renders monitor', () => {
 });
 ```
 
-### 13. Forgetting to Add data-testid
+### 14. Forgetting to Add data-testid
 
 **Problem:**
 
@@ -437,7 +512,7 @@ it('renders monitor', () => {
 
 ## Performance Pitfalls
 
-### 14. Not Memoizing Expensive Calculations
+### 15. Not Memoizing Expensive Calculations
 
 **Problem:**
 
@@ -478,7 +553,7 @@ function MonitorList({ monitors }) {
 }
 ```
 
-### 15. Not Memoizing Components in Lists
+### 16. Not Memoizing Components in Lists
 
 **Problem:**
 
@@ -523,7 +598,7 @@ export const MonitorCard = memo(
 
 ## Internationalization Pitfalls
 
-### 16. Hardcoded User-Facing Text
+### 17. Hardcoded User-Facing Text
 
 **Problem:**
 
@@ -577,7 +652,7 @@ And update ALL language files:
 // ... es, fr, zh
 ```
 
-### 17. Forgetting to Update All Language Files
+### 18. Forgetting to Update All Language Files
 
 **Problem:**
 
@@ -611,7 +686,7 @@ Add to **ALL** language files (en, de, es, fr, zh):
 
 ## Security Pitfalls
 
-### 18. Storing Sensitive Data Unencrypted
+### 19. Storing Sensitive Data Unencrypted
 
 **Problem:**
 
@@ -633,7 +708,7 @@ import { SecureStorage } from '../lib/secure-storage';
 await SecureStorage.set('password', password);  // ✅ Encrypted
 ```
 
-### 19. Logging Sensitive Data
+### 20. Logging Sensitive Data
 
 **Problem:**
 

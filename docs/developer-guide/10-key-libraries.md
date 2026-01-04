@@ -71,3 +71,54 @@ Translations and localization.
 - **Usage**: `const { t } = useTranslation();`
 - **Files**: `src/locales/` contains JSON files for each language.
 - **Rule**: No hardcoded strings in UI components.
+
+## Constants Organization
+
+### zm-constants.ts
+**ZoneMinder Protocol Constants** - Official protocol values defined by the ZoneMinder streaming daemon.
+
+```tsx
+import { ZMS_COMMANDS, ZMS_MODES, ZM_MONITOR_FUNCTIONS } from '../lib/zm-constants';
+
+// Stream control commands
+ZMS_COMMANDS.cmdQuit   // 17 - Close stream connection
+ZMS_COMMANDS.cmdPlay   // 1 - Start/resume playback
+ZMS_COMMANDS.cmdPause  // 2 - Pause playback
+
+// Stream modes
+ZMS_MODES.jpeg    // MJPEG streaming
+ZMS_MODES.single  // Single snapshot
+```
+
+**When to use**: Interacting with ZoneMinder's streaming server (ZMS) or monitor control APIs.
+
+### zmng-constants.ts
+**Application Configuration** - zmNg-specific settings and tuning parameters.
+
+```tsx
+import { ZM_INTEGRATION, GRID_LAYOUT, TIMELINE } from '../lib/zmng-constants';
+
+// API timeouts and performance settings
+ZM_INTEGRATION.httpTimeout           // 10 seconds
+ZM_INTEGRATION.streamMaxFps          // 10 FPS for live streams
+ZM_INTEGRATION.streamReconnectDelay  // 5 seconds before reconnect
+
+// Grid layout configuration
+GRID_LAYOUT.cols                     // 12 columns
+GRID_LAYOUT.rowHeight               // 100px per row
+GRID_LAYOUT.montageRowHeight        // 10px for compact montage
+
+// Timeline zoom limits
+TIMELINE.zoomMin  // 1 minute
+TIMELINE.zoomMax  // 1 week
+```
+
+**When to use**: Configuring application behavior, performance tuning, UI layout.
+
+**Separation rationale**:
+- **zm-constants**: Never change (defined by ZoneMinder protocol)
+- **zmng-constants**: Can be tuned for performance, UX, or platform differences
+
+## Next Steps
+
+Continue to [Chapter 11: Application Lifecycle](./11-application-lifecycle.md) to understand how the app runs from start to finish.

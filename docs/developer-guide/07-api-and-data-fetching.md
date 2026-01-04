@@ -677,18 +677,153 @@ if (error) {
 }
 ```
 
+## ZoneMinder Streaming Protocol
+
+ZoneMinder uses a separate streaming daemon (ZMS) for video streams. Understanding the streaming lifecycle is critical to avoid resource leaks.
+
+### Stream Lifecycle
+
+**1. Connection Key Generation**
+
+Each stream requires a unique connection key (connkey):
+
+```tsx
+// src/stores/monitors.ts
+const connKeyCounter = useRef(0);
+
+export const regenerateConnKey = (monitorId: string) => {
+  connKeyCounter.current += 1;
+  return connKeyCounter.current;
+};
+```
+
+**2. Stream URL Construction**
+
+```tsx
+// src/api/monitors.ts
+export function getStreamUrl(
+  cgiUrl: string,
+  monitorId: string,
+  options: StreamOptions
+): string {
+  const params = new URLSearchParams({
+    view: 'view_video',
+    mode: options.mode || 'jpeg',  // 'jpeg' for streaming, 'single' for snapshot
+    monitor: monitorId,
+    connkey: options.connkey.toString(),
+    scale: options.scale?.toString() || '100',
+    maxfps: options.maxfps?.toString() || '',
+    token: options.token || '',
+  });
+
+  return `${cgiUrl}/nph-zms?${params.toString()}`;
+}
+```
+
+**3. Stream Cleanup with CMD_QUIT**
+
+When a stream is no longer needed, send `CMD_QUIT` to the ZMS daemon:
+
+```tsx
+import { getZmsControlUrl } from '../lib/url-builder';
+import { ZMS_COMMANDS } from '../lib/zm-constants';
+import { httpGet } from '../lib/http';
+
+useEffect(() => {
+  return () => {
+    // Cleanup on unmount
+    if (connKey !== 0 && currentProfile) {
+      const controlUrl = getZmsControlUrl(
+        currentProfile.portalUrl,
+        ZMS_COMMANDS.cmdQuit,
+        connKey.toString(),
+        { token: accessToken }
+      );
+
+      httpGet(controlUrl).catch(() => {
+        // Silently ignore errors - connection may already be closed
+      });
+    }
+  };
+}, []); // Empty deps - only run on unmount
+```
+
+### Critical Pattern: Never Render Without Valid ConnKey
+
+**Problem:** Starting a stream with `connKey=0` creates zombie streams that can't be terminated.
+
+**Solution:** Only build stream URLs when `connKey !== 0`:
+
+```tsx
+const [connKey, setConnKey] = useState(0);
+
+// Generate connKey in effect
+useEffect(() => {
+  const newKey = regenerateConnKey(monitorId);
+  setConnKey(newKey);
+}, [monitorId]);
+
+// CRITICAL: Check connKey before building URL
+const streamUrl = currentProfile && connKey !== 0
+  ? getStreamUrl(currentProfile.cgiUrl, monitorId, {
+      connkey: connKey,
+      mode: 'jpeg',
+      // ...
+    })
+  : '';  // Empty string until connKey is valid
+
+return <img src={streamUrl} />;
+```
+
+### Stream Modes
+
+Defined in `src/lib/zm-constants.ts`:
+
+- **`jpeg`**: MJPEG streaming (continuous multipart JPEG frames)
+- **`single`**: Single frame snapshot (one JPEG image)
+- **`stream`**: Raw stream (rarely used)
+
+### ZMS Commands
+
+The ZMS daemon accepts various control commands via HTTP requests:
+
+```tsx
+// src/lib/zm-constants.ts
+export const ZMS_COMMANDS = {
+  cmdPlay: 1,      // Start/resume playback
+  cmdPause: 2,     // Pause playback
+  cmdStop: 3,      // Stop playback
+  cmdQuit: 17,     // CRITICAL: Close stream connection
+  cmdQuery: 18,    // Query stream status
+  // ... more commands
+} as const;
+```
+
+**Most important:** `cmdQuit` (17) - Always send this when unmounting to prevent zombie streams.
+
+### Common Streaming Pitfalls
+
+1. **Zombie Streams**: Rendering before `connKey` is valid creates orphaned streams
+2. **Missing Cleanup**: Not sending `CMD_QUIT` leaves streams running on server
+3. **CORS Issues**: Use native HTTP client (`httpGet`) for CMD_QUIT, not browser `fetch()`
+4. **Effect Dependencies**: Don't include full objects in deps, use primitive IDs only
+
+See [Chapter 8, Pitfall #3](./08-common-pitfalls.md#3-rendering-streams-before-connection-key-is-valid-zombie-streams) for detailed examples.
+
 ## Key Takeaways
 
 1. **ZoneMinder API**: RESTful JSON API with session-based auth
-2. **Connection keys**: For streaming URLs, separate from access tokens
-3. **React Query**: Handles caching, loading states, refetching
-4. **Query keys**: Define cache buckets and invalidation targets
-5. **Mutations**: For create/update/delete operations
-6. **Infinite queries**: For paginated data like events
-7. **HTTP client**: Centralized error handling and authentication
-8. **Data flow**: Component → React Query → API function → HTTP client → ZoneMinder
-9. **Error handling**: Distinguish API errors, network errors, auth errors
-10. **Optimistic updates**: Update UI before server confirms
+2. **Connection keys**: Unique per stream, must be generated before rendering
+3. **Stream lifecycle**: Generate connKey → Build URL → Render → Send CMD_QUIT on unmount
+4. **React Query**: Handles caching, loading states, refetching
+5. **Query keys**: Define cache buckets and invalidation targets
+6. **Mutations**: For create/update/delete operations
+7. **Infinite queries**: For paginated data like events
+8. **HTTP client**: Centralized error handling and authentication
+9. **Data flow**: Component → React Query → API function → HTTP client → ZoneMinder
+10. **Error handling**: Distinguish API errors, network errors, auth errors
+11. **Optimistic updates**: Update UI before server confirms
+12. **Stream cleanup**: Always send CMD_QUIT to prevent resource leaks
 
 ## Next Steps
 
