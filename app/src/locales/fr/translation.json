@@ -173,7 +173,9 @@
     "clear_filters": "Effacer les Filtres",
     "alarm_frame": "Image d'Alarme {{frameId}}",
     "frame_number": "Image {{number}}",
-    "total_frames": "{{count}} images"
+    "total_frames": "{{count}} images",
+    "view_list": "Vue en Liste",
+    "view_montage": "Vue en Montage"
   },
   "event_detail": {
     "event_id": "ID Événement",

@@ -172,7 +172,9 @@
     "clear_filters": "Clear Filters",
     "alarm_frame": "Alarm Frame {{frameId}}",
     "frame_number": "Frame {{number}}",
-    "total_frames": "{{count}} frames"
+    "total_frames": "{{count}} frames",
+    "view_list": "List View",
+    "view_montage": "Montage View"
   },
   "event_detail": {
     "event_id": "Event ID",

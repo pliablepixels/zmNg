@@ -173,7 +173,9 @@
     "clear_filters": "清除筛选",
     "alarm_frame": "报警帧 {{frameId}}",
     "frame_number": "帧 {{number}}",
-    "total_frames": "{{count}} 帧"
+    "total_frames": "{{count}} 帧",
+    "view_list": "列表视图",
+    "view_montage": "蒙太奇视图"
   },
   "event_detail": {
     "event_id": "事件 ID",
