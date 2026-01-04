@@ -760,6 +760,40 @@ When removing or reverting functionality:
 - Avoid grandiose wording
 - Comment the "why", not the "what"
 
+### Keeping AGENTS.md Updated (CRITICAL)
+
+**ALWAYS update this document when making significant changes to the codebase.**
+
+Update AGENTS.md when you:
+- ✅ Introduce new architectural patterns (stores, hooks, components)
+- ✅ Add new critical APIs or abstractions (HTTP, logging, storage)
+- ✅ Discover important gotchas or pitfalls (OOM issues, platform differences)
+- ✅ Create new testing patterns (conditional E2E tests, mocking strategies)
+- ✅ Add new development workflows (background tasks, downloads)
+- ✅ Fix bugs that reveal important patterns to avoid
+- ✅ Make breaking changes or deprecations
+
+**Where to document**:
+- **Quick Reference** (top of file): Add brief one-liners for critical rules
+- **Existing sections**: Update relevant sections with new patterns
+- **New sections**: Create new sections for major features (e.g., "Background Tasks & Downloads")
+
+**Why this matters**:
+- This file is the single source of truth for development guidelines
+- Future developers (and AI agents) rely on this for correct patterns
+- Prevents repeating mistakes and reinventing solutions
+- Keeps the team aligned on best practices
+
+**Example**: When we added background tasks and fixed mobile OOM issues, we:
+1. Updated Quick Reference with new rules
+2. Added "Background Tasks & Downloads" section
+3. Added "Conditional Testing Pattern" section
+4. Documented the mobile OOM pitfall
+
+**Bad**: Make significant changes, don't update docs → future developers repeat mistakes
+
+**Good**: Make changes, immediately document patterns → knowledge is preserved
+
 ---
 
 ## Platform-Specific Code
