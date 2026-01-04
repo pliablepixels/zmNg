@@ -283,7 +283,7 @@ function MontageMonitorComponent({
         />
 
         {/* Overlay Controls (visible on hover) */}
-        <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex justify-end gap-1">
+        <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex justify-end gap-1 pointer-events-none group-hover:pointer-events-auto">
           <Button
             variant="ghost"
             size="icon"
