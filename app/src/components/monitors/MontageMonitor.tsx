@@ -52,7 +52,7 @@ function MontageMonitorComponent({
   navigate,
   isFullscreen = false,
   isEditing = false,
-  objectFit
+  objectFit,
 }: MontageMonitorProps) {
   const { t } = useTranslation();
   const isRunning = status?.Status === 'Connected';
@@ -215,11 +215,12 @@ function MontageMonitorComponent({
       {!isFullscreen && (
         <div
           className={cn(
-            "h-8 bg-card border-b flex items-center justify-between px-2 transition-colors shrink-0 select-none",
+            "bg-card border-b flex items-center gap-2 px-3 h-8 transition-colors shrink-0 select-none",
             isEditing ? "drag-handle cursor-move hover:bg-accent/50" : "cursor-default"
           )}
         >
-          <div className="flex items-center gap-2 overflow-hidden">
+          {/* Monitor status and name */}
+          <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
             <Badge
               variant={isRunning ? "default" : "destructive"}
               className={cn(
@@ -231,7 +232,9 @@ function MontageMonitorComponent({
               {monitor.Name}
             </span>
           </div>
-          <Settings2 className="h-3 w-3 text-muted-foreground opacity-50" />
+
+          {/* Settings icon */}
+          <Settings2 className="h-3 w-3 text-muted-foreground opacity-50 flex-shrink-0" />
         </div>
       )}
 

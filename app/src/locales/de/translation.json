@@ -170,7 +170,6 @@
     "heatmap_events": "Ereignisse",
     "heatmap_low": "Niedrig",
     "heatmap_high": "Hoch",
-    "clear_filters": "Filter löschen",
     "alarm_frame": "Alarm-Frame {{frameId}}",
     "frame_number": "Frame {{number}}",
     "total_frames": "{{count}} Frames",
@@ -418,7 +417,8 @@
     "edit_layout": "Layout bearbeiten",
     "done_editing": "Bearbeiten beenden",
     "insomnia_enabled": "Bildschirm bleibt wach",
-    "insomnia_disabled": "Bildschirmschlaf aktiviert"
+    "insomnia_disabled": "Bildschirmschlaf aktiviert",
+    "screen_too_small_for_editing": "Bildschirm ist zu klein für Layout-Bearbeitung. Bitte verwenden Sie einen größeren Bildschirm oder drehen Sie Ihr Gerät."
   },
   "notification_history": {
     "title": "Benachrichtigungen",
@@ -737,7 +737,7 @@
     "move_up_left": "Oben Links",
     "move_up": "Oben",
     "move_up_right": "Oben Rechts",
-        "move_left": "Nach links bewegen",
+    "move_left": "Nach links bewegen",
     "stop": "Stopp",
     "home": "Startseite",
     "move_right": "Rechts",

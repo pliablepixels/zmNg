@@ -433,6 +433,15 @@ export default function Montage() {
     });
   };
 
+  const handleEditModeToggle = () => {
+    // Check if trying to enter edit mode on a small screen
+    if (!isEditMode && window.innerWidth < 640) {
+      toast.error(t('montage.screen_too_small_for_editing'));
+      return;
+    }
+    setIsEditMode((prev) => !prev);
+  };
+
   if (isLoading) {
     return (
       <div className="p-8 space-y-6">
@@ -637,7 +646,7 @@ export default function Montage() {
                 <span className="hidden sm:inline">{t('common.refresh')}</span>
               </Button>
               <Button
-                onClick={() => setIsEditMode((prev) => !prev)}
+                onClick={handleEditModeToggle}
                 variant={isEditMode ? "default" : "outline"}
                 size="sm"
                 className="h-8 sm:h-9"
@@ -682,7 +691,7 @@ export default function Montage() {
                 <RefreshCw className="h-4 w-4" />
               </Button>
               <Button
-                onClick={() => setIsEditMode((prev) => !prev)}
+                onClick={handleEditModeToggle}
                 variant={isEditMode ? "default" : "ghost"}
                 size="sm"
                 className="text-white hover:bg-white/10 h-8 sm:h-9"

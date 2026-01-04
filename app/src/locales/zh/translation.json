@@ -170,7 +170,6 @@
     "heatmap_events": "个事件",
     "heatmap_low": "低",
     "heatmap_high": "高",
-    "clear_filters": "清除筛选",
     "alarm_frame": "报警帧 {{frameId}}",
     "frame_number": "帧 {{number}}",
     "total_frames": "{{count}} 帧",
@@ -418,7 +417,8 @@
     "edit_layout": "编辑布局",
     "done_editing": "完成编辑",
     "insomnia_enabled": "屏幕将保持唤醒",
-    "insomnia_disabled": "屏幕休眠已启用"
+    "insomnia_disabled": "屏幕休眠已启用",
+    "screen_too_small_for_editing": "屏幕太小,无法编辑布局。请使用更大的屏幕或旋转设备。"
   },
   "notification_history": {
     "title": "通知",

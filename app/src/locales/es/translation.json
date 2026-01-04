@@ -137,7 +137,7 @@
     "event_id": "ID de Evento",
     "date_range": "Rango de Fechas",
     "filters": "Filtros",
-    "clear_filters": "Limpiar Filtros",
+    "clear_filters": "Borrar Filtros",
     "refresh": "Actualizar",
     "no_events": "No se encontraron eventos",
     "thumbnail_fit": "Ajuste",
@@ -170,7 +170,6 @@
     "heatmap_events": "eventos",
     "heatmap_low": "Bajo",
     "heatmap_high": "Alto",
-    "clear_filters": "Borrar Filtros",
     "alarm_frame": "Fotograma de Alarma {{frameId}}",
     "frame_number": "Fotograma {{number}}",
     "total_frames": "{{count}} fotogramas",
@@ -418,7 +417,8 @@
     "edit_layout": "Editar diseño",
     "done_editing": "Finalizar edición",
     "insomnia_enabled": "La pantalla permanecerá activa",
-    "insomnia_disabled": "Suspensión de pantalla activada"
+    "insomnia_disabled": "Suspensión de pantalla activada",
+    "screen_too_small_for_editing": "La pantalla es demasiado pequeña para editar el diseño. Use una pantalla más grande o gire su dispositivo."
   },
   "notification_history": {
     "title": "Notificaciones",
@@ -737,7 +737,7 @@
     "move_up_left": "Mover Arriba Izquierda",
     "move_up": "Mover Arriba",
     "move_up_right": "Mover Arriba Derecha",
-        "move_left": "Mover a la izquierda",
+    "move_left": "Mover a la izquierda",
     "stop": "Detener",
     "home": "Inicio",
     "move_right": "Mover Derecha",

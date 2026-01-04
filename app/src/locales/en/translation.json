@@ -406,6 +406,7 @@
     "cameras_count": "{{count}} Cameras",
     "drag_hint": "Drag and drop to reorder monitors",
     "screen_too_small": "Screen width is too small for that many columns",
+    "screen_too_small_for_editing": "Screen is too small for layout editing. Please use a larger screen or rotate your device.",
     "feed_fit": "Fit",
     "fit_contain": "Contain (show all)",
     "fit_cover": "Cover (fill & crop)",
