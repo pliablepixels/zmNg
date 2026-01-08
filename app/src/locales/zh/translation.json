@@ -174,7 +174,13 @@
     "frame_number": "帧 {{number}}",
     "total_frames": "{{count}} 帧",
     "view_list": "列表视图",
-    "view_montage": "蒙太奇视图"
+    "view_montage": "蒙太奇视图",
+    "favorite": "收藏",
+    "unfavorite": "取消收藏",
+    "favorited": "已收藏",
+    "favorites_only": "仅显示收藏",
+    "added_to_favorites": "事件已添加到收藏",
+    "removed_from_favorites": "事件已从收藏中移除"
   },
   "event_detail": {
     "event_id": "事件 ID",

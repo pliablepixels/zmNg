@@ -55,3 +55,25 @@ Feature: Event Browsing and Management
     Then I should see the events montage grid
     When I download snapshot from first event in montage
     Then I should see the background task drawer if download was triggered
+
+  Scenario: Favorite and unfavorite an event from list view
+    When I navigate to the "Events" page
+    And I favorite the first event if events exist
+    Then I should see the event marked as favorited if action was taken
+    When I unfavorite the first event if it was favorited
+    Then I should see the event not marked as favorited if action was taken
+
+  Scenario: Filter events to show only favorites
+    When I navigate to the "Events" page
+    And I favorite the first event if events exist
+    When I open the events filter panel
+    And I enable favorites only filter
+    And I apply event filters
+    Then I should see events list or empty state
+
+  Scenario: Favorite an event from detail page
+    When I navigate to the "Events" page
+    And I click into the first event if events exist
+    And I favorite the event from detail page if on detail page
+    And I navigate back if I clicked into an event
+    Then I should be on the "Events" page

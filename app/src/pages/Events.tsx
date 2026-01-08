@@ -22,7 +22,7 @@ import { PullToRefreshIndicator } from '../components/ui/pull-to-refresh-indicat
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { RefreshCw, Filter, AlertCircle, ArrowLeft, LayoutGrid, List, Clock } from 'lucide-react';
+import { RefreshCw, Filter, AlertCircle, ArrowLeft, LayoutGrid, List, Clock, Star } from 'lucide-react';
 import { getEnabledMonitorIds, filterEnabledMonitors } from '../lib/filters';
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
 import { EventHeatmap } from '../components/events/EventHeatmap';
@@ -35,6 +35,8 @@ import { QuickDateRangeButtons } from '../components/ui/quick-date-range-buttons
 import { MonitorFilterPopoverContent } from '../components/filters/MonitorFilterPopover';
 import { EmptyState } from '../components/ui/empty-state';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Switch } from '../components/ui/switch';
+import { useEventFavoritesStore } from '../stores/eventFavorites';
 
 export default function Events() {
   const navigate = useNavigate();
@@ -49,6 +51,7 @@ export default function Events() {
     : settings.eventsThumbnailFit;
   const updateSettings = useSettingsStore((state) => state.updateProfileSettings);
   const accessToken = useAuthStore((state) => state.accessToken);
+  const { getFavorites } = useEventFavoritesStore();
   const parentRef = useRef<HTMLDivElement>(null);
   const [parentElement, setParentElement] = useState<HTMLDivElement | null>(null);
   const { t } = useTranslation();
@@ -70,9 +73,11 @@ export default function Events() {
     selectedMonitorIds,
     startDateInput,
     endDateInput,
+    favoritesOnly,
     setSelectedMonitorIds,
     setStartDateInput,
     setEndDateInput,
+    setFavoritesOnly,
     applyFilters,
     clearFilters,
     activeFilterCount,
@@ -133,11 +138,18 @@ export default function Events() {
 
   // Memoize filtered events
   const allEvents = useMemo(() => {
-    const filtered = (eventsData?.events || []).filter(({ Event }: any) =>
+    let filtered = (eventsData?.events || []).filter(({ Event }: any) =>
       enabledMonitorIds.includes(Event.MonitorId)
     );
+
+    // Apply favorites filter if enabled
+    if (favoritesOnly && currentProfile) {
+      const favoriteIds = getFavorites(currentProfile.id);
+      filtered = filtered.filter(({ Event }: any) => favoriteIds.includes(Event.Id));
+    }
+
     return filtered;
-  }, [eventsData?.events, enabledMonitorIds]);
+  }, [eventsData?.events, enabledMonitorIds, favoritesOnly, currentProfile, getFavorites]);
 
   // Use grid management hook (only active when in montage mode)
   const gridControls = useEventMontageGrid({
@@ -320,6 +332,23 @@ export default function Events() {
                     onSelectionChange={setSelectedMonitorIds}
                     idPrefix="events"
                   />
+                  <div className="grid gap-4 mt-4">
+                    {/* Favorites filter */}
+                    <div className="flex items-center justify-between p-3 rounded-md border bg-card">
+                      <div className="flex items-center gap-2">
+                        <Star className="h-4 w-4 fill-yellow-500 stroke-yellow-500" />
+                        <Label htmlFor="favorites-only" className="cursor-pointer">
+                          {t('events.favorites_only')}
+                        </Label>
+                      </div>
+                      <Switch
+                        id="favorites-only"
+                        checked={favoritesOnly}
+                        onCheckedChange={setFavoritesOnly}
+                        data-testid="events-favorites-toggle"
+                      />
+                    </div>
+                  </div>
                   <div className="grid gap-4 mt-4">
                     <div className="grid gap-2">
                       <div className="grid gap-2">

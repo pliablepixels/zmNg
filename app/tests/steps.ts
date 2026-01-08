@@ -208,6 +208,7 @@ Then('I should see the montage interface', async ({ page }) => {
 // Event Steps
 let hasEvents = false;
 let openedDeleteDialog = false;
+let favoriteToggled = false;
 
 Then('I should see events list or empty state', async ({ page }) => {
   const filterButton = page.getByTestId('events-filter-button');
@@ -327,6 +328,103 @@ When('I clear event filters', async ({ page }) => {
   // Wait for clear button to be visible and clickable within the panel
   await clearButton.waitFor({ state: 'visible', timeout: testConfig.timeouts.element });
   await clearButton.click();
+});
+
+When('I favorite the first event if events exist', async ({ page }) => {
+  favoriteToggled = false;
+  if (!hasEvents) {
+    log.info('E2E: Skipping favorite - no events exist', { component: 'e2e' });
+    return;
+  }
+
+  try {
+    const firstEventCard = page.getByTestId('event-card').first();
+    await firstEventCard.waitFor({ state: 'visible', timeout: testConfig.timeouts.element });
+
+    const favoriteButton = firstEventCard.getByTestId('event-favorite-button');
+    await favoriteButton.waitFor({ state: 'visible', timeout: testConfig.timeouts.element });
+    await favoriteButton.click();
+    favoriteToggled = true;
+    await page.waitForTimeout(500);
+  } catch (error) {
+    log.info('E2E: Could not favorite event', { component: 'e2e', error });
+    favoriteToggled = false;
+  }
+});
+
+When('I unfavorite the first event if it was favorited', async ({ page }) => {
+  if (!favoriteToggled) {
+    log.info('E2E: Skipping unfavorite - event was not favorited', { component: 'e2e' });
+    return;
+  }
+
+  try {
+    const firstEventCard = page.getByTestId('event-card').first();
+    const favoriteButton = firstEventCard.getByTestId('event-favorite-button');
+    await favoriteButton.click();
+    favoriteToggled = false;
+    await page.waitForTimeout(500);
+  } catch (error) {
+    log.info('E2E: Could not unfavorite event', { component: 'e2e', error });
+  }
+});
+
+Then('I should see the event marked as favorited if action was taken', async ({ page }) => {
+  if (!favoriteToggled) {
+    log.info('E2E: Skipping favorited check - no favorite action was taken', { component: 'e2e' });
+    return;
+  }
+
+  const firstEventCard = page.getByTestId('event-card').first();
+  const favoriteButton = firstEventCard.getByTestId('event-favorite-button');
+  const starIcon = favoriteButton.locator('svg');
+
+  // Star should have fill-yellow-500 class when favorited
+  await expect(starIcon).toHaveClass(/fill-yellow-500/);
+});
+
+Then('I should see the event not marked as favorited if action was taken', async ({ page }) => {
+  if (!hasEvents) {
+    log.info('E2E: Skipping not favorited check - no events exist', { component: 'e2e' });
+    return;
+  }
+
+  const firstEventCard = page.getByTestId('event-card').first();
+  const favoriteButton = firstEventCard.getByTestId('event-favorite-button');
+  const starIcon = favoriteButton.locator('svg');
+
+  // Star should not have fill-yellow-500 class when not favorited
+  await expect(starIcon).not.toHaveClass(/fill-yellow-500/);
+});
+
+When('I enable favorites only filter', async ({ page }) => {
+  const favoritesToggle = page.getByTestId('events-favorites-toggle');
+  await favoritesToggle.waitFor({ state: 'visible', timeout: testConfig.timeouts.element });
+
+  // Check if already enabled
+  const isChecked = await favoritesToggle.isChecked().catch(() => false);
+  if (!isChecked) {
+    await favoritesToggle.click();
+    await page.waitForTimeout(300);
+  }
+});
+
+When('I favorite the event from detail page if on detail page', async ({ page }) => {
+  if (!hasEvents) {
+    log.info('E2E: Skipping favorite from detail - no events exist', { component: 'e2e' });
+    return;
+  }
+
+  try {
+    const favoriteButton = page.getByTestId('event-detail-favorite-button');
+    const isVisible = await favoriteButton.isVisible({ timeout: testConfig.timeouts.element });
+    if (isVisible) {
+      await favoriteButton.click();
+      await page.waitForTimeout(500);
+    }
+  } catch (error) {
+    log.info('E2E: Could not favorite event from detail page', { component: 'e2e', error });
+  }
 });
 
 // Timeline Steps

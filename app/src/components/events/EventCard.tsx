@@ -12,10 +12,12 @@ import { format } from 'date-fns';
 import { Card } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { SecureImage } from '../ui/secure-image';
-import { Video, Calendar, Clock } from 'lucide-react';
+import { Video, Calendar, Clock, Star } from 'lucide-react';
 import type { EventCardProps } from '../../api/types';
 import { useTranslation } from 'react-i18next';
 import { cn } from '../../lib/utils';
+import { useEventFavoritesStore } from '../../stores/eventFavorites';
+import { useProfileStore } from '../../stores/profile';
 
 /**
  * EventCard component.
@@ -29,11 +31,22 @@ import { cn } from '../../lib/utils';
 function EventCardComponent({ event, monitorName, thumbnailUrl, objectFit = 'contain', thumbnailWidth, thumbnailHeight }: EventCardProps) {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const currentProfile = useProfileStore((state) => state.currentProfile());
+  const { isFavorited, toggleFavorite } = useEventFavoritesStore();
   const startTime = new Date(event.StartDateTime.replace(' ', 'T'));
+
+  const isFav = currentProfile ? isFavorited(currentProfile.id, event.Id) : false;
 
   // Calculate aspect ratio from thumbnail dimensions
   // (thumbnailWidth/Height are already swapped for rotated monitors)
   const aspectRatio = thumbnailWidth / thumbnailHeight;
+
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card navigation
+    if (currentProfile) {
+      toggleFavorite(currentProfile.id, event.Id);
+    }
+  };
 
   /**
    * Handles image load errors by replacing the source with a fallback SVG.
@@ -81,9 +94,29 @@ function EventCardComponent({ event, monitorName, thumbnailUrl, objectFit = 'con
               <h3 className="font-semibold text-sm sm:text-base truncate" title={event.Name}>
                 {event.Name}
               </h3>
-              <Badge variant="outline" className="shrink-0 text-[10px] sm:text-xs">
-                {event.Cause}
-              </Badge>
+              <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                <button
+                  onClick={handleFavoriteClick}
+                  className={cn(
+                    "p-1 rounded-full hover:bg-accent transition-colors",
+                    "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  )}
+                  aria-label={isFav ? t('events.unfavorite') : t('events.favorite')}
+                  data-testid="event-favorite-button"
+                >
+                  <Star
+                    className={cn(
+                      "h-4 w-4 sm:h-5 sm:w-5 transition-colors",
+                      isFav
+                        ? "fill-yellow-500 stroke-yellow-500"
+                        : "stroke-muted-foreground hover:stroke-yellow-500"
+                    )}
+                  />
+                </button>
+                <Badge variant="outline" className="text-[10px] sm:text-xs">
+                  {event.Cause}
+                </Badge>
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">

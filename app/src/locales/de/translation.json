@@ -174,7 +174,13 @@
     "frame_number": "Frame {{number}}",
     "total_frames": "{{count}} Frames",
     "view_list": "Listenansicht",
-    "view_montage": "Montage-Ansicht"
+    "view_montage": "Montage-Ansicht",
+    "favorite": "Favorisieren",
+    "unfavorite": "Entfavorisieren",
+    "favorited": "Favorisiert",
+    "favorites_only": "Nur Favoriten",
+    "added_to_favorites": "Ereignis zu Favoriten hinzugefügt",
+    "removed_from_favorites": "Ereignis aus Favoriten entfernt"
   },
   "event_detail": {
     "event_id": "Ereignis ID",

@@ -16,7 +16,7 @@ import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { VideoPlayer } from '../components/ui/video-player';
 import { ZmsEventPlayer } from '../components/events/ZmsEventPlayer';
-import { ArrowLeft, Calendar, Clock, HardDrive, AlertTriangle, Download, Archive, Video } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, HardDrive, AlertTriangle, Download, Archive, Video, Star } from 'lucide-react';
 import { format } from 'date-fns';
 import { downloadEventVideo } from '../lib/download';
 import { parseMonitorRotation } from '../lib/monitor-rotation';
@@ -25,6 +25,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { log, LogLevel } from '../lib/logger';
 import { generateEventMarkers, type VideoMarker } from '../lib/video-markers';
+import { useEventFavoritesStore } from '../stores/eventFavorites';
 
 export default function EventDetail() {
   const { id } = useParams<{ id: string }>();
@@ -49,6 +50,18 @@ export default function EventDetail() {
 
   const currentProfile = useProfileStore((state) => state.currentProfile());
   const accessToken = useAuthStore((state) => state.accessToken);
+  const { isFavorited, toggleFavorite } = useEventFavoritesStore();
+
+  const isFav = currentProfile && event ? isFavorited(currentProfile.id, event.Event.Id) : false;
+
+  const handleFavoriteToggle = useCallback(() => {
+    if (currentProfile && event) {
+      toggleFavorite(currentProfile.id, event.Event.Id);
+      toast.success(
+        isFav ? t('events.removed_from_favorites') : t('events.added_to_favorites')
+      );
+    }
+  }, [currentProfile, event, toggleFavorite, isFav, t]);
 
   // Generate video markers for alarm frames
   // NOTE: This hook must be called before any conditional returns
@@ -175,6 +188,17 @@ export default function EventDetail() {
           </div>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+          <Button
+            variant={isFav ? "default" : "outline"}
+            size="sm"
+            className="gap-2 h-8 sm:h-9"
+            onClick={handleFavoriteToggle}
+            title={isFav ? t('events.unfavorite') : t('events.favorite')}
+            data-testid="event-detail-favorite-button"
+          >
+            <Star className={isFav ? "h-4 w-4 fill-current" : "h-4 w-4"} />
+            <span className="hidden sm:inline">{isFav ? t('events.favorited') : t('events.favorite')}</span>
+          </Button>
           <Button variant="outline" size="sm" className="gap-2 h-8 sm:h-9" onClick={() => navigate(`/monitors/${event.Event.MonitorId}`)} title={t('event_detail.view_camera')}>
             <Video className="h-4 w-4" />
             <span className="hidden sm:inline">{t('event_detail.view_camera')}</span>

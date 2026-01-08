@@ -174,7 +174,13 @@
     "frame_number": "Fotograma {{number}}",
     "total_frames": "{{count}} fotogramas",
     "view_list": "Vista de Lista",
-    "view_montage": "Vista de Montaje"
+    "view_montage": "Vista de Montaje",
+    "favorite": "Favorito",
+    "unfavorite": "Quitar de favoritos",
+    "favorited": "Marcado como favorito",
+    "favorites_only": "Solo Favoritos",
+    "added_to_favorites": "Evento añadido a favoritos",
+    "removed_from_favorites": "Evento eliminado de favoritos"
   },
   "event_detail": {
     "event_id": "ID de Evento",

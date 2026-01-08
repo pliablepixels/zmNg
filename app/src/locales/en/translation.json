@@ -174,7 +174,13 @@
     "frame_number": "Frame {{number}}",
     "total_frames": "{{count}} frames",
     "view_list": "List View",
-    "view_montage": "Montage View"
+    "view_montage": "Montage View",
+    "favorite": "Favorite",
+    "unfavorite": "Unfavorite",
+    "favorited": "Favorited",
+    "favorites_only": "Favorites Only",
+    "added_to_favorites": "Event added to favorites",
+    "removed_from_favorites": "Event removed from favorites"
   },
   "event_detail": {
     "event_id": "Event ID",

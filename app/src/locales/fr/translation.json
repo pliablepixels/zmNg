@@ -174,7 +174,13 @@
     "frame_number": "Image {{number}}",
     "total_frames": "{{count}} images",
     "view_list": "Vue en Liste",
-    "view_montage": "Vue en Montage"
+    "view_montage": "Vue en Montage",
+    "favorite": "Favori",
+    "unfavorite": "Retirer des favoris",
+    "favorited": "Mis en favori",
+    "favorites_only": "Favoris Uniquement",
+    "added_to_favorites": "Événement ajouté aux favoris",
+    "removed_from_favorites": "Événement retiré des favoris"
   },
   "event_detail": {
     "event_id": "ID Événement",

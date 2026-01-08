@@ -23,9 +23,11 @@ interface UseEventFiltersReturn {
   selectedMonitorIds: string[];
   startDateInput: string;
   endDateInput: string;
+  favoritesOnly: boolean;
   setSelectedMonitorIds: (ids: string[]) => void;
   setStartDateInput: (date: string) => void;
   setEndDateInput: (date: string) => void;
+  setFavoritesOnly: (enabled: boolean) => void;
   applyFilters: () => void;
   clearFilters: () => void;
   toggleMonitorSelection: (monitorId: string) => void;
@@ -86,6 +88,9 @@ export function useEventFilters(): UseEventFiltersReturn {
     formatInputDate(filters.startDateTime)
   );
   const [endDateInput, setEndDateInput] = useState(formatInputDate(filters.endDateTime));
+  const [favoritesOnly, setFavoritesOnly] = useState(() => {
+    return searchParams.get('favorites') === 'true';
+  });
 
   // Update local inputs when URL params change (e.g. navigation)
   useEffect(() => {
@@ -98,6 +103,9 @@ export function useEventFilters(): UseEventFiltersReturn {
     const newEnd = searchParams.get('endDateTime');
     if (newStart) setStartDateInput(formatInputDate(newStart));
     if (newEnd) setEndDateInput(formatInputDate(newEnd));
+
+    const favorites = searchParams.get('favorites') === 'true';
+    setFavoritesOnly(favorites);
   }, [searchParams]);
 
   // Apply filters to URL
@@ -111,6 +119,7 @@ export function useEventFilters(): UseEventFiltersReturn {
     }
     if (startDateInput) newParams.startDateTime = startDateInput;
     if (endDateInput) newParams.endDateTime = endDateInput;
+    if (favoritesOnly) newParams.favorites = 'true';
 
     // Preserve navigation state when updating search params
     setSearchParams(newParams, {
@@ -121,6 +130,7 @@ export function useEventFilters(): UseEventFiltersReturn {
     selectedMonitorIds,
     startDateInput,
     endDateInput,
+    favoritesOnly,
     filters.sort,
     filters.direction,
     setSearchParams,
@@ -132,6 +142,7 @@ export function useEventFilters(): UseEventFiltersReturn {
     setSelectedMonitorIds([]);
     setStartDateInput('');
     setEndDateInput('');
+    setFavoritesOnly(false);
     setSearchParams(
       {
         sort: 'StartDateTime',
@@ -160,8 +171,9 @@ export function useEventFilters(): UseEventFiltersReturn {
         selectedMonitorIds.length > 0 ? 'monitors' : null,
         filters.startDateTime,
         filters.endDateTime,
+        favoritesOnly ? 'favorites' : null,
       ].filter(Boolean).length,
-    [selectedMonitorIds.length, filters.startDateTime, filters.endDateTime]
+    [selectedMonitorIds.length, filters.startDateTime, filters.endDateTime, favoritesOnly]
   );
 
   return {
@@ -169,9 +181,11 @@ export function useEventFilters(): UseEventFiltersReturn {
     selectedMonitorIds,
     startDateInput,
     endDateInput,
+    favoritesOnly,
     setSelectedMonitorIds,
     setStartDateInput,
     setEndDateInput,
+    setFavoritesOnly,
     applyFilters,
     clearFilters,
     toggleMonitorSelection,
