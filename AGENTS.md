@@ -1,15 +1,16 @@
 # Development Guidelines
 
 ## Quick Reference
-1. **Internationalization**: Update ALL language files (en, de, es, fr, zh + any future)
-2. **Cross-platform**: iOS, Android, Desktop, mobile portrait + landscape
-3. **Settings**: Must be profile-scoped; read/write via profile settings only
-4. **Testing**: MANDATORY - Write tests first, run AND verify pass before commit
-5. **Logging**: Use component-specific helpers (e.g., `log.secureStorage(msg, LogLevel.INFO, details)`), never `console.*`
-6. **HTTP**: ALWAYS use `lib/http.ts` abstractions (`httpGet`, `httpPost`, etc.), NEVER raw `fetch()` or `axios`
-7. **Background Tasks**: Use background task store for long-running operations (downloads, uploads, syncs)
-8. **Mobile Downloads**: NEVER convert to Blob - use CapacitorHttp base64 directly to avoid OOM
-9. **Coding**: DRY principles, keep code files small and modular
+1. **Feature Workflow**: New features → Create GH issue → Feature branch → Implement fully → Get approval → Merge to main
+2. **Internationalization**: Update ALL language files (en, de, es, fr, zh + any future)
+3. **Cross-platform**: iOS, Android, Desktop, mobile portrait + landscape
+4. **Settings**: Must be profile-scoped; read/write via profile settings only
+5. **Testing**: MANDATORY - Write tests first, run AND verify pass before commit
+6. **Logging**: Use component-specific helpers (e.g., `log.secureStorage(msg, LogLevel.INFO, details)`), never `console.*`
+7. **HTTP**: ALWAYS use `lib/http.ts` abstractions (`httpGet`, `httpPost`, etc.), NEVER raw `fetch()` or `axios`
+8. **Background Tasks**: Use background task store for long-running operations (downloads, uploads, syncs)
+9. **Mobile Downloads**: NEVER convert to Blob - use CapacitorHttp base64 directly to avoid OOM
+10. **Coding**: DRY principles, keep code files small and modular
 
 ---
 
@@ -803,6 +804,82 @@ Update AGENTS.md when you:
 - Check before modifying native code
 - Document any custom native modifications
 - Ensure changes won't be overwritten on regeneration
+
+---
+
+## Feature Development Workflow (MANDATORY)
+
+**When the user requests a new feature, follow this workflow:**
+
+### 1. Create GitHub Issue
+- Create a GitHub issue for the feature request using `gh issue create`
+- Label it as `enhancement`
+- Include clear description of what the feature should do
+- Example:
+  ```bash
+  gh issue create --title "Add event favorites feature" \
+    --body "Allow users to mark events as favorites and filter by favorites" \
+    --label "enhancement"
+  ```
+
+### 2. Create Feature Branch
+- Create a new branch from main with descriptive name
+- Branch naming: `feature/<short-description>` or `feat/<issue-number>-<description>`
+- Example:
+  ```bash
+  git checkout -b feature/event-favorites
+  ```
+
+### 3. Implement Feature Completely
+- **CRITICAL:** Implement the ENTIRE feature - do not stop in the middle
+- Follow all testing requirements (unit tests, E2E tests, type check, build)
+- Commit work in logical chunks with descriptive messages
+- Reference the issue in commit messages: `refs #<issue-number>`
+- Make multiple commits if the feature has multiple logical components
+
+### 4. Request User Feedback
+- Once implementation is complete and all tests pass, ask user for feedback
+- DO NOT merge or push without user approval
+- Example: "Feature implementation complete. All tests passing. Ready for your review."
+
+### 5. Merge and Cleanup (After User Approval Only)
+- Merge feature branch to main
+- Delete the feature branch (local and remote)
+- Reference the issue in final commit/merge: `fixes #<issue-number>`
+- Push to main
+- Verify issue is automatically closed (due to `fixes #<number>`)
+
+**Example Complete Workflow:**
+```bash
+# 1. Create issue
+gh issue create --title "Add dark mode toggle" --body "..." --label "enhancement"
+# Note the issue number (e.g., #42)
+
+# 2. Create branch
+git checkout -b feature/dark-mode
+
+# 3. Implement + test + commit
+git add <files>
+git commit -m "feat: add dark mode toggle component refs #42"
+# ... more commits as needed
+
+# 4. Ask user for approval
+# (Wait for user confirmation)
+
+# 5. After approval, merge and cleanup
+git checkout main
+git merge feature/dark-mode
+git push origin main
+git branch -d feature/dark-mode
+git push origin --delete feature/dark-mode
+# Verify issue #42 is closed
+```
+
+**Important Notes:**
+- Never merge to main without user approval
+- Never leave a feature half-implemented
+- Always include tests before requesting approval
+- Feature branches keep main stable and allow for review
 
 ---
 
