@@ -878,8 +878,9 @@ When removing or reverting functionality:
 
 ### Documentation
 - Write concise comments
-- Avoid grandiose wording
+- Avoid grandiose wording (no "comprehensive", "critical", "essential", etc.)
 - Comment the "why", not the "what"
+- Keep tone neutral and factual
 
 ### Keeping AGENTS.md Updated (CRITICAL)
 
@@ -1005,8 +1006,10 @@ git push origin --delete feature/dark-mode
 
 ## Commits
 
-- **CRITICAL:** Commit messages must be detailed and descriptive (no vague summaries).
-- **CRITICAL:** Split unrelated changes into separate commits (one logical change per commit).
+- Commit messages must be detailed and descriptive (no vague summaries)
+- Split unrelated changes into separate commits (one logical change per commit)
+- Avoid superlative language (no "comprehensive", "critical", "major", "massive", etc.)
+- Keep commit messages factual and objective
 - **Use conventional commit format:**
     - `feat:` - New feature
     - `fix:` - Bug fix
@@ -1015,6 +1018,12 @@ git push origin --delete feature/dark-mode
     - `chore:` - Maintenance
     - `refactor:` - Code restructuring
 - When you commit code, and the code contains multiple things, break each item into separate commits
+
+**Examples:**
+- ✅ Good: `fix: resolve overflow issue in flex containers`
+- ✅ Good: `feat: add haptic feedback to buttons`
+- ❌ Bad: `fix: comprehensive overflow handling improvements`
+- ❌ Bad: `feat: critical haptic feedback system`
 
 
 
