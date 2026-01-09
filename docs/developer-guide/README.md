@@ -112,38 +112,6 @@ Before contributing:
 4. Follow **Chapter 9** for contribution workflow
 5. Always check `AGENTS.md` for requirements
 
-## Key Concepts
-
-### The Infinite Loop Problem
-
-One of the most critical issues we encountered was infinite loops caused by using Zustand values as dependencies in `useCallback` and `useEffect`. This happened in both DashboardLayout and Montage components.
-
-**Root Cause**: Zustand returns new object references on every render, even if values are identical. When used as dependencies, callbacks recreate on every render, triggering infinite loops.
-
-**Solution**: Use `useRef` to hold Zustand values, sync them via `useEffect`, and access via `.current` without including in dependencies.
-
-See **Chapter 4** for detailed analysis with real code examples.
-
-### Testing Approach
-
-zmNg uses a two-tier testing strategy:
-
-- **Unit Tests**: Fast (< 2s), isolated tests for logic and components using Vitest
-- **E2E Tests**: Full user journeys with real ZoneMinder server using Playwright + Gherkin
-
-E2E tests use **dynamic selectors** (`.first()`, "at least 1") so they work with any ZoneMinder server, not hardcoded monitor names/IDs.
-
-See **Chapter 6** for complete testing guide.
-
-### Development Requirements
-
-Every code change must follow `AGENTS.md` guidelines:
-
-- **Internationalization**: Update ALL language files (en, de, es, fr, zh)
-- **Testing**: Write tests BEFORE or DURING implementation, never skip
-- **Data attributes**: Add `data-testid` to all interactive elements
-- **Logging**: Use component-specific helpers with LogLevel, never `console.*`
-- **Verification**: Run tests, typecheck, and build before committing
 
 ## Additional Resources
 
