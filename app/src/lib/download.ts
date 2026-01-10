@@ -17,6 +17,7 @@ import { save } from '@tauri-apps/plugin-dialog';
 import { fetch } from '@tauri-apps/plugin-http';
 import { log, LogLevel } from './logger';
 import { Platform } from './platform';
+import { wrapWithImageProxyIfNeeded } from './proxy-utils';
 
 import { getApiClient } from '../api/client';
 import { getEventVideoUrl as buildEventVideoUrl } from './url-builder';
@@ -40,6 +41,34 @@ export interface DownloadOptions {
 }
 
 /**
+ * Platform-specific download handler type
+ */
+type DownloadHandler = (url: string, filename: string, options?: DownloadOptions) => Promise<void>;
+
+/**
+ * Platform-specific data URL snapshot handler type
+ */
+type DataUrlSnapshotHandler = (dataUrl: string, filename: string) => Promise<void>;
+
+/**
+ * Get the appropriate download handler for the current platform
+ */
+function getDownloadHandler(): DownloadHandler {
+  if (Platform.isTauri) return downloadFileTauri;
+  if (Platform.isNative) return downloadFileNative;
+  return downloadFileWeb;
+}
+
+/**
+ * Get the appropriate data URL snapshot handler for the current platform
+ */
+function getDataUrlSnapshotHandler(): DataUrlSnapshotHandler {
+  if (Platform.isTauri) return downloadDataUrlTauri;
+  if (Platform.isNative) return downloadDataUrlNative;
+  return downloadFromDataUrlWeb;
+}
+
+/**
  * Download a file from a URL.
  *
  * For web: triggers browser download via a temporary anchor element.
@@ -52,13 +81,8 @@ export interface DownloadOptions {
  */
 export async function downloadFile(url: string, filename: string, options?: DownloadOptions): Promise<void> {
   try {
-    if (Platform.isTauri) {
-      await downloadFileTauri(url, filename, options);
-    } else if (Platform.isNative) {
-      await downloadFileNative(url, filename, options);
-    } else {
-      await downloadFileWeb(url, filename, options);
-    }
+    const handler = getDownloadHandler();
+    await handler(url, filename, options);
   } catch (error) {
     log.download('[Download] Failed to download file', LogLevel.ERROR, { url, error });
     throw error;
@@ -216,15 +240,15 @@ async function downloadFileWeb(url: string, filename: string, options?: Download
   try {
     const apiClient = getApiClient();
 
-    if (Platform.shouldUseProxy && (url.startsWith('http://') || url.startsWith('https://'))) {
-      // Use the image proxy for cross-origin URLs in dev mode
-      url = `http://localhost:3001/image-proxy?url=${encodeURIComponent(url)}`;
-      log.download('Using proxy for CORS', LogLevel.INFO, { url });
+    // Use the image proxy for cross-origin URLs in dev mode
+    const proxiedUrl = wrapWithImageProxyIfNeeded(url);
+    if (proxiedUrl !== url) {
+      log.download('Using proxy for CORS', LogLevel.INFO, { url: proxiedUrl });
     }
 
     // Use axios to fetch with proper auth headers
-    log.download('Downloading file via API client', LogLevel.INFO, { url, filename });
-    const response = await apiClient.get(url, {
+    log.download('Downloading file via API client', LogLevel.INFO, { url: proxiedUrl, filename });
+    const response = await apiClient.get(proxiedUrl, {
       responseType: 'blob',
       signal: options?.signal,
       onDownloadProgress: (progressEvent) => {
@@ -284,55 +308,10 @@ export async function downloadSnapshot(imageUrl: string, monitorName: string): P
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
   const filename = `${monitorName}_${timestamp}.jpg`;
 
-  // If it's a data URL
+  // If it's a data URL, use platform-specific data URL handler
   if (imageUrl.startsWith('data:')) {
-    if (Platform.isTauri) {
-      // Desktop: Save using native dialog
-      const savePath = await save({
-        defaultPath: filename,
-        filters: [{ name: 'Image', extensions: ['jpg', 'png'] }]
-      });
-
-      if (savePath) {
-        const base64 = imageUrl.split(',')[1];
-        // Decode base64 to Uint8Array
-        const binaryString = atob(base64);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-        await writeFile(savePath, bytes);
-        log.download('[Download] Snapshot saved via native dialog', LogLevel.INFO, { path: savePath });
-      }
-    } else if (Platform.isNative) {
-      // Mobile: Save data URL directly
-      const { Filesystem, Directory } = await import('@capacitor/filesystem');
-      const { Media } = await import('@capacitor-community/media');
-
-      const base64 = imageUrl.split(',')[1];
-      const result = await Filesystem.writeFile({
-        path: filename,
-        data: base64,
-        directory: Directory.Documents,
-      });
-      log.download('[Download] Snapshot saved from data URL', LogLevel.INFO, {
-        path: result.uri,
-        filename
-      });
-
-      // Save to Photo Library
-      try {
-        await Media.savePhoto({
-          path: result.uri
-        });
-        log.download('[Download] Snapshot saved to Photo Library', LogLevel.INFO, { filename });
-      } catch (mediaError) {
-        log.download('[Download] Failed to save snapshot to Photo Library', LogLevel.ERROR, mediaError);
-      }
-    } else {
-      // Web: Traditional download
-      downloadFromDataUrlWeb(imageUrl, filename);
-    }
+    const handler = getDataUrlSnapshotHandler();
+    await handler(imageUrl, filename);
     return;
   }
 
@@ -363,7 +342,61 @@ export async function downloadSnapshotFromElement(
   }
 }
 
-function downloadFromDataUrlWeb(dataUrl: string, filename: string) {
+/**
+ * Desktop (Tauri) data URL download implementation
+ */
+async function downloadDataUrlTauri(dataUrl: string, filename: string): Promise<void> {
+  const savePath = await save({
+    defaultPath: filename,
+    filters: [{ name: 'Image', extensions: ['jpg', 'png'] }]
+  });
+
+  if (savePath) {
+    const base64 = dataUrl.split(',')[1];
+    // Decode base64 to Uint8Array
+    const binaryString = atob(base64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    await writeFile(savePath, bytes);
+    log.download('[Download] Snapshot saved via native dialog', LogLevel.INFO, { path: savePath });
+  }
+}
+
+/**
+ * Mobile (Native) data URL download implementation
+ */
+async function downloadDataUrlNative(dataUrl: string, filename: string): Promise<void> {
+  const { Filesystem, Directory } = await import('@capacitor/filesystem');
+  const { Media } = await import('@capacitor-community/media');
+
+  const base64 = dataUrl.split(',')[1];
+  const result = await Filesystem.writeFile({
+    path: filename,
+    data: base64,
+    directory: Directory.Documents,
+  });
+  log.download('[Download] Snapshot saved from data URL', LogLevel.INFO, {
+    path: result.uri,
+    filename
+  });
+
+  // Save to Photo Library
+  try {
+    await Media.savePhoto({
+      path: result.uri
+    });
+    log.download('[Download] Snapshot saved to Photo Library', LogLevel.INFO, { filename });
+  } catch (mediaError) {
+    log.download('[Download] Failed to save snapshot to Photo Library', LogLevel.ERROR, mediaError);
+  }
+}
+
+/**
+ * Web data URL download implementation
+ */
+async function downloadFromDataUrlWeb(dataUrl: string, filename: string): Promise<void> {
   const link = document.createElement('a');
   link.href = dataUrl;
   link.download = filename;

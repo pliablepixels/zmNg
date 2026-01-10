@@ -1,0 +1,187 @@
+/**
+ * Profile Bootstrap Helpers
+ *
+ * Shared bootstrap logic used by both switchProfile and onRehydrateStorage
+ * to avoid code duplication.
+ */
+
+import type { Profile } from '../api/types';
+import { getServerTimeZone } from '../api/time';
+import { fetchZmsPath } from '../api/auth';
+import { log, LogLevel } from '../lib/logger';
+
+export interface BootstrapContext {
+  getDecryptedPassword: (profileId: string) => Promise<string | undefined>;
+  updateProfile: (id: string, updates: Partial<Profile>) => Promise<void>;
+}
+
+/**
+ * Bootstrap authentication with stored credentials
+ */
+export async function bootstrapAuth(
+  profile: Profile,
+  context: BootstrapContext
+): Promise<void> {
+  if (!profile.username || !profile.password) {
+    log.profileService('No credentials stored, skipping authentication', LogLevel.INFO);
+    log.profileService('This is normal for public servers', LogLevel.INFO);
+    return;
+  }
+
+  log.profileService('Authenticating with stored credentials', LogLevel.INFO, {
+    username: profile.username,
+  });
+
+  try {
+    const decryptedPassword = await context.getDecryptedPassword(profile.id);
+    if (!decryptedPassword) {
+      throw new Error('Failed to decrypt password');
+    }
+
+    const { useAuthStore } = await import('./auth');
+    await useAuthStore.getState().login(profile.username, decryptedPassword);
+    log.profileService('Authentication successful', LogLevel.INFO);
+  } catch (authError: unknown) {
+    log.profileService(
+      'Authentication failed - this might be OK if server does not require auth',
+      LogLevel.WARN,
+      { error: authError }
+    );
+  }
+}
+
+/**
+ * Bootstrap server timezone
+ */
+export async function bootstrapTimezone(
+  profile: Profile,
+  context: BootstrapContext
+): Promise<void> {
+  try {
+    log.profileService('Fetching server timezone', LogLevel.INFO);
+    const { useAuthStore } = await import('./auth');
+    const { accessToken } = useAuthStore.getState();
+    const timezone = await getServerTimeZone(accessToken || undefined);
+
+    if (timezone !== profile.timezone) {
+      log.profileService('Server timezone fetched', LogLevel.INFO, { timezone });
+      await context.updateProfile(profile.id, { timezone });
+    }
+  } catch (tzError) {
+    log.profileService('Failed to fetch server timezone', LogLevel.WARN, {
+      error: tzError,
+    });
+  }
+}
+
+/**
+ * Bootstrap ZMS path and update CGI URL
+ */
+export async function bootstrapZmsPath(
+  profile: Profile,
+  context: BootstrapContext
+): Promise<void> {
+  try {
+    log.profileService('Fetching ZMS path from server config', LogLevel.INFO);
+    const zmsPath = await fetchZmsPath();
+
+    if (!zmsPath || !profile.portalUrl) {
+      log.profileService('ZMS path not available, keeping current CGI URL', LogLevel.INFO, {
+        cgiUrl: profile.cgiUrl,
+      });
+      return;
+    }
+
+    try {
+      const url = new URL(profile.portalUrl);
+      const newCgiUrl = `${url.origin}${zmsPath}`;
+
+      if (newCgiUrl !== profile.cgiUrl) {
+        log.profileService('ZMS path fetched, updating CGI URL', LogLevel.INFO, {
+          oldCgiUrl: profile.cgiUrl,
+          zmsPath,
+          newCgiUrl,
+        });
+        await context.updateProfile(profile.id, { cgiUrl: newCgiUrl });
+      } else {
+        log.profileService('ZMS path matches current CGI URL, no update needed', LogLevel.INFO, {
+          cgiUrl: profile.cgiUrl,
+        });
+      }
+    } catch (urlError) {
+      log.profileService('Failed to construct CGI URL from ZMS path', LogLevel.WARN, {
+        portalUrl: profile.portalUrl,
+        zmsPath,
+        error: urlError,
+      });
+    }
+  } catch (zmsError) {
+    log.profileService('Failed to fetch ZMS path', LogLevel.WARN, {
+      error: zmsError,
+    });
+  }
+}
+
+/**
+ * Bootstrap multi-port streaming configuration
+ */
+export async function bootstrapMultiPortStreaming(
+  profile: Profile,
+  context: BootstrapContext
+): Promise<void> {
+  try {
+    log.profileService('Fetching server configuration for multi-port streaming', LogLevel.INFO);
+    const { fetchMinStreamingPort } = await import('../api/server');
+    const minPort = await fetchMinStreamingPort();
+
+    if (minPort === null) {
+      log.profileService('Multi-port streaming not configured on server', LogLevel.DEBUG);
+      return;
+    }
+
+    log.profileService('Multi-port streaming enabled', LogLevel.INFO, { minPort });
+
+    // Update profile with minStreamingPort if changed
+    if (profile.minStreamingPort !== minPort) {
+      await context.updateProfile(profile.id, { minStreamingPort: minPort });
+    }
+
+    // For NEW profiles (no existing settings), default to streaming mode
+    // For existing profiles, respect user's current settings
+    try {
+      const { useSettingsStore } = await import('./settings');
+      const settingsStore = useSettingsStore.getState();
+      const hasExistingSettings = settingsStore.profileSettings[profile.id] !== undefined;
+
+      if (!hasExistingSettings) {
+        log.profileService('New profile with multi-port: defaulting to streaming mode', LogLevel.INFO);
+        settingsStore.updateProfileSettings(profile.id, { viewMode: 'streaming' });
+      } else {
+        log.profileService('Existing profile: preserving current viewMode setting', LogLevel.DEBUG);
+      }
+    } catch (settingsError) {
+      log.profileService('Failed to configure view mode', LogLevel.WARN, {
+        error: settingsError,
+      });
+    }
+  } catch (configError) {
+    log.profileService(
+      'Failed to fetch MIN_STREAMING_PORT - multi-port may be unavailable',
+      LogLevel.WARN,
+      { error: configError }
+    );
+  }
+}
+
+/**
+ * Run all bootstrap steps in sequence
+ */
+export async function performBootstrap(
+  profile: Profile,
+  context: BootstrapContext
+): Promise<void> {
+  await bootstrapAuth(profile, context);
+  await bootstrapTimezone(profile, context);
+  await bootstrapZmsPath(profile, context);
+  await bootstrapMultiPortStreaming(profile, context);
+}

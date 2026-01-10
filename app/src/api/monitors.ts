@@ -8,13 +8,13 @@
 import { getApiClient } from './client';
 import type { MonitorsResponse, MonitorData, ControlData, AlarmStatusResponse, DaemonStatusResponse } from './types';
 import { MonitorsResponseSchema, MonitorDataSchema, ControlDataSchema, MonitorUpdateResponseSchema, AlarmStatusResponseSchema, DaemonStatusResponseSchema } from './types';
-import { Platform } from '../lib/platform';
 import { validateApiResponse } from '../lib/api-validator';
 import {
   getMonitorStreamUrl as buildMonitorStreamUrl,
   getMonitorControlUrl as buildMonitorControlUrl,
 } from '../lib/url-builder';
 import { log, LogLevel } from '../lib/logger';
+import { wrapWithImageProxy } from '../lib/proxy-utils';
 
 /**
  * Get all monitors.
@@ -278,13 +278,7 @@ export function getStreamUrl(
 
   // In dev mode on web, use proxy server to avoid CORS issues
   // Native platforms and production can access directly
-  if (Platform.shouldUseProxy) {
-    const proxyParams = new URLSearchParams();
-    proxyParams.append('url', fullUrl);
-    return `http://localhost:3001/image-proxy?${proxyParams.toString()}`;
-  }
-
-  return fullUrl;
+  return wrapWithImageProxy(fullUrl);
 }
 
 /**
@@ -303,20 +297,16 @@ export async function controlMonitor(
 ): Promise<void> {
   log.api('Sending PTZ control command', LogLevel.INFO, { monitorId, command });
 
-  let url = buildMonitorControlUrl(portalUrl, monitorId, command, { token });
+  const url = buildMonitorControlUrl(portalUrl, monitorId, command, { token });
 
   // In dev mode on web, use proxy server to avoid CORS issues
-  if (Platform.shouldUseProxy) {
-    const proxyParams = new URLSearchParams();
-    proxyParams.append('url', url);
-    url = `http://localhost:3001/image-proxy?${proxyParams.toString()}`;
-  }
+  const proxiedUrl = wrapWithImageProxy(url);
 
   const client = getApiClient();
   // We use the client to take advantage of the native adapter if needed,
   // but we pass the full URL which overrides the baseURL.
   // We skip auth interceptor because we manually added the token to the URL
-  await client.get(url, {
+  await client.get(proxiedUrl, {
     headers: {
       'Skip-Auth': 'true'
     }

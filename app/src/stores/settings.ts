@@ -133,27 +133,11 @@ export const useSettingsStore = create<SettingsState>()(
       },
 
       saveMontageLayout: (profileId, layout) => {
-        set((state) => ({
-          profileSettings: {
-            ...state.profileSettings,
-            [profileId]: {
-              ...(state.profileSettings[profileId] || DEFAULT_SETTINGS),
-              montageLayouts: layout,
-            },
-          },
-        }));
+        get().updateProfileSettings(profileId, { montageLayouts: layout });
       },
 
       saveEventMontageLayout: (profileId, layout) => {
-        set((state) => ({
-          profileSettings: {
-            ...state.profileSettings,
-            [profileId]: {
-              ...(state.profileSettings[profileId] || DEFAULT_SETTINGS),
-              eventMontageLayouts: layout,
-            },
-          },
-        }));
+        get().updateProfileSettings(profileId, { eventMontageLayouts: layout });
       },
     }),
     {

@@ -79,6 +79,13 @@ This guide is designed for experienced programmers who may not be familiar with 
     - The "Runtime Map" from entry point to main loop
     - Authentication, Hydration, and Mobile Lifecycle
 
+12. **[Shared Services and Components](./12-shared-services-and-components.md)**
+    - Logger, HTTP Client, Download Utilities
+    - Proxy Utils, URL Builder, Time Utils
+    - Crypto, Secure Storage, Platform Detection
+    - Reusable UI Components
+    - Domain Components and Usage Patterns
+
 
 ## Quick Start
 
@@ -107,10 +114,11 @@ If you're familiar with React:
 Before contributing:
 
 1. Read **Chapter 4-5** to understand the codebase
-2. Read **Chapter 6** for testing requirements
-3. Read **Chapter 8** to avoid common mistakes
-4. Follow **Chapter 9** for contribution workflow
-5. Always check `AGENTS.md` for requirements
+2. Read **Chapter 12** to understand shared services and components
+3. Read **Chapter 6** for testing requirements
+4. Read **Chapter 8** to avoid common mistakes
+5. Follow **Chapter 9** for contribution workflow
+6. Always check `AGENTS.md` for requirements
 
 
 ## Additional Resources

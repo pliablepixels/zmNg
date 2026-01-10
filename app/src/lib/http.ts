@@ -54,6 +54,16 @@ function createHttpError(
   return error;
 }
 
+/**
+ * Serialize request body to string for fetch-based requests
+ */
+function serializeRequestBody(body: unknown): string | undefined {
+  if (!body) return undefined;
+  if (typeof body === 'string') return body;
+  if (body instanceof URLSearchParams) return body.toString();
+  return JSON.stringify(body);
+}
+
 async function parseFetchResponse<T>(
   response: Response,
   responseType: string
@@ -206,16 +216,7 @@ async function tauriHttpRequest<T>(
   body: unknown,
   responseType: string
 ): Promise<HttpResponse<T>> {
-  let requestBody: string | undefined = undefined;
-  if (body) {
-    if (typeof body === 'string') {
-      requestBody = body;
-    } else if (body instanceof URLSearchParams) {
-      requestBody = body.toString();
-    } else {
-      requestBody = JSON.stringify(body);
-    }
-  }
+  const requestBody = serializeRequestBody(body);
 
   const response = await tauriFetch(url, {
     method,
@@ -246,16 +247,11 @@ async function webHttpRequest<T>(
   body: unknown,
   responseType: string
 ): Promise<HttpResponse<T>> {
-  let requestBody: string | undefined = undefined;
-  if (body) {
-    if (typeof body === 'string') {
-      requestBody = body;
-    } else if (body instanceof URLSearchParams) {
-      requestBody = body.toString();
-    } else {
-      requestBody = JSON.stringify(body);
-      headers['Content-Type'] = headers['Content-Type'] || 'application/json';
-    }
+  const requestBody = serializeRequestBody(body);
+
+  // Set Content-Type for JSON bodies
+  if (body && typeof body !== 'string' && !(body instanceof URLSearchParams)) {
+    headers['Content-Type'] = headers['Content-Type'] || 'application/json';
   }
 
   const response = await fetch(url, {

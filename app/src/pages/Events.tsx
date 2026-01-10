@@ -20,22 +20,18 @@ import { useEventPagination } from '../hooks/useEventPagination';
 import { useEventMontageGrid } from '../hooks/useEventMontageGrid';
 import { PullToRefreshIndicator } from '../components/ui/pull-to-refresh-indicator';
 import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
-import { RefreshCw, Filter, AlertCircle, ArrowLeft, LayoutGrid, List, Clock, Star } from 'lucide-react';
+import { RefreshCw, Filter, AlertCircle, ArrowLeft, LayoutGrid, List, Clock } from 'lucide-react';
 import { getEnabledMonitorIds, filterEnabledMonitors } from '../lib/filters';
-import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
+import { Popover, PopoverTrigger } from '../components/ui/popover';
 import { EventHeatmap } from '../components/events/EventHeatmap';
 import { EventMontageView } from '../components/events/EventMontageView';
 import { EventListView } from '../components/events/EventListView';
 import { EventMontageGridControls } from '../components/events/EventMontageGridControls';
+import { EventsFilterPopover } from '../components/events/EventsFilterPopover';
 import { useTranslation } from 'react-i18next';
 import { formatForServer, formatLocalDateTime } from '../lib/time';
-import { QuickDateRangeButtons } from '../components/ui/quick-date-range-buttons';
-import { MonitorFilterPopoverContent } from '../components/filters/MonitorFilterPopover';
 import { EmptyState } from '../components/ui/empty-state';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Switch } from '../components/ui/switch';
 import { useEventFavoritesStore } from '../stores/eventFavorites';
 
 export default function Events() {
@@ -329,87 +325,23 @@ export default function Events() {
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent
-                  className="w-[calc(100vw-2rem)] sm:w-80 max-w-sm max-h-[80vh] overflow-y-auto no-scrollbar"
-                  data-testid="events-filter-panel"
-                >
-                  <MonitorFilterPopoverContent
-                    monitors={enabledMonitors}
-                    selectedMonitorIds={selectedMonitorIds}
-                    onSelectionChange={setSelectedMonitorIds}
-                    idPrefix="events"
-                  />
-                  <div className="grid gap-4 mt-4">
-                    {/* Favorites filter */}
-                    <div className="flex items-center justify-between p-3 rounded-md border bg-card">
-                      <div className="flex items-center gap-2">
-                        <Star className="h-4 w-4 fill-yellow-500 stroke-yellow-500" />
-                        <Label htmlFor="favorites-only" className="cursor-pointer">
-                          {t('events.favorites_only')}
-                        </Label>
-                      </div>
-                      <Switch
-                        id="favorites-only"
-                        checked={favoritesOnly}
-                        onCheckedChange={setFavoritesOnly}
-                        data-testid="events-favorites-toggle"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid gap-4 mt-4">
-                    <div className="grid gap-2">
-                      <div className="grid gap-2">
-                        <Label htmlFor="start-date">
-                          {t('events.date_range')} ({t('events.start')})
-                        </Label>
-                        <Input
-                          id="start-date"
-                          type="datetime-local"
-                          value={startDateInput}
-                          onChange={(e) => setStartDateInput(e.target.value)}
-                          step="1"
-                          data-testid="events-start-date"
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label htmlFor="end-date">
-                          {t('events.date_range')} ({t('events.end')})
-                        </Label>
-                        <Input
-                          id="end-date"
-                          type="datetime-local"
-                          value={endDateInput}
-                          onChange={(e) => setEndDateInput(e.target.value)}
-                          step="1"
-                          data-testid="events-end-date"
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label className="text-xs text-muted-foreground">{t('events.quick_ranges')}</Label>
-                        <QuickDateRangeButtons
-                          onRangeSelect={({ start, end }) => {
-                            setStartDateInput(formatLocalDateTime(start));
-                            setEndDateInput(formatLocalDateTime(end));
-                          }}
-                        />
-                      </div>
-                      <div className="flex gap-2">
-                        <Button onClick={applyFilters} size="sm" className="flex-1" data-testid="events-apply-filters">
-                          {t('common.filter')}
-                        </Button>
-                        <Button
-                          onClick={clearFilters}
-                          size="sm"
-                          variant="outline"
-                          className="flex-1"
-                          data-testid="events-clear-filters"
-                        >
-                          {t('common.clear')}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </PopoverContent>
+                <EventsFilterPopover
+                  monitors={enabledMonitors}
+                  selectedMonitorIds={selectedMonitorIds}
+                  onMonitorSelectionChange={setSelectedMonitorIds}
+                  favoritesOnly={favoritesOnly}
+                  onFavoritesOnlyChange={setFavoritesOnly}
+                  startDateInput={startDateInput}
+                  onStartDateChange={setStartDateInput}
+                  endDateInput={endDateInput}
+                  onEndDateChange={setEndDateInput}
+                  onQuickRangeSelect={({ start, end }) => {
+                    setStartDateInput(formatLocalDateTime(start));
+                    setEndDateInput(formatLocalDateTime(end));
+                  }}
+                  onApplyFilters={applyFilters}
+                  onClearFilters={clearFilters}
+                />
               </Popover>
 
               <Button
