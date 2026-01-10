@@ -141,11 +141,12 @@ class Logger {
     const hasDetailsArg = this.hasDetails(details);
 
     // Map log levels to their corresponding methods
-    const levelMethods: Record<LogLevel, (msg: string, ctx: LogContext, ...args: unknown[]) => void> = {
+    const levelMethods: Record<LogLevel, ((msg: string, ctx: LogContext, ...args: unknown[]) => void) | null> = {
       [LogLevel.DEBUG]: this.debug.bind(this),
       [LogLevel.INFO]: this.info.bind(this),
       [LogLevel.WARN]: this.warn.bind(this),
       [LogLevel.ERROR]: this.error.bind(this),
+      [LogLevel.NONE]: null, // NONE level doesn't have a method
     };
 
     const logMethod = levelMethods[level];
