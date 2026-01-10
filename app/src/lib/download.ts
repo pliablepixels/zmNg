@@ -17,6 +17,7 @@ import { save } from '@tauri-apps/plugin-dialog';
 import { fetch } from '@tauri-apps/plugin-http';
 import { log, LogLevel } from './logger';
 import { Platform } from './platform';
+import { wrapWithImageProxyIfNeeded } from './proxy-utils';
 
 import { getApiClient } from '../api/client';
 import { getEventVideoUrl as buildEventVideoUrl } from './url-builder';
@@ -216,15 +217,15 @@ async function downloadFileWeb(url: string, filename: string, options?: Download
   try {
     const apiClient = getApiClient();
 
-    if (Platform.shouldUseProxy && (url.startsWith('http://') || url.startsWith('https://'))) {
-      // Use the image proxy for cross-origin URLs in dev mode
-      url = `http://localhost:3001/image-proxy?url=${encodeURIComponent(url)}`;
-      log.download('Using proxy for CORS', LogLevel.INFO, { url });
+    // Use the image proxy for cross-origin URLs in dev mode
+    const proxiedUrl = wrapWithImageProxyIfNeeded(url);
+    if (proxiedUrl !== url) {
+      log.download('Using proxy for CORS', LogLevel.INFO, { url: proxiedUrl });
     }
 
     // Use axios to fetch with proper auth headers
-    log.download('Downloading file via API client', LogLevel.INFO, { url, filename });
-    const response = await apiClient.get(url, {
+    log.download('Downloading file via API client', LogLevel.INFO, { url: proxiedUrl, filename });
+    const response = await apiClient.get(proxiedUrl, {
       responseType: 'blob',
       signal: options?.signal,
       onDownloadProgress: (progressEvent) => {

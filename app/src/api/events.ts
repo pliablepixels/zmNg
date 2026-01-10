@@ -9,13 +9,13 @@ import { getApiClient } from './client';
 import type { EventsResponse, EventData } from './types';
 import { EventsResponseSchema, EventResponseSchema, ConsoleEventsResponseSchema } from './types';
 import { log, LogLevel } from '../lib/logger';
-import { Platform } from '../lib/platform';
 import { validateApiResponse } from '../lib/api-validator';
 import {
   getEventImageUrl as buildEventImageUrl,
   getEventVideoUrl as buildEventVideoUrl,
   getEventZmsUrl as buildEventZmsUrl,
 } from '../lib/url-builder';
+import { wrapWithImageProxy } from '../lib/proxy-utils';
 
 export interface EventFilters {
   monitorId?: string;
@@ -258,13 +258,7 @@ export function getEventImageUrl(
   const fullUrl = buildEventImageUrl(portalUrl, eventId, frame, options);
 
   // In dev mode, use proxy server to avoid CORS issues
-  if (Platform.shouldUseProxy) {
-    const proxyParams = new URLSearchParams();
-    proxyParams.append('url', fullUrl);
-    return `http://localhost:3001/image-proxy?${proxyParams.toString()}`;
-  }
-
-  return fullUrl;
+  return wrapWithImageProxy(fullUrl);
 }
 
 /**
