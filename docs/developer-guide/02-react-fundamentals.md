@@ -1,65 +1,140 @@
 # React Fundamentals
 
-This chapter explains React from first principles for programmers unfamiliar with React's mental model.
+This chapter explains React from first principles for programmers unfamiliar with React's mental model. We'll use real examples from the zmNg codebase.
+
+## Table of Contents
+- [What is React?](#what-is-react)
+- [Components: The Building Blocks](#components-the-building-blocks)
+- [Props: Passing Data](#props-passing-data)
+- [State: Component Memory](#state-component-memory)
+- [Rendering and Re-rendering](#rendering-and-re-rendering)
+- [Hooks: React's Power Tools](#hooks-reacts-power-tools)
+- [Object Identity and References](#object-identity-and-references)
+- [React.memo: Preventing Re-renders](#reactmemo-preventing-re-renders)
+- [Key Takeaways](#key-takeaways)
 
 ## What is React?
 
-React is a library for building user interfaces. Unlike traditional approaches where you imperatively manipulate the DOM (Document Object Model), React uses a **declarative** approach:
+React is a library for building user interfaces. The key mental shift from traditional programming is moving from **imperative** (telling the computer HOW to update) to **declarative** (describing WHAT the UI should look like).
 
-**Traditional (Imperative)**:
+### Traditional Approach (Imperative)
+
 ```javascript
-// Tell the browser HOW to update the UI
+// You manually manipulate the DOM, step by step
 const button = document.getElementById('myButton');
+button.textContent = 'Clicked ' + count + ' times';
+button.style.color = count > 5 ? 'red' : 'black';
+
+// When count changes, you write more code to update the DOM again
+count++;
 button.textContent = 'Clicked ' + count + ' times';
 button.style.color = count > 5 ? 'red' : 'black';
 ```
 
-**React (Declarative)**:
+Problem: You have to remember to update every affected element, which gets complex quickly.
+
+### React Approach (Declarative)
+
 ```jsx
-// Describe WHAT the UI should look like
-<button style={{ color: count > 5 ? 'red' : 'black' }}>
-  Clicked {count} times
-</button>
+// You describe what the UI should look like for any value of count
+function MyButton({ count }) {
+  return (
+    <button style={{ color: count > 5 ? 'red' : 'black' }}>
+      Clicked {count} times
+    </button>
+  );
+}
+
+// When count changes, React automatically updates the button
+// You don't write update code - just re-describe the UI
 ```
 
-You describe what the UI should look like for any given state, and React figures out how to update the DOM efficiently.
+**Key principle**: You describe the UI as a function of your data. When data changes, React efficiently updates the DOM to match your description.
 
 ## Components: The Building Blocks
 
-A component is a function that returns UI elements. Think of it like a reusable template:
+A component is a JavaScript function that returns UI. Think of it like a reusable template or a custom HTML tag.
+
+### Simple Example
 
 ```tsx
-// A simple component
+// A simple welcome component
 function Welcome({ name }: { name: string }) {
   return <Text>Hello, {name}!</Text>;
 }
 
-// Usage
-<Welcome name="Alice" />
-// Renders: "Hello, Alice!"
+// Use it like an HTML tag
+<Welcome name="Alice" />  // Renders: "Hello, Alice!"
+<Welcome name="Bob" />    // Renders: "Hello, Bob!"
 ```
+
+### Real zmNg Example: MonitorCard
+
+Let's look at a real component from zmNg (simplified):
+
+```tsx
+// app/src/components/monitors/MonitorCard.tsx
+function MonitorCard({ monitor, status, eventCount, onShowSettings }) {
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+
+  return (
+    <Card>
+      <div className="flex flex-col sm:flex-row gap-4 p-4">
+        {/* Thumbnail */}
+        <div onClick={() => navigate(`/monitors/${monitor.Id}`)}>
+          <img src={streamUrl} alt={monitor.Name} />
+          <Badge variant={isRunning ? 'default' : 'destructive'}>
+            {isRunning ? t('monitors.live') : t('monitors.offline')}
+          </Badge>
+        </div>
+
+        {/* Monitor Info */}
+        <div>
+          <div>{monitor.Name}</div>
+          <Button onClick={() => navigate(`/events?monitorId=${monitor.Id}`)}>
+            {t('sidebar.events')}
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+}
+```
+
+This component:
+- Takes data as input (`monitor`, `status`, etc.)
+- Returns UI that displays that data
+- Can be reused for every monitor in the system
 
 ### JSX: JavaScript + XML
 
-The `<Text>` syntax is called JSX. It looks like HTML but is actually JavaScript:
+The `<Card>` and `<Button>` syntax is called JSX. It looks like HTML but is actually JavaScript.
 
 ```tsx
 // This JSX:
 const element = <Text>Hello</Text>;
 
-// Gets compiled to:
+// Gets compiled to this JavaScript:
 const element = React.createElement(Text, null, 'Hello');
 ```
 
-**Key Points**:
-- JSX is syntactic sugar for function calls
-- You can embed JavaScript expressions in `{}`
-- Components must return a single root element
+**JSX Rules:**
+1. You can embed JavaScript expressions inside `{}`
+2. Components must return a single root element
+3. Use `className` instead of `class`, `onClick` instead of `onclick`
 
 ```tsx
-function UserCard({ user }: { user: User }) {
+function UserCard({ user }) {
+  // ❌ Wrong - Multiple root elements
   return (
-    <View>  {/* Single root element */}
+    <Text>{user.name}</Text>
+    <Text>{user.email}</Text>
+  );
+
+  // ✅ Correct - Single root element
+  return (
+    <View>
       <Text>{user.name}</Text>
       <Text>{user.email}</Text>
     </View>
@@ -67,34 +142,74 @@ function UserCard({ user }: { user: User }) {
 }
 ```
 
-## Props: Passing Data to Components
+## Props: Passing Data
 
-Props (properties) are how you pass data into components. They're **immutable** - a component cannot modify its own props.
+Props (properties) are how you pass data into components. Think of them like function parameters.
+
+### Key Characteristics of Props
+
+1. **Immutable** - A component cannot change its own props
+2. **One-way flow** - Data flows from parent to child
+3. **Typed** - In TypeScript, you define the shape of props
+
+### Example from MonitorCard
 
 ```tsx
+// Define the shape of props with TypeScript
 interface MonitorCardProps {
-  monitorId: string;
-  name: string;
-  onPress: () => void;
+  monitor: Monitor;           // The monitor object
+  status: MonitorStatus;      // Current status
+  eventCount: number;         // Number of events
+  onShowSettings: (monitor: Monitor) => void;  // Callback function
 }
 
-function MonitorCard({ monitorId, name, onPress }: MonitorCardProps) {
-  // Props are read-only
-  // name = 'Something else';  // ❌ Don't do this!
+function MonitorCard({ monitor, status, eventCount, onShowSettings }: MonitorCardProps) {
+  // Props are READ-ONLY
+  // monitor = someOtherMonitor;  // ❌ Don't do this!
 
   return (
-    <Pressable onPress={onPress}>
-      <Text>{name}</Text>
-    </Pressable>
+    <Card>
+      <Text>{monitor.Name}</Text>
+      <Button onClick={() => onShowSettings(monitor)}>
+        Settings
+      </Button>
+    </Card>
   );
 }
 ```
 
-Think of props like function parameters - they flow one direction (parent → child).
+### How Parent Passes Props
+
+```tsx
+function MonitorList() {
+  const monitors = [
+    { Id: '1', Name: 'Front Door', ... },
+    { Id: '2', Name: 'Backyard', ... }
+  ];
+
+  return (
+    <View>
+      {monitors.map(monitor => (
+        <MonitorCard
+          key={monitor.Id}
+          monitor={monitor}
+          status={getStatus(monitor.Id)}
+          eventCount={10}
+          onShowSettings={handleShowSettings}
+        />
+      ))}
+    </View>
+  );
+}
+```
+
+**Flow**: `MonitorList` (parent) → passes props → `MonitorCard` (child)
+
+The child can't change the props, but it can call callback functions (like `onShowSettings`) to notify the parent.
 
 ## State: Component Memory
 
-State is data that a component owns and can change. When state changes, React re-renders the component.
+While props are data passed from outside, **state** is data that a component owns and can change. When state changes, React re-renders the component.
 
 ### useState Hook
 
@@ -102,8 +217,8 @@ State is data that a component owns and can change. When state changes, React re
 import { useState } from 'react';
 
 function Counter() {
-  // Declare state: [currentValue, functionToUpdateIt]
-  const [count, setCount] = useState(0);  // Initial value: 0
+  // Declare state: [currentValue, functionToUpdateIt] = useState(initialValue)
+  const [count, setCount] = useState(0);
 
   const increment = () => {
     setCount(count + 1);  // Update state
@@ -120,44 +235,89 @@ function Counter() {
 }
 ```
 
-**Key Points**:
-- State updates are **asynchronous**
-- Never mutate state directly: `count++` ❌, `setCount(count + 1)` ✅
-- When state updates, the component re-renders with the new value
+### What Happens When You Click?
 
-### State Updates and Closures
+1. User clicks the button
+2. `increment` function is called
+3. `setCount(count + 1)` is called
+4. React schedules a re-render
+5. Component function runs again with new `count` value
+6. UI updates to show new count
 
-This is a common pitfall:
+### Real Example: useMonitorStream Hook
+
+Let's look at how zmNg uses state in the `useMonitorStream` hook:
+
+```tsx
+// app/src/hooks/useMonitorStream.ts
+export function useMonitorStream({ monitorId }) {
+  // State for connection key - changes when we regenerate connection
+  const [connKey, setConnKey] = useState(0);
+
+  // State for cache busting - changes periodically to refresh snapshots
+  const [cacheBuster, setCacheBuster] = useState(Date.now());
+
+  // State for the displayed image URL - updates when new image loads
+  const [displayedImageUrl, setDisplayedImageUrl] = useState('');
+
+  const regenerateConnection = () => {
+    const newKey = generateKey();
+    setConnKey(newKey);              // Update connKey state
+    setCacheBuster(Date.now());      // Update cacheBuster state
+    // React will re-render any component using this hook
+  };
+
+  // ... rest of hook
+}
+```
+
+Each piece of state serves a purpose:
+- `connKey` - tracks the current connection, changes when we reconnect
+- `cacheBuster` - forces image refresh by changing the URL
+- `displayedImageUrl` - the currently displayed image
+
+### State is Asynchronous
+
+This is a critical concept that trips up many developers:
 
 ```tsx
 function Counter() {
   const [count, setCount] = useState(0);
 
   const incrementTwice = () => {
-    setCount(count + 1);  // count is 0, so this sets to 1
-    setCount(count + 1);  // count is STILL 0, so this also sets to 1
+    setCount(count + 1);  // count is 0, so this queues update to 1
+    setCount(count + 1);  // count is STILL 0, so this also queues update to 1
+    console.log(count);   // Still logs 0!
     // Result: count becomes 1, not 2!
-  };
-
-  // Correct approach: use updater function
-  const incrementTwiceCorrect = () => {
-    setCount(prev => prev + 1);  // prev is 0, returns 1
-    setCount(prev => prev + 1);  // prev is 1, returns 2
-    // Result: count becomes 2
   };
 }
 ```
 
+**Why?** State updates are batched and asynchronous. The `count` variable doesn't change immediately.
+
+**Solution**: Use the updater function form:
+
+```tsx
+const incrementTwiceCorrect = () => {
+  setCount(prev => prev + 1);  // prev is 0, returns 1
+  setCount(prev => prev + 1);  // prev is 1, returns 2
+  // Result: count becomes 2 ✅
+};
+```
+
+The updater function receives the actual latest value, not the stale `count` from when the function was created.
+
 ## Rendering and Re-rendering
 
-Understanding when and why components re-render is crucial to avoiding performance issues and infinite loops.
+Understanding when and why components re-render is crucial for avoiding bugs and performance issues.
 
-### When Components Re-render
+### When Does a Component Re-render?
 
 A component re-renders when:
-1. **Its state changes** (`useState` setter is called)
+
+1. **Its state changes** (via a `setState` call)
 2. **Its props change** (parent passes new values)
-3. **Its parent re-renders** (even if props didn't change)
+3. **Its parent re-renders** (even if this component's props didn't change)
 
 ```tsx
 function Parent() {
@@ -165,18 +325,25 @@ function Parent() {
 
   return (
     <View>
-      <Child name="Alice" />  {/* Re-renders when Parent re-renders */}
+      {/* Child re-renders every time Parent re-renders */}
+      <Child name="Alice" />
+
       <Pressable onPress={() => setCount(count + 1)}>
         <Text>Increment: {count}</Text>
       </Pressable>
     </View>
   );
 }
+
+function Child({ name }) {
+  console.log('Child rendered');  // Logs every time Parent re-renders
+  return <Text>Hello, {name}</Text>;
+}
 ```
 
-### Rendering is Pure
+### Each Render is a Snapshot
 
-Each render is a **snapshot** in time. The component function is called with current props and state:
+This is one of React's most important concepts: **each render is a snapshot in time**.
 
 ```tsx
 function Message() {
@@ -184,37 +351,106 @@ function Message() {
 
   const handleClick = () => {
     setText('Goodbye');
-    alert(text);  // Still shows 'Hello'! Why?
+    alert(text);  // Shows 'Hello', not 'Goodbye'! Why?
   };
 
-  // Each render creates a NEW handleClick function with text
-  // captured at that moment
+  return <Button onClick={handleClick}>{text}</Button>;
 }
 ```
 
+**Why does `alert` show 'Hello'?**
+
+1. When the component first renders, `text` is `'Hello'`
+2. The `handleClick` function is created with `text` captured as `'Hello'`
+3. When you click, `handleClick` runs with the old `text` value
+4. `setText` schedules a re-render, but doesn't change `text` immediately
+5. A new render will create a new `handleClick` with the new `text`
+
+This is called "closure over props/state" - each render has its own values.
+
+### Example from zmNg: useMonitorStream Cleanup
+
+```tsx
+// app/src/hooks/useMonitorStream.ts
+export function useMonitorStream({ monitorId }) {
+  const [connKey, setConnKey] = useState(0);
+  const currentProfile = useProfileStore(state => state.currentProfile());
+
+  // Store cleanup parameters in ref (we'll learn about refs soon)
+  const cleanupParamsRef = useRef({ monitorId, connKey, profile: currentProfile });
+
+  // Update ref whenever values change
+  useEffect(() => {
+    cleanupParamsRef.current = { monitorId, connKey, profile: currentProfile };
+  }, [monitorId, connKey, currentProfile]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      // Access the LATEST values via ref, not the stale closure values
+      const params = cleanupParamsRef.current;
+
+      // If we used monitorId/connKey directly, we'd get stale values!
+      sendQuitCommand(params.connKey);  // Uses latest connKey ✅
+    };
+  }, []); // Empty deps - only run on unmount
+
+  // ...
+}
+```
+
+**Why use a ref?** The cleanup function is created once (empty deps `[]`), so it would capture the initial values of `monitorId` and `connKey`. By using a ref, we can access the latest values when cleanup runs.
+
 ## Hooks: React's Power Tools
 
-Hooks are functions that let you "hook into" React features. They must follow two rules:
+Hooks are special functions that let you "hook into" React features like state, effects, and context.
 
-1. **Only call at the top level** (not in loops, conditions, or nested functions)
-2. **Only call from React functions** (components or custom hooks)
+### Hook Rules (CRITICAL)
+
+1. **Only call at the top level** - Not inside loops, conditions, or nested functions
+2. **Only call from React functions** - Components or custom hooks
+
+```tsx
+// ❌ WRONG
+function Component({ showCounter }) {
+  if (showCounter) {
+    const [count, setCount] = useState(0);  // Conditional hook!
+  }
+  // ...
+}
+
+// ✅ CORRECT
+function Component({ showCounter }) {
+  const [count, setCount] = useState(0);  // Always called
+
+  if (!showCounter) {
+    return null;  // Conditionally render instead
+  }
+  // ...
+}
+```
+
+**Why?** React relies on the order hooks are called to track their state. Conditional hooks break this order.
 
 ### useEffect: Side Effects
 
-`useEffect` runs code after the component renders. Use it for:
-- Data fetching
+`useEffect` runs code **after** the component renders. Use it for:
+- Fetching data
 - Subscriptions
-- Manually changing the DOM
 - Setting up timers
+- Manually changing the DOM
+- Cleanup (like closing connections)
 
 ```tsx
 import { useEffect, useState } from 'react';
 
-function UserProfile({ userId }: { userId: string }) {
+function UserProfile({ userId }) {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
     // This runs AFTER the component renders
+    console.log('Effect running');
+
     fetchUser(userId).then(data => setUser(data));
   }, [userId]);  // Dependencies: re-run when userId changes
 
@@ -223,95 +459,160 @@ function UserProfile({ userId }: { userId: string }) {
 }
 ```
 
-**Dependency Array Explained**:
-- `[]` - Run once after first render (like componentDidMount)
-- `[userId]` - Run when userId changes
-- No array - Run after every render (usually a mistake!)
+### The Dependency Array Explained
 
-**Cleanup Functions**:
+The dependency array is the second argument to `useEffect`. It controls when the effect runs:
+
+```tsx
+// No array - runs after EVERY render (usually wrong!)
+useEffect(() => {
+  console.log('Runs every render');
+});
+
+// Empty array - runs ONCE after first render
+useEffect(() => {
+  console.log('Runs once on mount');
+}, []);
+
+// With dependencies - runs when dependencies change
+useEffect(() => {
+  console.log('Runs when userId changes');
+}, [userId]);
+
+// Multiple dependencies - runs when ANY change
+useEffect(() => {
+  console.log('Runs when userId OR settings change');
+}, [userId, settings]);
+```
+
+### Real Example: useMonitorStream Periodic Refresh
+
+```tsx
+// app/src/hooks/useMonitorStream.ts
+export function useMonitorStream({ monitorId }) {
+  const [cacheBuster, setCacheBuster] = useState(Date.now());
+  const settings = useSettingsStore(state => state.getProfileSettings());
+
+  // Snapshot mode: periodically update cacheBuster to refresh image
+  useEffect(() => {
+    // Only run in snapshot mode
+    if (settings.viewMode !== 'snapshot') return;
+
+    // Set up interval to update cacheBuster every N seconds
+    const interval = setInterval(() => {
+      setCacheBuster(Date.now());  // Triggers re-render with new URL
+    }, settings.snapshotRefreshInterval * 1000);
+
+    // Cleanup: clear interval when component unmounts or dependencies change
+    return () => {
+      clearInterval(interval);
+    };
+  }, [settings.viewMode, settings.snapshotRefreshInterval]);
+  // Re-run effect when viewMode or interval changes
+}
+```
+
+**What happens:**
+1. Component mounts → effect runs → sets up interval
+2. Every N seconds → interval fires → updates cacheBuster → component re-renders
+3. When `viewMode` or `snapshotRefreshInterval` changes → cleanup runs (clears old interval) → effect re-runs (sets up new interval)
+4. Component unmounts → cleanup runs → interval cleared
+
+### Cleanup Functions
+
+Cleanup functions prevent memory leaks and unwanted behavior:
+
 ```tsx
 useEffect(() => {
+  // Setup
   const timer = setInterval(() => {
     console.log('Tick');
   }, 1000);
 
-  // Cleanup: runs when component unmounts or before re-running effect
+  // Cleanup: runs when component unmounts OR before re-running effect
   return () => {
     clearInterval(timer);
   };
 }, []);
 ```
 
-### useCallback: Memoizing Functions
+**When does cleanup run?**
+- Before re-running the effect (if dependencies change)
+- When the component unmounts
 
-Every render creates new function instances. This can cause problems:
+### Real Example: Cleanup in useMonitorStream
 
 ```tsx
-function Parent() {
-  const [count, setCount] = useState(0);
+// app/src/hooks/useMonitorStream.ts
+useEffect(() => {
+  return () => {
+    const params = cleanupParamsRef.current;
 
-  // This creates a NEW function on every render
-  const handleClick = () => {
-    console.log('Clicked');
+    // Send CMD_QUIT to close stream connection
+    if (params.viewMode === 'streaming' && params.connKey !== 0) {
+      const controlUrl = getZmsControlUrl(
+        params.profile.portalUrl,
+        ZMS_COMMANDS.cmdQuit,
+        params.connKey.toString()
+      );
+
+      httpGet(controlUrl).catch(() => {
+        // Ignore errors - connection may already be closed
+      });
+    }
+
+    // Abort image loading to release browser connection
+    if (imgRef.current) {
+      imgRef.current.src = 'data:image/gif;base64,...';
+    }
   };
-
-  return <Child onClick={handleClick} />;  // Child sees a "new" prop every time
-}
+}, []); // Empty deps = only run on unmount
 ```
 
-`useCallback` returns the same function instance across renders:
-
-```tsx
-import { useCallback } from 'react';
-
-function Parent() {
-  const [count, setCount] = useState(0);
-
-  // This returns the SAME function instance if dependencies don't change
-  const handleClick = useCallback(() => {
-    console.log('Clicked');
-  }, []);  // Empty array = never changes
-
-  return <Child onClick={handleClick} />;  // Child sees same function reference
-}
-```
-
-**When to use**:
-- Passing callbacks to child components wrapped in `React.memo`
-- Using functions as dependencies in other hooks
-- Preventing unnecessary re-renders
-
-**Dependencies matter**:
-```tsx
-const handleSave = useCallback(() => {
-  saveData(userId, formData);
-}, [userId, formData]);  // Re-create when userId or formData changes
-```
+This ensures when the component unmounts:
+1. The stream connection is properly closed on the server
+2. The browser stops loading the image
 
 ### useRef: Persistent Storage Without Re-renders
 
-`useRef` gives you a mutable object that persists across renders but doesn't trigger re-renders when changed:
+`useRef` gives you a mutable container that persists across renders but **doesn't trigger re-renders** when changed.
 
 ```tsx
 import { useRef } from 'react';
 
 function VideoPlayer() {
-  const playerRef = useRef(null);  // Initial value
+  // Create a ref with initial value null
+  const playerRef = useRef(null);
 
   const play = () => {
-    playerRef.current?.play();  // Access via .current
+    // Access the current value via .current
+    playerRef.current?.play();
   };
 
+  // Attach ref to DOM element
   return <video ref={playerRef} />;
 }
 ```
 
-**Differences from state**:
-- Changing `ref.current` **does NOT** trigger a re-render
-- You can read/write `ref.current` immediately (synchronous)
-- Useful for storing: DOM elements, timers, previous values
+### useRef vs useState
 
-**Example: Tracking previous value**:
+| Feature | useState | useRef |
+|---------|----------|--------|
+| Triggers re-render | ✅ Yes | ❌ No |
+| Read/write | Async (via setter) | Sync (via `.current`) |
+| Use for | UI state | Non-UI values, DOM refs |
+
+### Common useRef Use Cases
+
+**1. Storing DOM elements:**
+```tsx
+const imgRef = useRef<HTMLImageElement>(null);
+
+return <img ref={imgRef} src={url} />;
+// Later: imgRef.current.width, imgRef.current.src, etc.
+```
+
+**2. Storing previous values:**
 ```tsx
 function Counter() {
   const [count, setCount] = useState(0);
@@ -330,18 +631,98 @@ function Counter() {
 }
 ```
 
+**3. Storing values for cleanup (see useMonitorStream above):**
+```tsx
+const paramsRef = useRef({ id: monitorId, key: connKey });
+
+useEffect(() => {
+  paramsRef.current = { id: monitorId, key: connKey };
+}, [monitorId, connKey]);
+
+useEffect(() => {
+  return () => {
+    // Access latest values in cleanup
+    const params = paramsRef.current;
+  };
+}, []);
+```
+
+### useCallback: Memoizing Functions
+
+Every render creates new function instances. This can cause problems with child re-renders and effect dependencies.
+
+```tsx
+function Parent() {
+  const [count, setCount] = useState(0);
+
+  // This creates a NEW function on every render
+  const handleClick = () => {
+    console.log('Clicked');
+  };
+
+  // Child sees a "new" prop every time Parent re-renders
+  return <Child onClick={handleClick} />;
+}
+```
+
+`useCallback` returns the same function instance across renders:
+
+```tsx
+import { useCallback } from 'react';
+
+function Parent() {
+  const [count, setCount] = useState(0);
+
+  // Returns the SAME function instance if dependencies don't change
+  const handleClick = useCallback(() => {
+    console.log('Clicked');
+  }, []); // Empty deps = function never changes
+
+  // Child sees the same function reference
+  return <Child onClick={handleClick} />;
+}
+```
+
+### When to Use useCallback
+
+✅ **Use when:**
+- Passing callbacks to child components wrapped in `React.memo`
+- Using functions as dependencies in `useEffect` or other hooks
+- Creating event handlers that shouldn't change
+
+❌ **Don't use when:**
+- Function isn't passed to children
+- No performance issue (premature optimization)
+- Function needs to capture latest state (better to omit useCallback)
+
+### useCallback with Dependencies
+
+```tsx
+function MonitorCard({ monitorId }) {
+  const [settings, setSettings] = useState({});
+
+  // Function re-creates when monitorId or settings change
+  const handleSave = useCallback(() => {
+    saveMonitorSettings(monitorId, settings);
+  }, [monitorId, settings]);  // Re-create when these change
+
+  return <Button onClick={handleSave}>Save</Button>;
+}
+```
+
 ### useMemo: Memoizing Values
 
-Similar to `useCallback` but for values instead of functions:
+Similar to `useCallback` but for values instead of functions. Use it to cache expensive calculations.
 
 ```tsx
 import { useMemo } from 'react';
 
-function MonitorList({ monitors }: { monitors: Monitor[] }) {
-  // Expensive calculation only runs when monitors change
+function MonitorList({ monitors }) {
+  // Expensive calculation only runs when monitors array changes
   const sortedMonitors = useMemo(() => {
+    console.log('Sorting...');
     return monitors.sort((a, b) => a.name.localeCompare(b.name));
-  }, [monitors]);
+  }, [monitors]);  // Only re-sort when monitors changes
 
   return (
     <View>
@@ -351,54 +732,83 @@ function MonitorList({ monitors }: { monitors: Monitor[] }) {
 }
 ```
 
-**When to use**:
-- Expensive calculations
-- Creating objects/arrays used as dependencies
-- Optimizing performance (profile first!)
+**When to use useMemo:**
+- Expensive calculations (sorting, filtering large arrays)
+- Creating objects/arrays used as dependencies in hooks
+- After profiling shows a performance issue
 
-## Object Identity and Re-renders
+**Don't use for:**
+- Simple calculations (more overhead than benefit)
+- Premature optimization
 
-This is crucial for understanding infinite loops (covered in Chapter 4):
+## Object Identity and References
+
+This is crucial for understanding why effects re-run and why components re-render.
+
+### JavaScript Reference Equality
 
 ```tsx
-// Every render creates a NEW object (different reference)
-const config = { width: 100, height: 200 };
+// Primitive values: compared by value
+1 === 1              // true
+'hello' === 'hello'  // true
 
-// Every render creates a NEW array (different reference)
-const items = [1, 2, 3];
+// Objects/Arrays: compared by reference
+{ x: 1 } === { x: 1 }    // false! Different objects
+[1, 2] === [1, 2]        // false! Different arrays
 
-// Even if the values are identical, they're different objects!
-{ width: 100 } !== { width: 100 }  // true - different references
-[1, 2, 3] !== [1, 2, 3]            // true - different references
+const obj1 = { x: 1 };
+const obj2 = obj1;
+obj1 === obj2            // true - same reference
 ```
 
-**Why this matters**:
+### Why This Matters in React
+
 ```tsx
 function Component() {
-  const config = { width: 100 };  // New object every render
+  // New object created every render
+  const config = { width: 100, height: 200 };
 
   useEffect(() => {
     console.log('Config changed!');
-  }, [config]);  // This runs on EVERY render!
+  }, [config]);  // Runs on EVERY render! config is always a new object
 }
 ```
 
-**Solution**:
+Every render creates a new `config` object. Even though the values are identical, the reference is different, so React thinks it changed.
+
+### Solutions
+
+**Option 1: useMemo**
 ```tsx
-// Option 1: useMemo
-const config = useMemo(() => ({ width: 100 }), []);  // Same object
-
-// Option 2: Move outside component
-const CONFIG = { width: 100 };  // Created once
-
-// Option 3: Don't use as dependency (use refs - see Chapter 4)
+const config = useMemo(() => ({ width: 100, height: 200 }), []);
+// Same object reference across renders
 ```
 
-## React.memo: Preventing Unnecessary Re-renders
+**Option 2: Move outside component**
+```tsx
+const CONFIG = { width: 100, height: 200 };  // Created once
 
-`React.memo` is a higher-order component that optimizes performance by preventing a component from re-rendering when its props haven't changed.
+function Component() {
+  useEffect(() => {
+    console.log('Config changed!');
+  }, [CONFIG]);  // Only runs once - CONFIG never changes
+}
+```
 
-### The Problem
+**Option 3: Don't use as dependency (use specific values)**
+```tsx
+const config = { width: 100, height: 200 };
+
+useEffect(() => {
+  console.log('Dimensions changed!');
+}, [config.width, config.height]);  // Depend on values, not object
+```
+
+## React.memo: Preventing Re-renders
+
+`React.memo` is a higher-order component that prevents a component from re-rendering when its props haven't changed.
+
+### The Problem: Unnecessary Re-renders
 
 By default, a component re-renders whenever its parent re-renders, even if its props are identical:
 
@@ -411,28 +821,28 @@ function Parent() {
       <Pressable onPress={() => setCount(count + 1)}>
         <Text>Count: {count}</Text>
       </Pressable>
-      <ExpensiveChild name="Alice" />  {/* Re-renders every time! */}
+
+      {/* Re-renders every time, even though name never changes! */}
+      <ExpensiveChild name="Alice" />
     </View>
   );
 }
 
-function ExpensiveChild({ name }: { name: string }) {
+function ExpensiveChild({ name }) {
   console.log('ExpensiveChild rendered');
   // Expensive rendering logic...
   return <Text>Hello, {name}</Text>;
 }
 ```
 
-Every time you click the button, `ExpensiveChild` re-renders even though its `name` prop never changes. This wastes CPU cycles.
+Every time you click the button, `ExpensiveChild` re-renders even though its `name` prop is always `"Alice"`.
 
 ### The Solution: React.memo
-
-Wrap the component in `memo()` to skip re-renders when props are unchanged:
 
 ```tsx
 import { memo } from 'react';
 
-const ExpensiveChild = memo(function ExpensiveChild({ name }: { name: string }) {
+const ExpensiveChild = memo(function ExpensiveChild({ name }) {
   console.log('ExpensiveChild rendered');
   return <Text>Hello, {name}</Text>;
 });
@@ -440,109 +850,140 @@ const ExpensiveChild = memo(function ExpensiveChild({ name }: { name: string }) 
 
 Now `ExpensiveChild` only re-renders when the `name` prop changes.
 
-### How It Works
+### How React.memo Works
 
 1. React compares the **new props** with the **previous props**
 2. Uses **shallow equality** - compares references, not deep values
-3. If props are identical (same references), skip re-render
+3. If all props are identical (same references), skip re-render
 4. If any prop changed, re-render normally
 
 ```tsx
+// Shallow comparison:
 const prev = { name: 'Alice', age: 30 };
 const next = { name: 'Alice', age: 30 };
 
-prev === next  // false! Different objects
-prev.name === next.name  // true - same value
+prev === next           // false - different object references
+prev.name === next.name // true - same string value
+prev.age === next.age   // true - same number value
+
+// React.memo does:
+prev.name === next.name && prev.age === next.age  // true - skip re-render
 ```
 
-`memo()` does: `prev.name === next.name && prev.age === next.age`
+### Real Example: MonitorCard and EventCard
+
+Both MonitorCard and EventCard are wrapped in `memo`:
+
+```tsx
+// app/src/components/monitors/MonitorCard.tsx
+function MonitorCardComponent({ monitor, status, eventCount, onShowSettings }) {
+  // ... component logic
+}
+
+// Memoize to prevent unnecessary re-renders when monitor data hasn't changed
+export const MonitorCard = memo(MonitorCardComponent);
+```
+
+```tsx
+// app/src/components/events/EventCard.tsx
+function EventCardComponent({ event, monitorName, thumbnailUrl }) {
+  // ... component logic
+}
+
+// Memoize to prevent unnecessary re-renders in virtualized event lists
+export const EventCard = memo(EventCardComponent);
+```
+
+**Why?** In the Monitors page, you might have 10+ MonitorCards. When one monitor's status changes, only that card should re-render, not all 10. `memo` makes this optimization automatic.
 
 ### When to Use React.memo
 
-**✅ Good use cases:**
-- Component renders expensive UI (complex calculations, SVG, animations)
+✅ **Good use cases:**
+- Component renders expensive UI (complex calculations, animations)
 - Component is in a large list (50+ items)
 - Props rarely change
 - Parent re-renders frequently
 
-**❌ Don't use when:**
+❌ **Don't use when:**
 - Component is cheap to render
 - Props change on every render anyway
 - Only one instance exists
 - You haven't profiled to confirm it's slow
 
-**Rule of thumb**: Only use `memo()` after you've identified a performance problem. Premature optimization adds complexity.
+**Rule of thumb**: Use `memo` for list items and components with expensive rendering. Otherwise, only add it after profiling shows a performance issue.
 
-### Example: List Optimization
+### Common Pitfall: memo with Inline Objects/Functions
 
 ```tsx
-function MonitorList({ monitors }: { monitors: Monitor[] }) {
+function Parent() {
+  const [count, setCount] = useState(0);
+
   return (
     <View>
-      {monitors.map(monitor => (
-        <MonitorCard key={monitor.id} monitor={monitor} />
-      ))}
+      <Pressable onPress={() => setCount(count + 1)}>Count: {count}</Pressable>
+
+      {/* ❌ memo doesn't help here! */}
+      <ExpensiveChild
+        config={{ width: 100 }}        // New object every render
+        onClick={() => console.log()}  // New function every render
+      />
     </View>
   );
 }
 
-// Without memo: updating one monitor re-renders all cards
-// With memo: only the updated monitor's card re-renders
-const MonitorCard = memo(function MonitorCard({ monitor }: { monitor: Monitor }) {
+const ExpensiveChild = memo(function ExpensiveChild({ config, onClick }) {
+  // Still re-renders every time because config and onClick are new references
+});
+```
+
+**Solution**: Use `useMemo` for objects and `useCallback` for functions:
+
+```tsx
+function Parent() {
+  const [count, setCount] = useState(0);
+
+  const config = useMemo(() => ({ width: 100 }), []);
+  const handleClick = useCallback(() => console.log(), []);
+
   return (
     <View>
-      <Text>{monitor.name}</Text>
-      <Text>{monitor.status}</Text>
+      <Pressable onPress={() => setCount(count + 1)}>Count: {count}</Pressable>
+
+      {/* ✅ Now memo works! Props have stable references */}
+      <ExpensiveChild config={config} onClick={handleClick} />
     </View>
   );
-});
+}
 ```
 
-### Custom Comparison Function
+### memo with Global State (Zustand)
 
-By default, `memo()` does shallow comparison. For custom logic, provide a comparison function:
-
-```tsx
-const MonitorCard = memo(
-  function MonitorCard({ monitor, showDetails }) {
-    // ...
-  },
-  (prevProps, nextProps) => {
-    // Return true if props are equal (skip re-render)
-    // Return false if props changed (do re-render)
-    return (
-      prevProps.monitor.id === nextProps.monitor.id &&
-      prevProps.monitor.status === nextProps.monitor.status &&
-      prevProps.showDetails === nextProps.showDetails
-    );
-  }
-);
-```
-
-### Important: memo() with Global State
-
-**Critical caveat**: `memo()` only compares **props**. It doesn't prevent re-renders from state changes inside the component.
+**Critical**: `memo()` only compares **props**. It doesn't prevent re-renders from state changes inside the component.
 
 ```tsx
+// app/src/components/events/EventCard.tsx
 const EventCard = memo(function EventCard({ event }) {
-  // This will still cause re-renders when favorites change
-  const isFavorited = useStore((state) => state.isFavorited(event.id));
+  // This subscription still causes re-renders when favorites change
+  const isFav = useEventFavoritesStore((state) =>
+    state.isFavorited(currentProfile.id, event.Id)
+  );
 
-  return <Star filled={isFavorited} />;
+  return <Star filled={isFav} />;
 });
 ```
 
-`memo()` blocks re-renders from the parent, but the component still subscribes to the store. When the store changes, the component re-renders.
+`memo` blocks re-renders from the parent, but the component **still subscribes to the Zustand store**. When favorites change, the store notifies this component, and it re-renders.
 
-This is correct behavior! The component needs to update when its data changes.
+**This is correct behavior!** The component needs to update when its data changes.
 
 ### Common Mistake: Extracting Functions Without Subscribing
 
 ```tsx
 // ❌ WRONG - Won't update when favorites change
 const EventCard = memo(function EventCard({ event }) {
-  const { isFavorited } = useStore();  // Extracts function, doesn't subscribe
-  const isFav = isFavorited(event.id);  // Computed once, never updates
+  // Extracts function but doesn't subscribe to state
+  const { isFavorited } = useEventFavoritesStore();
+  const isFav = isFavorited(event.Id);
 
   return <Star filled={isFav} />;
   // When favorites change:
@@ -552,10 +993,12 @@ const EventCard = memo(function EventCard({ event }) {
   // - Star stays stale!
 });
 
-// ✅ CORRECT - Subscribe to state
+// ✅ CORRECT - Subscribe to state with selector
 const EventCard = memo(function EventCard({ event }) {
   // Subscribes to this specific state value
-  const isFav = useStore((state) => state.isFavorited(event.id));
+  const isFav = useEventFavoritesStore((state) =>
+    state.isFavorited(currentProfile.id, event.Id)
+  );
 
   return <Star filled={isFav} />;
   // When favorites change:
@@ -565,32 +1008,59 @@ const EventCard = memo(function EventCard({ event }) {
 });
 ```
 
-**Key principle**: When using `memo()` with global state (Zustand, Redux, Context), you must subscribe to the state with a selector. Extracting functions without subscribing breaks reactivity.
+**Key principle**: When using `memo()` with global state (Zustand, Redux, Context), you must **subscribe** to the state with a selector. Extracting functions without subscribing breaks reactivity.
+
+See [Chapter 3: State Management with Zustand](./03-state-management-zustand.md) for detailed explanation of selectors and subscriptions.
 
 ## React Native Specifics
 
-zmNg uses React Native components, not HTML:
+zmNg uses React Native (via Capacitor), so instead of HTML elements, you use React Native components:
 
-| HTML | React Native |
-|------|-------------|
-| `<div>` | `<View>` |
-| `<span>` | `<Text>` |
-| `<button>` | `<Pressable>` |
-| `<input>` | `<TextInput>` |
+| HTML | React Native | zmNg Usage |
+|------|-------------|-----------|
+| `<div>` | `<View>` | Layout containers |
+| `<span>`, `<p>` | `<Text>` | Text display |
+| `<button>` | `<Pressable>`, `<Button>` | Interactive elements |
+| `<input>` | `<TextInput>` | Form inputs |
+| `<img>` | `<Image>` | Images |
 
-But the React concepts are identical.
+But **all React concepts are identical** - components, props, state, hooks, memo, etc.
 
 ## Key Takeaways
 
-1. **React is declarative**: Describe the UI for any state, React handles updates
+1. **React is declarative**: Describe the UI for any state, React handles updates automatically
+
 2. **Components are functions**: They take props and return UI
-3. **State triggers re-renders**: Changing state causes the component to re-render
-4. **Hooks have rules**: Top-level only, React functions only
-5. **Object identity matters**: New objects/arrays are different references
-6. **useCallback/useMemo**: Preserve identity across renders
-7. **useRef**: Store values without triggering re-renders
-8. **useEffect**: Run side effects after render
+
+3. **Props are immutable**: Data flows one-way from parent to child
+
+4. **State triggers re-renders**: Changing state causes the component to re-render with new values
+
+5. **Each render is a snapshot**: Variables and functions capture values from that render
+
+6. **Hooks have rules**:
+   - Top-level only (no conditions, loops)
+   - React functions only (components, custom hooks)
+
+7. **useEffect runs after render**: Use for side effects, cleanup, subscriptions
+   - Dependency array controls when it re-runs
+   - Return cleanup function to prevent leaks
+
+8. **useRef persists without re-rendering**: Use for DOM references, storing non-UI values
+
+9. **Object identity matters**:
+   - `{ x: 1 } !== { x: 1 }` (different references)
+   - Use `useMemo`/`useCallback` for stable references
+   - Or move values outside component
+
+10. **React.memo prevents re-renders**:
+    - Compares props shallowly
+    - Use for expensive components and list items
+    - Pair with `useMemo`/`useCallback` for stable props
+    - Still re-renders from internal state changes
+
+11. **Subscribe to global state with selectors**: When using `memo()` with Zustand/Redux, use selectors to subscribe, don't extract functions
 
 ## Next Steps
 
-Continue to [Chapter 3: State Management with Zustand](./03-state-management-zustand.md) to understand how we manage global application state.
+Continue to [Chapter 3: State Management with Zustand](./03-state-management-zustand.md) to understand how we manage global application state and how subscriptions work.
