@@ -7,6 +7,23 @@ interface MonitorStore {
     regenerateConnKey: (monitorId: string) => number;
 }
 
+/**
+ * Helper to generate and store a new connection key for a monitor
+ */
+function generateAndSetConnKey(
+    monitorId: string,
+    set: (fn: (state: MonitorStore) => Partial<MonitorStore>) => void
+): number {
+    const newKey = Math.floor(Math.random() * 100000);
+    set((state) => ({
+        connKeys: {
+            ...state.connKeys,
+            [monitorId]: newKey,
+        },
+    }));
+    return newKey;
+}
+
 export const useMonitorStore = create<MonitorStore>()(
     persist(
         (set, get) => ({
@@ -17,24 +34,10 @@ export const useMonitorStore = create<MonitorStore>()(
                     return state.connKeys[monitorId];
                 }
 
-                const newKey = Math.floor(Math.random() * 100000);
-                set((state) => ({
-                    connKeys: {
-                        ...state.connKeys,
-                        [monitorId]: newKey,
-                    },
-                }));
-                return newKey;
+                return generateAndSetConnKey(monitorId, set);
             },
             regenerateConnKey: (monitorId: string) => {
-                const newKey = Math.floor(Math.random() * 100000);
-                set((state) => ({
-                    connKeys: {
-                        ...state.connKeys,
-                        [monitorId]: newKey,
-                    },
-                }));
-                return newKey;
+                return generateAndSetConnKey(monitorId, set);
             },
         }),
         {
