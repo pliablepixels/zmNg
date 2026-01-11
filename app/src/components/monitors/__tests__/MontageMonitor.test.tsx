@@ -59,14 +59,15 @@ describe('MontageMonitor', () => {
   const mockMonitor: Monitor = {
     Id: '1',
     Name: 'Front Door',
-    Width: 1920,
-    Height: 1080,
+    Width: '1920',
+    Height: '1080',
     Orientation: '0',
     Function: 'Modect',
     Enabled: '1',
-  };
+  } as Monitor;
 
   const mockStatus: MonitorStatus = {
+    MonitorId: '1',
     Status: 'Connected',
   };
 
@@ -76,6 +77,7 @@ describe('MontageMonitor', () => {
     apiUrl: 'https://test.com',
     portalUrl: 'https://test.com',
     cgiUrl: 'https://test.com/cgi-bin',
+    isDefault: false,
     createdAt: Date.now(),
   };
 
@@ -84,11 +86,11 @@ describe('MontageMonitor', () => {
   beforeEach(() => {
     // Reset stores
     useMonitorStore.setState({
-      connectionKeys: {},
+      connKeys: {},
       regenerateConnKey: vi.fn((monitorId: string) => {
         const key = Date.now() + parseInt(monitorId);
         useMonitorStore.setState((state) => ({
-          connectionKeys: { ...state.connectionKeys, [monitorId]: key },
+          connKeys: { ...state.connKeys, [monitorId]: key },
         }));
         return key;
       }),
@@ -162,6 +164,7 @@ describe('MontageMonitor', () => {
 
   it('displays error status badge for disconnected monitor', async () => {
     const disconnectedStatus: MonitorStatus = {
+      MonitorId: '1',
       Status: 'Disconnected',
     };
 

@@ -11,6 +11,7 @@ import { useMonitorStore } from '../../stores/monitors';
 import { useProfileStore } from '../../stores/profile';
 import { useAuthStore } from '../../stores/auth';
 import { useSettingsStore, DEFAULT_SETTINGS } from '../../stores/settings';
+import type { Profile } from '../../api/types';
 
 // Mock dependencies
 vi.mock('../../lib/http', () => ({
@@ -59,12 +60,13 @@ vi.mock('../../lib/zm-constants', () => ({
 }));
 
 describe('useMonitorStream', () => {
-  const mockProfile = {
+  const mockProfile: Profile = {
     id: 'profile-1',
     name: 'Test Profile',
     apiUrl: 'https://test.com',
     portalUrl: 'https://test.com',
     cgiUrl: 'https://test.com/cgi-bin',
+    isDefault: false,
     createdAt: Date.now(),
   };
 
@@ -97,11 +99,11 @@ describe('useMonitorStream', () => {
     });
 
     useMonitorStore.setState({
-      connectionKeys: {},
+      connKeys: {},
       regenerateConnKey: vi.fn((monitorId: string) => {
         const key = Date.now() + parseInt(monitorId);
         useMonitorStore.setState((state) => ({
-          connectionKeys: { ...state.connectionKeys, [monitorId]: key },
+          connKeys: { ...state.connKeys, [monitorId]: key },
         }));
         return key;
       }),
