@@ -20,6 +20,7 @@ import { ProfileService } from '../services/profile';
 import { log, LogLevel } from '../lib/logger';
 import { useAuthStore } from './auth';
 import { performBootstrap } from './profile-bootstrap';
+import { handleProfileRehydration } from './profile-initialization';
 
 interface ProfileState {
   profiles: Profile[];
@@ -377,6 +378,7 @@ export const useProfileStore = create<ProfileState>()(
     {
       name: 'zmng-profiles',
       // On load, initialize API client with current profile and authenticate
+      // Complex initialization logic is extracted to profile-initialization.ts for maintainability
       onRehydrateStorage: () => {
         try {
           log.profileService('onRehydrateStorage: Zustand persist starting rehydration', LogLevel.INFO);
@@ -386,173 +388,13 @@ export const useProfileStore = create<ProfileState>()(
 
         return async (state) => {
           try {
-            const bootstrapStart = Date.now();
-            const BOOTSTRAP_STEP_TIMEOUT_MS = 8000;
-            const BOOTSTRAP_TOTAL_TIMEOUT_MS = 20000;
-            const getState = () => {
-              if (!storeGet) {
-                throw new Error('Profile store not ready');
-              }
-              return storeGet();
-            };
-            const setState = (partial: Partial<ProfileState>) => {
-              if (storeSet) {
-                storeSet(partial);
-              }
-            };
-            const withTimeout = async <T>(
-              label: string,
-              promise: Promise<T>,
-              timeoutMs = BOOTSTRAP_STEP_TIMEOUT_MS
-            ) => {
-              let timeoutId: ReturnType<typeof setTimeout> | undefined;
-              const timeoutPromise = new Promise<never>((_, reject) => {
-                timeoutId = setTimeout(() => {
-                  reject(new Error(`${label} timed out after ${timeoutMs}ms`));
-                }, timeoutMs);
-              });
-
-              try {
-                return await Promise.race([promise, timeoutPromise]);
-              } finally {
-                if (timeoutId) {
-                  clearTimeout(timeoutId);
-                }
-              }
-            };
-            const logDuration = (message: string, startTime: number, context: Record<string, unknown> = {}) => {
-              log.profileService(message, LogLevel.INFO, {
-                ...context,
-                durationMs: Date.now() - startTime,
-              });
-            };
-
-            const setInitializationState = (bootstrapping: boolean) => {
-              setState({
-                isBootstrapping: bootstrapping,
-                isInitialized: true,
-                bootstrapStep: bootstrapping ? 'start' : null,
-              });
-            };
-
-            try {
-              log.profileService('onRehydrateStorage called', LogLevel.INFO, { hasState: !!state, currentProfileId: state?.currentProfileId });
-            } catch {
-              // Logger might not be initialized in test environment
+            // Ensure store references are available
+            if (!storeSet || !storeGet) {
+              throw new Error('Profile store not ready');
             }
 
-            if (!state?.currentProfileId) {
-              try {
-                log.profileService('No current profile found on app load', LogLevel.INFO, { state });
-              } catch {
-                // Logger might not be initialized in test environment
-              }
-              setInitializationState(false);
-              try {
-                log.profileService('isInitialized set to true (no profile)', LogLevel.INFO);
-              } catch {
-                // Logger might not be initialized in test environment
-              }
-              return;
-            }
-
-            const profile = state.profiles.find((p) => p.id === state.currentProfileId);
-            if (!profile) {
-              try {
-                log.profileService('Current profile ID exists but profile not found', LogLevel.ERROR, { profileId: state.currentProfileId, });
-              } catch {
-                // Logger might not be initialized in test environment
-              }
-              // CRITICAL: Set isInitialized even on error to prevent hanging
-              setInitializationState(false);
-              return;
-            }
-
-            try {
-              log.profileService('App loading with profile', LogLevel.INFO, {
-                name: profile.name,
-                id: profile.id,
-                portalUrl: profile.portalUrl,
-                apiUrl: profile.apiUrl,
-                cgiUrl: profile.cgiUrl,
-                username: profile.username || '(not set)',
-                hasPassword: !!profile.password,
-                passwordLength: profile.password?.length,
-                isDefault: profile.isDefault,
-                createdAt: new Date(profile.createdAt).toLocaleString(),
-                lastUsed: profile.lastUsed ? new Date(profile.lastUsed).toLocaleString() : 'never',
-              });
-            } catch {
-              // Logger might not be initialized in test environment
-            }
-
-            try {
-              const clearStart = Date.now();
-              try {
-                log.profileService('Clearing stale auth and cache', LogLevel.INFO);
-              } catch {
-                // Logger might not be initialized in test environment
-              }
-              const { useAuthStore } = await import('./auth');
-              useAuthStore.getState().logout();
-
-              const { clearQueryCache } = await import('./query-cache');
-              clearQueryCache();
-              logDuration('Bootstrap step: cleared auth and cache', clearStart);
-
-              const apiClientStart = Date.now();
-              try {
-                log.profileService('Initializing API client', LogLevel.INFO, { apiUrl: profile.apiUrl });
-              } catch {
-                // Logger might not be initialized in test environment
-              }
-              setApiClient(createApiClient(profile.apiUrl, getState().reLogin));
-              logDuration('Bootstrap step: API client ready', apiClientStart, { apiUrl: profile.apiUrl });
-            } catch (error) {
-              log.profileService('Profile bootstrap failed during early initialization', LogLevel.ERROR, error);
-              setInitializationState(false);
-              return;
-            }
-
-            setInitializationState(true);
-
-            let overallTimeoutId: ReturnType<typeof setTimeout> | undefined;
-            overallTimeoutId = setTimeout(() => {
-              if (getState().isBootstrapping) {
-                log.profileService('Profile bootstrap exceeded timeout; allowing UI to continue', LogLevel.WARN, { timeoutMs: BOOTSTRAP_TOTAL_TIMEOUT_MS, });
-                setState({ isBootstrapping: false, bootstrapStep: null });
-              }
-            }, BOOTSTRAP_TOTAL_TIMEOUT_MS);
-
-            const runBootstrapTasks = async () => {
-              try {
-                setState({ bootstrapStep: 'start' });
-                log.profileService('Running bootstrap tasks on app load', LogLevel.INFO);
-
-                // Run all bootstrap steps using shared helpers
-                await withTimeout(
-                  'Bootstrap tasks',
-                  performBootstrap(profile, {
-                    getDecryptedPassword: getState().getDecryptedPassword,
-                    updateProfile: getState().updateProfile,
-                  }),
-                  BOOTSTRAP_TOTAL_TIMEOUT_MS
-                );
-
-                setState({ bootstrapStep: 'finalize' });
-              } finally {
-                logDuration('Profile bootstrap completed', bootstrapStart, {
-                  profileId: profile.id,
-                });
-                if (overallTimeoutId) {
-                  clearTimeout(overallTimeoutId);
-                }
-                setState({ isBootstrapping: false, bootstrapStep: null });
-              }
-
-            };
-
-            void runBootstrapTasks();
+            // Delegate to initialization module
+            await handleProfileRehydration(state, storeSet, storeGet);
           } catch (error) {
             // CRITICAL: Catch any unexpected errors in onRehydrateStorage to prevent app from hanging
             log.profileService(
