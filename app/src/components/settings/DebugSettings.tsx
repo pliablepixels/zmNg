@@ -4,16 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { Label } from '../ui/label';
 import { Switch } from '../ui/switch';
 import { useSettingsStore } from '../../stores/settings';
-import { useProfileStore } from '../../stores/profile';
-import { useShallow } from 'zustand/react/shallow';
+import { useCurrentProfile } from '../../hooks/useCurrentProfile';
 
 export function DebugSettings() {
     const { t } = useTranslation();
 
-    const currentProfile = useProfileStore((state) => state.currentProfile());
-    const settings = useSettingsStore(
-        useShallow((state) => state.getProfileSettings(currentProfile?.id || ''))
-    );
+    const { currentProfile, settings } = useCurrentProfile();
     const updateSettings = useSettingsStore((state) => state.updateProfileSettings);
 
     const handleLogRedactionChange = (checked: boolean) => {

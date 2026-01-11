@@ -6,7 +6,7 @@
  */
 
 import { useNotificationStore } from '../stores/notifications';
-import { useProfileStore } from '../stores/profile';
+import { useCurrentProfile } from '../hooks/useCurrentProfile';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -18,7 +18,7 @@ import { useTranslation } from 'react-i18next';
 export default function NotificationHistory() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const currentProfile = useProfileStore((state) => state.currentProfile());
+  const { currentProfile } = useCurrentProfile();
   const { getEvents, getUnreadCount, markEventRead, markAllRead, clearEvents } = useNotificationStore();
 
   // Get events and unread count for current profile

@@ -16,7 +16,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getMonitors } from '../api/monitors';
 import { filterEnabledMonitors } from '../lib/filters';
-import { useProfileStore } from '../stores/profile';
+import { useCurrentProfile } from './useCurrentProfile';
 import type { MonitorData } from '../api/types';
 
 export interface UseMonitorsOptions {
@@ -51,7 +51,7 @@ export interface UseMonitorsReturn {
  * ```
  */
 export function useMonitors(options?: UseMonitorsOptions): UseMonitorsReturn {
-  const currentProfile = useProfileStore((state) => state.currentProfile());
+  const { currentProfile } = useCurrentProfile();
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['monitors', currentProfile?.id],

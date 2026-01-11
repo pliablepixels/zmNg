@@ -1,6 +1,6 @@
 import { useLogStore } from '../stores/logs';
 import { logger, LogLevel } from '../lib/logger';
-import { useProfileStore } from '../stores/profile';
+import { useCurrentProfile } from '../hooks/useCurrentProfile';
 import { useSettingsStore } from '../stores/settings';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -65,10 +65,8 @@ export default function Logs() {
     const { toast } = useToast();
     const { t } = useTranslation();
     const isNative = Capacitor.isNativePlatform();
-    const currentProfile = useProfileStore((state) => state.currentProfile());
-    const logLevel = useSettingsStore(
-        (state) => state.getProfileSettings(currentProfile?.id || '').logLevel
-    );
+    const { currentProfile, settings } = useCurrentProfile();
+    const { logLevel } = settings;
     const updateProfileSettings = useSettingsStore((state) => state.updateProfileSettings);
     const [selectedComponentsZmng, setSelectedComponentsZmng] = useState<string[]>([]);
     const [selectedComponentsServer, setSelectedComponentsServer] = useState<string[]>([]);

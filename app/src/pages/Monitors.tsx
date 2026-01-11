@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getMonitors } from '../api/monitors';
 import { getConsoleEvents } from '../api/events';
-import { useProfileStore } from '../stores/profile';
+import { useCurrentProfile } from '../hooks/useCurrentProfile';
 import { useAuthStore } from '../stores/auth';
 import { useSettingsStore } from '../stores/settings';
 import { Button } from '../components/ui/button';
@@ -27,19 +27,14 @@ import {
 } from '../components/ui/dialog';
 import { filterEnabledMonitors } from '../lib/filters';
 import type { Monitor } from '../api/types';
-import { useShallow } from 'zustand/react/shallow';
-
 export default function Monitors() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [selectedMonitor, setSelectedMonitor] = useState<Monitor | null>(null);
   const [showPropertiesDialog, setShowPropertiesDialog] = useState(false);
 
-  const currentProfile = useProfileStore((state) => state.currentProfile());
+  const { currentProfile, settings } = useCurrentProfile();
   const updateSettings = useSettingsStore((state) => state.updateProfileSettings);
-  const settings = useSettingsStore(
-    useShallow((state) => state.getProfileSettings(currentProfile?.id || ''))
-  );
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   // Allow fetching if authenticated OR if the profile doesn't require authentication (no username)

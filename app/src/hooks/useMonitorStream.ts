@@ -13,15 +13,13 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { useShallow } from 'zustand/react/shallow';
 import { getStreamUrl } from '../api/monitors';
 import { getZmsControlUrl } from '../lib/url-builder';
 import { ZMS_COMMANDS } from '../lib/zm-constants';
 import { httpGet } from '../lib/http';
 import { useMonitorStore } from '../stores/monitors';
-import { useProfileStore } from '../stores/profile';
+import { useCurrentProfile } from './useCurrentProfile';
 import { useAuthStore } from '../stores/auth';
-import { useSettingsStore } from '../stores/settings';
 import { log, LogLevel } from '../lib/logger';
 import type { StreamOptions } from '../api/types';
 
@@ -48,11 +46,8 @@ export function useMonitorStream({
   monitorId,
   streamOptions = {},
 }: UseMonitorStreamOptions): UseMonitorStreamReturn {
-  const currentProfile = useProfileStore((state) => state.currentProfile());
+  const { currentProfile, settings } = useCurrentProfile();
   const accessToken = useAuthStore((state) => state.accessToken);
-  const settings = useSettingsStore(
-    useShallow((state) => state.getProfileSettings(currentProfile?.id || ''))
-  );
   const regenerateConnKey = useMonitorStore((state) => state.regenerateConnKey);
 
   const [connKey, setConnKey] = useState(0);

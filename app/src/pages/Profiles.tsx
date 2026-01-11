@@ -8,6 +8,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProfileStore } from '../stores/profile';
+import { useCurrentProfile } from '../hooks/useCurrentProfile';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Label } from '../components/ui/label';
@@ -45,7 +46,7 @@ export default function Profiles() {
   const { t } = useTranslation();
 
   const profiles = useProfileStore((state) => state.profiles);
-  const currentProfile = useProfileStore((state) => state.currentProfile());
+  const { currentProfile } = useCurrentProfile();
   const updateProfile = useProfileStore((state) => state.updateProfile);
   const deleteProfile = useProfileStore((state) => state.deleteProfile);
   const deleteAllProfiles = useProfileStore((state) => state.deleteAllProfiles);

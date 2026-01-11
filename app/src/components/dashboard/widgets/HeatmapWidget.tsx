@@ -13,7 +13,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getEvents } from '../../../api/events';
-import { useProfileStore } from '../../../stores/profile';
+import { useCurrentProfile } from '../../../hooks/useCurrentProfile';
 import { Card, CardHeader, CardTitle, CardContent } from '../../ui/card';
 import { Button } from '../../ui/button';
 import { Loader2, Activity } from 'lucide-react';
@@ -32,7 +32,7 @@ export function HeatmapWidget({ title }: HeatmapWidgetProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [timeRange, setTimeRange] = useState<TimeRange>('7d');
-  const currentProfile = useProfileStore((state) => state.currentProfile());
+  const { currentProfile } = useCurrentProfile();
 
   // Calculate date range based on selection
   const { startDate, endDate } = useMemo(() => {

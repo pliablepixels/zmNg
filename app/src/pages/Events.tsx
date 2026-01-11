@@ -11,7 +11,7 @@ import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
 import { getEvents } from '../api/events';
 import { getMonitors } from '../api/monitors';
-import { useProfileStore } from '../stores/profile';
+import { useCurrentProfile } from '../hooks/useCurrentProfile';
 import { useAuthStore } from '../stores/auth';
 import { useSettingsStore } from '../stores/settings';
 import { useEventFilters } from '../hooks/useEventFilters';
@@ -38,10 +38,7 @@ export default function Events() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const currentProfile = useProfileStore((state) => state.currentProfile());
-  const settings = useSettingsStore(
-    useShallow((state) => state.getProfileSettings(currentProfile?.id || ''))
-  );
+  const { currentProfile, settings } = useCurrentProfile();
   const normalizedThumbnailFit = settings.eventsThumbnailFit === 'fill'
     ? 'contain'
     : settings.eventsThumbnailFit;

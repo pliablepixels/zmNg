@@ -10,7 +10,7 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider, QueryCache } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useProfileStore } from './stores/profile';
-import { useSettingsStore } from './stores/settings';
+import { useCurrentProfile } from './hooks/useCurrentProfile';
 import { setQueryClient } from './stores/query-cache';
 import { Toaster } from './components/ui/toast';
 import { ThemeProvider } from './components/theme-provider';
@@ -79,17 +79,9 @@ setQueryClient(queryClient);
 
 function AppRoutes() {
   const profiles = useProfileStore((state) => state.profiles);
-  const currentProfile = useProfileStore((state) => state.currentProfile());
   const isInitialized = useProfileStore((state) => state.isInitialized);
-  const displayMode = useSettingsStore(
-    (state) => state.getProfileSettings(currentProfile?.id || '').displayMode
-  );
-  const logLevel = useSettingsStore(
-    (state) => state.getProfileSettings(currentProfile?.id || '').logLevel
-  );
-  const lastRoute = useSettingsStore(
-    (state) => state.getProfileSettings(currentProfile?.id || '').lastRoute
-  );
+  const { currentProfile, settings } = useCurrentProfile();
+  const { displayMode, logLevel, lastRoute } = settings;
 
   // Enable automatic token refresh
   useTokenRefresh();

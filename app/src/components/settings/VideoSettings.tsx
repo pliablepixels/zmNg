@@ -7,16 +7,12 @@ import { Button } from '../ui/button';
 import { Switch } from '../ui/switch';
 import { Badge } from '../ui/badge';
 import { useSettingsStore } from '../../stores/settings';
-import { useProfileStore } from '../../stores/profile';
-import { useShallow } from 'zustand/react/shallow';
+import { useCurrentProfile } from '../../hooks/useCurrentProfile';
 
 export function VideoSettings() {
     const { t } = useTranslation();
 
-    const currentProfile = useProfileStore((state) => state.currentProfile());
-    const settings = useSettingsStore(
-        useShallow((state) => state.getProfileSettings(currentProfile?.id || ''))
-    );
+    const { currentProfile, settings } = useCurrentProfile();
     const updateSettings = useSettingsStore((state) => state.updateProfileSettings);
 
     const handleViewModeChange = (checked: boolean) => {

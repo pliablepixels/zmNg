@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useNotificationStore } from '../stores/notifications';
+import { useCurrentProfile } from '../hooks/useCurrentProfile';
 import { useProfileStore } from '../stores/profile';
 import { getMonitors } from '../api/monitors';
 import { useAuthStore } from '../stores/auth';
@@ -40,7 +41,7 @@ import { log, LogLevel } from '../lib/logger';
 export default function NotificationSettings() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const currentProfile = useProfileStore((state) => state.currentProfile());
+  const { currentProfile } = useCurrentProfile();
   const getDecryptedPassword = useProfileStore((state) => state.getDecryptedPassword);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 

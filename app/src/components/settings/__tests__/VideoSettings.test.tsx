@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { VideoSettings } from '../VideoSettings';
 
 const mockUpdateSettings = vi.fn();
+const mockUseCurrentProfile = vi.fn();
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -11,42 +12,34 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-vi.mock('../../../stores/profile', () => ({
-  useProfileStore: vi.fn(() => ({
-    id: 'profile-1',
-    name: 'Test Profile',
-  })),
+vi.mock('../../../hooks/useCurrentProfile', () => ({
+  useCurrentProfile: () => mockUseCurrentProfile(),
 }));
 
 vi.mock('../../../stores/settings', () => ({
   useSettingsStore: vi.fn((selector: any) => {
     if (typeof selector === 'function') {
       return selector({
-        getProfileSettings: () => ({
-          viewMode: 'snapshot',
-          snapshotRefreshInterval: 3,
-          streamMaxFps: 10,
-          streamScale: 50,
-        }),
         updateProfileSettings: mockUpdateSettings,
       });
     }
-    return {
-      viewMode: 'snapshot',
-      snapshotRefreshInterval: 3,
-      streamMaxFps: 10,
-      streamScale: 50,
-    };
+    return mockUpdateSettings;
   }),
-}));
-
-vi.mock('zustand/react/shallow', () => ({
-  useShallow: (fn: any) => fn,
 }));
 
 describe('VideoSettings', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseCurrentProfile.mockReturnValue({
+      currentProfile: { id: 'profile-1', name: 'Test Profile' },
+      settings: {
+        viewMode: 'snapshot',
+        snapshotRefreshInterval: 3,
+        streamMaxFps: 10,
+        streamScale: 50,
+      },
+      hasProfile: true,
+    });
   });
 
   it('should render video settings card', () => {

@@ -6,13 +6,12 @@
  */
 
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { useShallow } from 'zustand/react/shallow';
 import { useQuery } from '@tanstack/react-query';
 import { getMonitor, getStreamUrl, getMonitors, getControl, getAlarmStatus, triggerAlarm, cancelAlarm, changeMonitorFunction } from '../api/monitors';
 import { getZmsControlUrl } from '../lib/url-builder';
 import { ZMS_COMMANDS } from '../lib/zm-constants';
 import { httpGet } from '../lib/http';
-import { useProfileStore } from '../stores/profile';
+import { useCurrentProfile } from '../hooks/useCurrentProfile';
 import { useAuthStore } from '../stores/auth';
 import { useSettingsStore } from '../stores/settings';
 import { Button } from '../components/ui/button';
@@ -158,12 +157,9 @@ export default function MonitorDetail() {
     enabled: enabledMonitors.length > 1,
   });
 
-  const currentProfile = useProfileStore((state) => state.currentProfile());
+  const { currentProfile, settings } = useCurrentProfile();
   const accessToken = useAuthStore((state) => state.accessToken);
   const regenerateConnKey = useMonitorStore((state) => state.regenerateConnKey);
-  const settings = useSettingsStore(
-    useShallow((state) => state.getProfileSettings(currentProfile?.id || ''))
-  );
   const updateSettings = useSettingsStore((state) => state.updateProfileSettings);
 
   // Keep screen awake when Insomnia is enabled (global setting)

@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { DisplaySettings } from '../DisplaySettings';
 
 const mockUpdateSettings = vi.fn();
+const mockUseCurrentProfile = vi.fn();
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -11,32 +12,29 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-vi.mock('../../../stores/profile', () => ({
-  useProfileStore: vi.fn(() => ({
-    id: 'profile-1',
-    name: 'Test Profile',
-  })),
+vi.mock('../../../hooks/useCurrentProfile', () => ({
+  useCurrentProfile: () => mockUseCurrentProfile(),
 }));
 
 vi.mock('../../../stores/settings', () => ({
   useSettingsStore: vi.fn((selector: any) => {
     if (typeof selector === 'function') {
       return selector({
-        getProfileSettings: () => ({ displayMode: 'normal' }),
         updateProfileSettings: mockUpdateSettings,
       });
     }
-    return { displayMode: 'normal' };
+    return mockUpdateSettings;
   }),
-}));
-
-vi.mock('zustand/react/shallow', () => ({
-  useShallow: (fn: any) => fn,
 }));
 
 describe('DisplaySettings', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseCurrentProfile.mockReturnValue({
+      currentProfile: { id: 'profile-1', name: 'Test Profile' },
+      settings: { displayMode: 'normal' },
+      hasProfile: true,
+    });
   });
 
   it('should render display settings card', () => {
