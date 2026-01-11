@@ -85,7 +85,8 @@ describe('Profile Store', () => {
     expect(createApiClient).toHaveBeenCalledWith('https://example.test');
     expect(setApiClient).toHaveBeenCalled();
 
-    const profile = useProfileStore.getState().currentProfile();
+    const { profiles, currentProfileId } = useProfileStore.getState();
+    const profile = profiles.find(p => p.id === currentProfileId);
     expect(profile?.name).toBe('Office');
     expect(profile?.password).toBe('stored-securely');
   });

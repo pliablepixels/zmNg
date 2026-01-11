@@ -74,17 +74,17 @@ export const TimelineWidget = memo(function TimelineWidget() {
     });
 
     // Quick range handlers - update nowRef when range changes
-    const setRange = (hours: number, range: TimeRange) => {
+    const setRange = useCallback((hours: number, range: TimeRange) => {
         nowRef.current = new Date();
         setStart(subHours(nowRef.current, hours));
         setSelectedRange(range);
-    };
+    }, []);
 
-    const setRangeDays = (days: number, range: TimeRange) => {
+    const setRangeDays = useCallback((days: number, range: TimeRange) => {
         nowRef.current = new Date();
         setStart(subDays(nowRef.current, days));
         setSelectedRange(range);
-    };
+    }, []);
 
     // Intelligently aggregate events and format x-axis based on time range and widget width
     const { data, tickFormatter, tickInterval } = useMemo(() => {

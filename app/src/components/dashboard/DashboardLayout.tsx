@@ -88,8 +88,8 @@ export function DashboardLayout() {
         isSyncingFromStoreRef.current = true;
         setLayout((prev) => (areLayoutsEqual(prev, layouts) ? prev : layouts));
         // Reset the flag after React has processed the state update
-        // Use queueMicrotask to ensure this runs after the render cycle
-        queueMicrotask(() => {
+        // Use requestAnimationFrame for more predictable timing than queueMicrotask
+        requestAnimationFrame(() => {
             isSyncingFromStoreRef.current = false;
         });
     }, [layouts, areLayoutsEqual]);
