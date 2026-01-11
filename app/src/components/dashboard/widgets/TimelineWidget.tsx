@@ -35,20 +35,31 @@ export const TimelineWidget = memo(function TimelineWidget() {
     const nowRef = useRef(new Date());
     const now = nowRef.current;
 
-    // Track container resize to force chart re-render
+    // Track container resize to force chart re-render (debounced to prevent infinite loops)
     useEffect(() => {
         if (!containerRef.current) return;
 
+        let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
         const resizeObserver = new ResizeObserver((entries) => {
-            for (const entry of entries) {
-                const { width, height } = entry.contentRect;
-                setContainerSize({ width, height });
-            }
+            // Debounce resize events to prevent rapid state updates
+            if (timeoutId) clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                for (const entry of entries) {
+                    const { width, height } = entry.contentRect;
+                    setContainerSize(prev => {
+                        // Only update if size actually changed
+                        if (prev.width === width && prev.height === height) return prev;
+                        return { width, height };
+                    });
+                }
+            }, 100);
         });
 
         resizeObserver.observe(containerRef.current);
 
         return () => {
+            if (timeoutId) clearTimeout(timeoutId);
             resizeObserver.disconnect();
         };
     }, []);
@@ -258,7 +269,8 @@ export const TimelineWidget = memo(function TimelineWidget() {
 
             return { data: chartData, tickFormatter, tickInterval };
         }
-    }, [start, now, events, containerSize.width]);
+    // Use events?.events (the array) for more stable dependency - only recalc when events actually change
+    }, [start, now, events?.events, containerSize.width]);
 
     // Memoize tooltip styles to prevent re-renders
     const tooltipContentStyle = useMemo(() => ({
@@ -334,7 +346,7 @@ export const TimelineWidget = memo(function TimelineWidget() {
                 </Button>
             </div>
             <div className="flex-1 min-h-0">
-                <ResponsiveContainer width="100%" height="100%" key={`${containerSize.width}-${containerSize.height}`}>
+                <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={data}>
                     <XAxis
                         dataKey="time"
