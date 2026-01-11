@@ -7,6 +7,7 @@
  */
 
 import { Link, Outlet, useLocation, Navigate } from 'react-router-dom';
+import { useCurrentProfile } from '../../hooks/useCurrentProfile';
 import { useProfileStore } from '../../stores/profile';
 import { useNotificationStore } from '../../stores/notifications';
 import { useSettingsStore } from '../../stores/settings';
@@ -285,10 +286,7 @@ function SidebarContent({ onMobileClose, isCollapsed }: SidebarContentProps) {
  * The main layout wrapper that includes the sidebar and main content area.
  */
 export default function AppLayout() {
-  const currentProfile = useProfileStore((state) => state.currentProfile());
-  const settings = useSettingsStore(
-    useShallow((state) => state.getProfileSettings(currentProfile?.id || ''))
-  );
+  const { currentProfile, settings } = useCurrentProfile();
   const updateProfileSettings = useSettingsStore((state) => state.updateProfileSettings);
   const location = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);

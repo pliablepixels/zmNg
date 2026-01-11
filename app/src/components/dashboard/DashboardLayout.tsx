@@ -23,7 +23,7 @@ import GridLayout, { WidthProvider } from 'react-grid-layout';
 import type { Layout } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
-import { useMemo, useState, useEffect, useCallback, useRef, memo } from 'react';
+import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const WrappedGridLayout = WidthProvider(GridLayout);

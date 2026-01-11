@@ -280,7 +280,7 @@ export const TimelineWidget = memo(function TimelineWidget() {
         fontSize: '12px'
     }), [theme]);
 
-    const tooltipLabelFormatter = useCallback((value: string, payload: any[]) => {
+    const tooltipLabelFormatter = useCallback((value: string, payload: readonly any[]) => {
         if (payload && payload[0]) {
             return payload[0].payload.fullTime;
         }
