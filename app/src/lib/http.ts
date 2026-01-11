@@ -17,6 +17,9 @@ import { fetch as tauriFetch } from '@tauri-apps/plugin-http';
 import { Platform } from './platform';
 import { log, LogLevel } from './logger';
 
+// Monotonically increasing request ID counter for correlation
+let requestIdCounter = 0;
+
 export interface HttpOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD';
   headers?: Record<string, string>;
@@ -136,20 +139,49 @@ export async function httpRequest<T = unknown>(
     requestHeaders['X-Target-Host'] = baseUrl;
   }
 
-  log.api(`[HTTP] ${method} ${fullUrl}`, LogLevel.DEBUG, {
-    platform: Platform.isNative ? 'Native' : Platform.isTauri ? 'Tauri' : 'Web',
+  // Generate monotonically increasing request ID for correlation
+  const requestId = ++requestIdCounter;
+  const platform = Platform.isNative ? 'Native' : Platform.isTauri ? 'Tauri' : 'Web';
+  const startTime = performance.now();
+
+  log.http(`[HTTP] Request #${requestId} ${method} ${fullUrl}`, LogLevel.DEBUG, {
+    requestId,
+    platform,
+    method,
+    url: fullUrl,
   });
 
   try {
+    let response: HttpResponse<T>;
     if (Platform.isNative) {
-      return await nativeHttpRequest<T>(requestUrl, method, requestHeaders, body, responseType);
+      response = await nativeHttpRequest<T>(requestUrl, method, requestHeaders, body, responseType);
     } else if (Platform.isTauri) {
-      return await tauriHttpRequest<T>(requestUrl, method, requestHeaders, body, responseType);
+      response = await tauriHttpRequest<T>(requestUrl, method, requestHeaders, body, responseType);
     } else {
-      return await webHttpRequest<T>(requestUrl, method, requestHeaders, body, responseType);
+      response = await webHttpRequest<T>(requestUrl, method, requestHeaders, body, responseType);
     }
+
+    const duration = Math.round(performance.now() - startTime);
+    log.http(`[HTTP] Response #${requestId} ${method} ${fullUrl}`, LogLevel.DEBUG, {
+      requestId,
+      platform,
+      method,
+      url: fullUrl,
+      status: response.status,
+      duration: `${duration}ms`,
+    });
+
+    return response;
   } catch (error) {
-    log.http(`[HTTP] Request failed: ${method} ${fullUrl}`, LogLevel.ERROR, error);
+    const duration = Math.round(performance.now() - startTime);
+    log.http(`[HTTP] Failed #${requestId} ${method} ${fullUrl}`, LogLevel.ERROR, {
+      requestId,
+      platform,
+      method,
+      url: fullUrl,
+      duration: `${duration}ms`,
+      error,
+    });
     throw error;
   }
 }

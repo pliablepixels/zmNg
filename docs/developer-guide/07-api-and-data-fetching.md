@@ -671,59 +671,25 @@ function EventTimeline() {
 }
 ```
 
-## API Client
+## API Client Architecture
 
-### HTTP Client
+### Overview
 
-**Location**: `src/lib/http.ts`
+The application uses **axios** with a custom platform-specific adapter for HTTP requests. This architecture provides:
 
-Wrapper around `fetch` with error handling, authentication, and logging:
+- Automatic token injection and refresh
+- Request/response correlation logging
+- Platform-specific HTTP implementations (Web, Native, Tauri)
+- Proxy support for development
+- Centralized error handling
 
-```tsx
-export async function apiRequest<T>(
-  url: string,
-  options: RequestInit = {}
-): Promise<T> {
-  const profileId = useProfileStore.getState().currentProfile?.id;
-  const tokens = profileId ? await getAuthTokens(profileId) : null;
-
-  const headers = {
-    'Content-Type': 'application/json',
-    ...options.headers,
-  };
-
-  if (tokens) {
-    headers['Authorization'] = `Bearer ${tokens.accessToken}`;
-  }
-
-  log.http('API request', LogLevel.DEBUG, { url, method: options.method || 'GET' });
-
-  try {
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    });
-
-    if (!response.ok) {
-      throw new ApiError(response.status, response.statusText);
-    }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    log.http('API request failed', LogLevel.ERROR, { url, error });
-    throw error;
-  }
-}
-```
-
-### API Functions
-
-**Location**: `src/api/`
+**Components:**
 
 ```
 src/api/
-├── auth.ts          # Authentication (login, logout, refresh)
+├── client.ts        # Main axios client with interceptors
+├── adapter.ts       # Custom adapter for Native/Tauri platforms
+├── auth.ts          # Authentication endpoints
 ├── monitors.ts      # Monitor endpoints
 ├── events.ts        # Event endpoints
 ├── streaming.ts     # Stream URL generation
@@ -731,56 +697,284 @@ src/api/
 └── types.ts         # TypeScript types for API responses
 ```
 
+### Axios Client (`src/api/client.ts`)
+
+The main API client is built on axios with request/response interceptors.
+
+**Client Setup:**
+
+```tsx
+import axios from 'axios';
+import { createNativeAdapter } from './adapter';
+
+export function createApiClient(baseURL: string): AxiosInstance {
+  const client = axios.create({
+    baseURL,
+    timeout: 20000,
+    headers: { 'Content-Type': 'application/json' },
+    // Use custom adapter on native platforms
+    ...((Platform.isNative || Platform.isTauri) && {
+      adapter: createNativeAdapter(),
+    }),
+  });
+
+  // Request interceptor - adds auth tokens and logging
+  client.interceptors.request.use(requestInterceptor);
+
+  // Response interceptor - handles errors and token refresh
+  client.interceptors.response.use(responseInterceptor, errorInterceptor);
+
+  return client;
+}
+```
+
+### Request/Response Correlation
+
+All HTTP requests are assigned a monotonically increasing correlation ID for debugging.
+
+**How it works:**
+
+1. Request interceptor generates correlation ID: `1, 2, 3, ...`
+2. Logs request with ID: `[Request #1] GET /api/monitors.json`
+3. Logs response with same ID: `[Response #1] 200 OK`
+4. Logs errors with same ID: `[Error #1] 401 Unauthorized`
+
+**Example logs:**
+
+```
+[Request #1] GET http://server.com/api/monitors.json
+  { correlationId: 1, method: 'GET', url: '...', queryParams: {...} }
+
+[Response #1] 200 OK - http://server.com/api/monitors.json
+  { correlationId: 1, status: 200, data: {...} }
+
+[Request #2] POST http://server.com/api/monitors/1.json
+  { correlationId: 2, method: 'POST', bodyData: {...} }
+
+[Error #2] POST http://server.com/api/monitors/1.json
+  { correlationId: 2, status: 401, message: 'Unauthorized' }
+```
+
+**Why correlation IDs matter:**
+
+- Match requests with responses in logs when multiple concurrent requests occur
+- Debug authentication failures by tracing request → 401 → token refresh → retry
+- Monitor performance by tracking request duration
+- Identify slow endpoints in production
+
+**Implementation:**
+
+```tsx
+// Request interceptor (src/api/client.ts)
+let correlationIdCounter = 0;
+
+client.interceptors.request.use((config) => {
+  const correlationId = ++correlationIdCounter;
+  (config as any).correlationId = correlationId;
+
+  log.api(
+    `[Request #${correlationId}] ${config.method?.toUpperCase()} ${fullUrl}`,
+    LogLevel.DEBUG,
+    { correlationId, method: config.method, url: fullUrl }
+  );
+
+  return config;
+});
+
+// Response interceptor
+client.interceptors.response.use((response) => {
+  const correlationId = (response.config as any).correlationId;
+
+  log.api(
+    `[Response #${correlationId}] ${response.status} ${response.statusText}`,
+    LogLevel.DEBUG,
+    { correlationId, status: response.status, data: response.data }
+  );
+
+  return response;
+});
+```
+
+### Native Platform Adapter (`src/api/adapter.ts`)
+
+On iOS, Android, and Tauri, axios uses a custom adapter that calls native HTTP APIs instead of browser `fetch()`.
+
+**Why a custom adapter?**
+
+- **Native platforms**: Use Capacitor HTTP plugin (bypasses CORS, faster)
+- **Tauri (desktop)**: Use Tauri fetch plugin (native performance)
+- **Web**: Use standard axios with browser fetch
+
+**Platform detection:**
+
+```tsx
+import { Platform } from '../lib/platform';
+
+const client = axios.create({
+  baseURL: 'https://server.com',
+  // Only use custom adapter on native/Tauri
+  ...((Platform.isNative || Platform.isTauri) && {
+    adapter: createNativeAdapter(),
+  }),
+});
+```
+
+**Adapter implementation:**
+
+The adapter translates axios config to platform-specific HTTP calls:
+
+```tsx
+export const createNativeAdapter = (): AxiosAdapter => {
+  return async (config): Promise<AdapterResponse> => {
+    const fullUrl = `${config.baseURL}${config.url}`;
+
+    if (Platform.isNative) {
+      // Use Capacitor HTTP plugin
+      const response = await CapacitorHttp.request({
+        method: config.method?.toUpperCase() as 'GET' | 'POST' | ...,
+        url: fullUrl,
+        headers: config.headers,
+        data: config.data,
+      });
+
+      return {
+        data: response.data,
+        status: response.status,
+        headers: response.headers,
+        config,
+      };
+    } else {
+      // Use Tauri fetch plugin
+      const response = await tauriFetch(fullUrl, {
+        method: config.method?.toUpperCase(),
+        headers: config.headers,
+        body: JSON.stringify(config.data),
+      });
+
+      const data = await response.json();
+      return { data, status: response.status, ... };
+    }
+  };
+};
+```
+
+**Important:** The adapter does NOT log requests/responses - all logging is handled by client interceptors to avoid duplication.
+
+### Authentication Flow
+
+Tokens are injected automatically by request interceptor.
+
+**Token injection:**
+
+```tsx
+client.interceptors.request.use((config) => {
+  const { accessToken } = useAuthStore.getState();
+
+  if (accessToken && !config.headers?.['Skip-Auth']) {
+    // Add token as query parameter
+    config.params = {
+      ...config.params,
+      token: accessToken,
+    };
+  }
+
+  return config;
+});
+```
+
+**Token refresh on 401:**
+
+```tsx
+client.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      const { refreshToken, refreshAccessToken } = useAuthStore.getState();
+
+      if (refreshToken) {
+        await refreshAccessToken();
+        return client(originalRequest);  // Retry with new token
+      }
+
+      // Refresh failed - logout
+      useAuthStore.getState().logout();
+    }
+
+    return Promise.reject(error);
+  }
+);
+```
+
+### Proxy Support (Development)
+
+In development (web only), requests are routed through a local proxy to bypass CORS.
+
+**Configuration:**
+
+```tsx
+const clientBaseURL = Platform.shouldUseProxy
+  ? 'http://localhost:3001/proxy'
+  : baseURL;
+
+const client = axios.create({
+  baseURL: clientBaseURL,
+  headers: {
+    ...(Platform.shouldUseProxy && {
+      'X-Target-Host': baseURL,  // Proxy reads this to route requests
+    }),
+  },
+});
+```
+
+**When proxy is used:**
+
+- Platform: Web
+- Environment: Development (`import.meta.env.DEV`)
+- NOT used on native platforms (they bypass CORS natively)
+
+### API Functions
+
+API functions are thin wrappers around the axios client.
+
 **Example: Fetching monitors**
 
 ```tsx
 // src/api/monitors.ts
-import { apiRequest } from '../lib/http';
+import { getApiClient } from './client';
 
-export interface Monitor {
-  Id: string;
-  Name: string;
-  Width: string;
-  Height: string;
-  Function: 'None' | 'Monitor' | 'Modect' | 'Record' | 'Mocord' | 'Nodect';
-  Controllable: '0' | '1';
-  // ... more fields
-}
-
-export interface MonitorsResponse {
-  monitors: Array<{
-    Monitor: Monitor;
-    Monitor_Status: MonitorStatus;
-  }>;
-}
-
-export async function fetchMonitors(profileId: string): Promise<MonitorsResponse> {
-  const profile = getProfile(profileId);
-
-  const data = await apiRequest<MonitorsResponse>(
-    `${profile.portalUrl}/api/monitors.json`,
-    { method: 'GET' }
-  );
-
-  return data;
+export async function fetchMonitors(): Promise<MonitorsResponse> {
+  const client = getApiClient();
+  const response = await client.get<MonitorsResponse>('/api/monitors.json');
+  return response.data;
 }
 
 export async function updateMonitor(
   monitorId: string,
   updates: Partial<Monitor>
 ): Promise<Monitor> {
-  const profile = useProfileStore.getState().currentProfile;
-
-  const data = await apiRequest<{ monitor: Monitor }>(
-    `${profile.portalUrl}/api/monitors/${monitorId}.json`,
-    {
-      method: 'PUT',
-      body: JSON.stringify({ Monitor: updates }),
-    }
+  const client = getApiClient();
+  const response = await client.put<{ monitor: Monitor }>(
+    `/api/monitors/${monitorId}.json`,
+    { Monitor: updates }
   );
-
-  return data.monitor;
+  return response.data.monitor;
 }
+```
+
+**API organization:**
+
+```
+src/api/
+├── auth.ts          # login(), logout(), refreshAccessToken()
+├── monitors.ts      # fetchMonitors(), updateMonitor(), getAlarmStatus()
+├── events.ts        # fetchEvents(), fetchEvent(), deleteEvent()
+├── states.ts        # fetchStates(), changeState()
+├── server.ts        # getVersion(), getDaemonStatus()
+└── streaming.ts     # generateConnKey(), getStreamUrl()
 ```
 
 ## Data Flow Example
@@ -813,41 +1007,65 @@ export default function Monitors() {
 
 ```tsx
 // src/api/monitors.ts
-export async function fetchMonitors(profileId: string): Promise<MonitorsResponse> {
-  const profile = getProfile(profileId);  // From Zustand store
-
-  const data = await apiRequest<MonitorsResponse>(
-    `${profile.portalUrl}/api/monitors.json`
-  );
-
-  return data;
+export async function fetchMonitors(): Promise<MonitorsResponse> {
+  const client = getApiClient();
+  const response = await client.get<MonitorsResponse>('/api/monitors.json');
+  return response.data;
 }
 ```
 
-### 3. HTTP client adds authentication
+### 3. Axios request interceptor adds authentication
 
 ```tsx
-// src/lib/http.ts
-export async function apiRequest(url: string) {
-  const tokens = await getAuthTokens(profileId);
+// src/api/client.ts
+client.interceptors.request.use((config) => {
+  const correlationId = ++correlationIdCounter;
+  (config as any).correlationId = correlationId;
 
-  const response = await fetch(url, {
-    headers: {
-      'Authorization': `Bearer ${tokens.accessToken}`,
-    },
-  });
+  const { accessToken } = useAuthStore.getState();
 
-  return response.json();
-}
+  if (accessToken) {
+    config.params = {
+      ...config.params,
+      token: accessToken,
+    };
+  }
+
+  log.api(`[Request #${correlationId}] GET /api/monitors.json`, ...);
+
+  return config;
+});
 ```
 
-### 4. Response cached by React Query
+### 4. Platform-specific HTTP execution
+
+**On Web:**
+- Axios uses browser fetch internally
+
+**On Native/Tauri:**
+- Axios calls custom adapter
+- Adapter calls `CapacitorHttp.request()` or `tauriFetch()`
+- Bypasses CORS restrictions
+
+### 5. Response interceptor logs and handles errors
+
+```tsx
+client.interceptors.response.use((response) => {
+  const correlationId = (response.config as any).correlationId;
+
+  log.api(`[Response #${correlationId}] 200 OK`, ...);
+
+  return response;
+});
+```
+
+### 6. Response cached by React Query
 
 Query key: `['monitors', profileId]`
 
 Next time this component renders (or another component requests same data), React Query returns cached result instantly.
 
-### 5. Components render with data
+### 7. Components render with data
 
 ```tsx
 function MonitorGrid({ monitors }) {
@@ -861,7 +1079,7 @@ function MonitorGrid({ monitors }) {
 }
 ```
 
-### 6. MonitorCard requests stream URL
+### 8. MonitorCard requests stream URL
 
 ```tsx
 function MonitorCard({ monitor }) {
@@ -871,7 +1089,7 @@ function MonitorCard({ monitor }) {
 }
 ```
 
-### 7. useMonitorStream generates authenticated URL
+### 9. useMonitorStream generates authenticated URL
 
 ```tsx
 export function useMonitorStream({ monitorId }) {
@@ -890,7 +1108,7 @@ export function useMonitorStream({ monitorId }) {
 }
 ```
 
-### 8. Stream loads in <img>
+### 10. Stream loads in <img>
 
 Browser requests JPEG stream with connkey authentication.
 
@@ -1092,17 +1310,21 @@ See [Chapter 8, Pitfall #3](./08-common-pitfalls.md#3-rendering-streams-before-c
 ## Key Takeaways
 
 1. **ZoneMinder API**: RESTful JSON API with session-based auth
-2. **Connection keys**: Unique per stream, must be generated before rendering
-3. **Stream lifecycle**: Generate connKey → Build URL → Render → Send CMD_QUIT on unmount
-4. **React Query**: Handles caching, loading states, refetching
-5. **Query keys**: Define cache buckets and invalidation targets
-6. **Mutations**: For create/update/delete operations
-7. **Infinite queries**: For paginated data like events
-8. **HTTP client**: Centralized error handling and authentication
-9. **Data flow**: Component → React Query → API function → HTTP client → ZoneMinder
-10. **Error handling**: Distinguish API errors, network errors, auth errors
-11. **Optimistic updates**: Update UI before server confirms
-12. **Stream cleanup**: Always send CMD_QUIT to prevent resource leaks
+2. **HTTP Architecture**: Axios with custom adapter for native platforms
+3. **Correlation IDs**: Monotonic sequence (1, 2, 3...) tracks request/response pairs in logs
+4. **Platform-specific HTTP**: Custom adapter uses CapacitorHttp (native) or tauriFetch (desktop)
+5. **Logging**: All HTTP logging happens in client interceptors, not in adapter (avoids duplication)
+6. **Authentication**: Request interceptor auto-injects tokens, response interceptor handles refresh
+7. **React Query**: Handles caching, loading states, refetching
+8. **Query keys**: Define cache buckets and invalidation targets
+9. **Mutations**: For create/update/delete operations
+10. **Infinite queries**: For paginated data like events
+11. **Data flow**: Component → React Query → API function → Axios → Interceptors → Adapter (if native) → ZoneMinder
+12. **Connection keys**: Unique per stream, must be generated before rendering
+13. **Stream lifecycle**: Generate connKey → Build URL → Render → Send CMD_QUIT on unmount
+14. **Error handling**: Distinguish API errors, network errors, auth errors
+15. **Optimistic updates**: Update UI before server confirms
+16. **Stream cleanup**: Always send CMD_QUIT to prevent resource leaks
 
 ## Next Steps
 

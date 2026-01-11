@@ -33,11 +33,6 @@ export const createNativeAdapter = (): AxiosAdapter => {
                 ? (fullUrl.includes('?') ? `${fullUrl}&${params}` : `${fullUrl}?${params}`)
                 : fullUrl;
 
-            log.api(
-                `[${Platform.isNative ? 'Native' : 'Tauri'} HTTP] Request: ${config.method?.toUpperCase() || 'GET'} ${urlWithParams}`,
-                LogLevel.DEBUG
-            );
-
             let responseData;
             let responseStatus;
             let responseHeaders: Record<string, string> = {};
@@ -139,11 +134,6 @@ export const createNativeAdapter = (): AxiosAdapter => {
                 }
             }
 
-            log.api(
-                `[${Platform.isNative ? 'Native' : 'Tauri'} HTTP] Response: ${responseStatus} ${fullUrl}`,
-                LogLevel.DEBUG
-            );
-
             return {
                 data: responseData,
                 status: responseStatus,
@@ -154,7 +144,6 @@ export const createNativeAdapter = (): AxiosAdapter => {
             };
         } catch (error) {
             const nativeError = error as NativeHttpError;
-            log.api(`[${Platform.isNative ? 'Native' : 'Tauri'} HTTP] Error`, LogLevel.ERROR, error);
 
             const axiosError = new Error(nativeError.message) as Error & {
                 config: InternalAxiosRequestConfig;
