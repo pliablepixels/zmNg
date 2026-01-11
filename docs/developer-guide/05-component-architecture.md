@@ -528,6 +528,7 @@ export const EventCard = memo(EventCardComponent);
 
 Complex logic is extracted into hooks:
 
+- `useCurrentProfile()` - Current profile and settings (stable references, prevents re-render loops)
 - `useMonitorStream()` - Stream URL and connection management
 - `useEventPlayer()` - Event playback state
 - `usePTZControl()` - PTZ command handling
