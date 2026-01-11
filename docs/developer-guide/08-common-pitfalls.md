@@ -596,9 +596,223 @@ export const MonitorCard = memo(
 );
 ```
 
+### 17. Creating New Object References in Component Body
+
+**Problem:**
+
+```tsx
+function TimelineWidget() {
+  const now = new Date();  // ❌ Creates new Date object every render
+  
+  return (
+    <Chart
+      tooltip={{
+        contentStyle: { backgroundColor: 'black' },  // ❌ New object every render
+        labelFormatter: (value) => formatDate(value)  // ❌ New function every render
+      }}
+      style={{ width: 100 }}  // ❌ New object every render
+    />
+  );
+}
+```
+
+**Why it's wrong:**
+
+- `new Date()` creates a new reference on every render
+- Inline objects `{{ }}` create new references on every render
+- Inline functions `() => {}` create new references on every render
+- If these are passed to memoized children or used in dependencies, they cause unnecessary re-renders
+- Can trigger infinite render loops when used in `useEffect` or `useMemo` dependencies
+
+**Solution:**
+
+```tsx
+function TimelineWidget() {
+  // For values that shouldn't trigger re-renders, use useRef
+  const nowRef = useRef(new Date());
+  
+  // For values derived from props/state, use useMemo
+  const tooltipContentStyle = useMemo(() => ({ 
+    backgroundColor: 'black' 
+  }), []);
+  
+  // For functions, use useCallback
+  const tooltipLabelFormatter = useCallback((value) => {
+    return formatDate(value);
+  }, []);
+  
+  // For static styles, define outside component or memoize
+  const chartStyle = useMemo(() => ({ width: 100 }), []);
+  
+  return (
+    <Chart
+      tooltip={{
+        contentStyle: tooltipContentStyle,  // ✅ Stable reference
+        labelFormatter: tooltipLabelFormatter  // ✅ Stable reference
+      }}
+      style={chartStyle}  // ✅ Stable reference
+    />
+  );
+}
+```
+
+**Real zmNg example (TimelineWidget):**
+
+```tsx
+// Before: Caused infinite loops
+export function TimelineWidget() {
+  const now = new Date();  // ❌ New reference every render
+  
+  return (
+    <Tooltip
+      contentStyle={{ backgroundColor: 'var(--background)' }}  // ❌
+      labelFormatter={(value) => format(value, 'PPp')}  // ❌
+    />
+  );
+}
+
+// After: Stable references
+export const TimelineWidget = memo(function TimelineWidget() {
+  const nowRef = useRef(new Date());  // ✅
+  
+  const tooltipContentStyle = useMemo(() => ({
+    backgroundColor: 'var(--background)',
+    border: '1px solid var(--border)',
+  }), []);  // ✅
+  
+  const tooltipLabelFormatter = useCallback((value: number) => {
+    return format(new Date(value), 'PPp');
+  }, []);  // ✅
+  
+  return (
+    <Tooltip
+      contentStyle={tooltipContentStyle}
+      labelFormatter={tooltipLabelFormatter}
+    />
+  );
+});  // ✅ Wrapped in memo
+```
+
+### 18. Store-to-Component Sync Circular Dependencies
+
+**Problem:**
+
+```tsx
+function DashboardLayout() {
+  // Get widgets from store
+  const widgets = useDashboardStore(state => state.widgets[profileId]);
+  const updateLayouts = useDashboardStore(state => state.updateLayouts);
+  
+  // Local state for grid layout
+  const [layout, setLayout] = useState<Layout[]>([]);
+  
+  // Sync store → local state
+  useEffect(() => {
+    setLayout(widgets.map(w => w.layout));  // ❌ Triggers handleLayoutChange
+  }, [widgets]);
+  
+  // Handle layout changes from grid library
+  const handleLayoutChange = (nextLayout: Layout[]) => {
+    setLayout(nextLayout);
+    updateLayouts(profileId, nextLayout);  // ❌ Updates store → triggers useEffect → infinite loop
+  };
+  
+  return <GridLayout layout={layout} onLayoutChange={handleLayoutChange} />;
+}
+```
+
+**Why it's wrong:**
+
+1. Store changes → `useEffect` runs → `setLayout` called
+2. Grid library detects layout change → calls `handleLayoutChange`
+3. `handleLayoutChange` calls `updateLayouts` → store changes
+4. Go to step 1 → **infinite loop**
+
+This pattern is common when:
+- Using external libraries (react-grid-layout, charts, etc.) that emit events on state change
+- Syncing between Zustand store and component-local state
+- Two-way data binding patterns
+
+**Solution:**
+
+Use a ref to track when you're syncing from store vs. user interaction:
+
+```tsx
+function DashboardLayout() {
+  const widgets = useDashboardStore(
+    useShallow(state => state.widgets[profileId] ?? [])
+  );
+  const updateLayouts = useDashboardStore(state => state.updateLayouts);
+  
+  const [layout, setLayout] = useState<Layout[]>([]);
+  
+  // Track when we're syncing FROM store (not user action)
+  const isSyncingFromStoreRef = useRef(false);
+  
+  // Sync store → local state
+  useEffect(() => {
+    isSyncingFromStoreRef.current = true;  // ✅ Mark as syncing
+    setLayout(widgets.map(w => w.layout));
+    
+    // Reset flag after React processes the state update
+    requestAnimationFrame(() => {
+      isSyncingFromStoreRef.current = false;  // ✅ Allow user changes again
+    });
+  }, [widgets]);
+  
+  const handleLayoutChange = useCallback((nextLayout: Layout[]) => {
+    setLayout(nextLayout);
+    
+    // Don't update store if we're just syncing FROM store
+    if (isSyncingFromStoreRef.current) return;  // ✅ Prevent circular update
+    
+    updateLayouts(profileId, nextLayout);
+  }, [updateLayouts, profileId]);
+  
+  return <GridLayout layout={layout} onLayoutChange={handleLayoutChange} />;
+}
+```
+
+**Key principles:**
+
+1. **Use a ref** to track sync state (refs don't cause re-renders)
+2. **Set flag before** updating local state from store
+3. **Use `requestAnimationFrame`** to reset flag after React processes the update
+4. **Check flag** before writing back to store
+
+**Why `requestAnimationFrame`?**
+
+- `queueMicrotask` can fire before React finishes processing
+- `setTimeout(..., 0)` is unpredictable
+- `requestAnimationFrame` fires after the current frame's DOM updates, ensuring React has processed the state change
+
+**Real zmNg example (DashboardLayout.tsx):**
+
+```tsx
+// Track when we're syncing from store to prevent feedback loop
+const isSyncingFromStoreRef = useRef(false);
+
+useEffect(() => {
+  isSyncingFromStoreRef.current = true;
+  setLayout((prev) => (areLayoutsEqual(prev, layouts) ? prev : layouts));
+  requestAnimationFrame(() => {
+    isSyncingFromStoreRef.current = false;
+  });
+}, [layouts, areLayoutsEqual]);
+
+const handleLayoutChange = useCallback((nextLayout: Layout[]) => {
+  setLayout((prev) => (areLayoutsEqual(prev, nextLayout) ? prev : nextLayout));
+  
+  // Don't update store if we're just syncing from store
+  if (!isEditing || isSyncingFromStoreRef.current) return;
+  
+  updateLayouts(profileIdRef.current, { lg: nextLayout });
+}, [areLayoutsEqual, isEditing, updateLayouts]);
+```
+
 ## Internationalization Pitfalls
 
-### 17. Hardcoded User-Facing Text
+### 19. Hardcoded User-Facing Text
 
 **Problem:**
 
@@ -652,7 +866,7 @@ And update ALL language files:
 // ... es, fr, zh
 ```
 
-### 18. Forgetting to Update All Language Files
+### 20. Forgetting to Update All Language Files
 
 **Problem:**
 
@@ -686,7 +900,7 @@ Add to **ALL** language files (en, de, es, fr, zh):
 
 ## Cross-Platform Pitfalls
 
-### 19. Invisible Overlays Blocking Touch Events on iOS
+### 21. Invisible Overlays Blocking Touch Events on iOS
 
 **Problem:**
 
@@ -749,7 +963,7 @@ Add to **ALL** language files (en, de, es, fr, zh):
 
 ## Security Pitfalls
 
-### 20. Storing Sensitive Data Unencrypted
+### 22. Storing Sensitive Data Unencrypted
 
 **Problem:**
 
@@ -771,7 +985,7 @@ import { SecureStorage } from '../lib/secure-storage';
 await SecureStorage.set('password', password);  // ✅ Encrypted
 ```
 
-### 21. Logging Sensitive Data
+### 23. Logging Sensitive Data
 
 **Problem:**
 

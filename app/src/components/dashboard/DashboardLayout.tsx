@@ -49,6 +49,9 @@ export function DashboardLayout() {
 
     // Use ref to track profileId without making it a dependency
     const profileIdRef = useRef(profileId);
+    
+    // Track when we're syncing from store to prevent feedback loop
+    const isSyncingFromStoreRef = useRef(false);
 
     // Keep ref updated with current profileId
     useEffect(() => {
@@ -80,12 +83,24 @@ export function DashboardLayout() {
     }, []);
 
     useEffect(() => {
+        // Mark that we're syncing from store - this prevents handleLayoutChange from 
+        // writing back to store and causing an infinite loop
+        isSyncingFromStoreRef.current = true;
         setLayout((prev) => (areLayoutsEqual(prev, layouts) ? prev : layouts));
+        // Reset the flag after React has processed the state update
+        // Use requestAnimationFrame for more predictable timing than queueMicrotask
+        requestAnimationFrame(() => {
+            isSyncingFromStoreRef.current = false;
+        });
     }, [layouts, areLayoutsEqual]);
 
     const handleLayoutChange = useCallback((nextLayout: Layout[]) => {
         setLayout((prev) => (areLayoutsEqual(prev, nextLayout) ? prev : nextLayout));
-        if (!isEditing) return;
+        
+        // Don't update store if:
+        // 1. Not in edit mode
+        // 2. We're just syncing from store (would cause infinite loop)
+        if (!isEditing || isSyncingFromStoreRef.current) return;
 
         // Use ref to access current profileId without adding it to dependencies
         updateLayouts(profileIdRef.current, { lg: nextLayout });
@@ -140,38 +155,37 @@ export function DashboardLayout() {
                 compactType="vertical"
                 preventCollision={false}
             >
-                {widgets.map((widget) => (
-                    <div key={widget.id}>
-                        <DashboardWidget id={widget.id} title={widget.title} profileId={profileId}>
-                            {widget.type === 'monitor' && widget.settings.monitorIds && (
-                                <MonitorWidget
-                                    monitorIds={widget.settings.monitorIds}
-                                    objectFit={widget.settings.feedFit || 'contain'}
-                                />
-                            )}
-                            {/* Backwards compatibility for single monitorId */}
-                            {widget.type === 'monitor' && widget.settings.monitorId && !widget.settings.monitorIds && (
-                                <MonitorWidget
-                                    monitorIds={[widget.settings.monitorId]}
-                                    objectFit={widget.settings.feedFit || 'contain'}
-                                />
-                            )}
-                            {widget.type === 'events' && (
-                                <EventsWidget
-                                    monitorId={widget.settings.monitorId}
-                                    limit={widget.settings.eventCount}
-                                    refreshInterval={widget.settings.refreshInterval}
-                                />
-                            )}
-                            {widget.type === 'timeline' && (
-                                <TimelineWidget />
-                            )}
-                            {widget.type === 'heatmap' && (
-                                <HeatmapWidget title={widget.title} />
-                            )}
-                        </DashboardWidget>
-                    </div>
-                ))}
+                {widgets.map((widget) => {
+                    // Memoize monitorIds to prevent new array references
+                    const monitorIds = widget.settings.monitorIds ?? 
+                        (widget.settings.monitorId ? [widget.settings.monitorId] : []);
+                    
+                    return (
+                        <div key={widget.id}>
+                            <DashboardWidget id={widget.id} title={widget.title} profileId={profileId}>
+                                {widget.type === 'monitor' && monitorIds.length > 0 && (
+                                    <MonitorWidget
+                                        monitorIds={monitorIds}
+                                        objectFit={widget.settings.feedFit || 'contain'}
+                                    />
+                                )}
+                                {widget.type === 'events' && (
+                                    <EventsWidget
+                                        monitorId={widget.settings.monitorId}
+                                        limit={widget.settings.eventCount}
+                                        refreshInterval={widget.settings.refreshInterval}
+                                    />
+                                )}
+                                {widget.type === 'timeline' && (
+                                    <TimelineWidget />
+                                )}
+                                {widget.type === 'heatmap' && (
+                                    <HeatmapWidget title={widget.title} />
+                                )}
+                            </DashboardWidget>
+                        </div>
+                    );
+                })}
             </WrappedGridLayout>
         </div>
     );

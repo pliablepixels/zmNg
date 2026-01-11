@@ -3,9 +3,10 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DebugSettings } from '../DebugSettings';
 
-const { mockUpdateSettings, mockUseSettingsStore } = vi.hoisted(() => ({
+const { mockUpdateSettings, mockUseSettingsStore, mockUseCurrentProfile } = vi.hoisted(() => ({
   mockUpdateSettings: vi.fn(),
   mockUseSettingsStore: vi.fn(),
+  mockUseCurrentProfile: vi.fn(),
 }));
 
 vi.mock('react-i18next', () => ({
@@ -14,34 +15,39 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-vi.mock('../../../stores/profile', () => ({
-  useProfileStore: vi.fn(() => ({
-    id: 'profile-1',
-    name: 'Test Profile',
-  })),
+vi.mock('../../../hooks/useCurrentProfile', () => ({
+  useCurrentProfile: mockUseCurrentProfile,
 }));
 
 vi.mock('../../../stores/settings', () => ({
+  DEFAULT_SETTINGS: {
+    viewMode: 'snapshot',
+    displayMode: 'normal',
+    theme: 'light',
+    disableLogRedaction: false,
+  },
   useSettingsStore: mockUseSettingsStore,
-}));
-
-vi.mock('zustand/react/shallow', () => ({
-  useShallow: (fn: any) => fn,
 }));
 
 describe('DebugSettings', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Default mock implementation
+    // Default mock implementation for useCurrentProfile
+    mockUseCurrentProfile.mockReturnValue({
+      currentProfile: { id: 'profile-1', name: 'Test Profile' },
+      settings: { disableLogRedaction: false },
+      hasProfile: true,
+    });
+
+    // Default mock implementation for updateProfileSettings
     mockUseSettingsStore.mockImplementation((selector: any) => {
       if (typeof selector === 'function') {
         return selector({
-          getProfileSettings: () => ({ disableLogRedaction: false }),
           updateProfileSettings: mockUpdateSettings,
         });
       }
-      return { disableLogRedaction: false };
+      return mockUpdateSettings;
     });
   });
 
@@ -73,14 +79,10 @@ describe('DebugSettings', () => {
 
   it('should show warning when log redaction is disabled', () => {
     // Override mock for this test
-    mockUseSettingsStore.mockImplementation((selector: any) => {
-      if (typeof selector === 'function') {
-        return selector({
-          getProfileSettings: () => ({ disableLogRedaction: true }),
-          updateProfileSettings: mockUpdateSettings,
-        });
-      }
-      return { disableLogRedaction: true };
+    mockUseCurrentProfile.mockReturnValue({
+      currentProfile: { id: 'profile-1', name: 'Test Profile' },
+      settings: { disableLogRedaction: true },
+      hasProfile: true,
     });
 
     render(<DebugSettings />);

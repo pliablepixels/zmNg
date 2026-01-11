@@ -17,7 +17,7 @@ import type { EventCardProps } from '../../api/types';
 import { useTranslation } from 'react-i18next';
 import { cn } from '../../lib/utils';
 import { useEventFavoritesStore } from '../../stores/eventFavorites';
-import { useProfileStore } from '../../stores/profile';
+import { useCurrentProfile } from '../../hooks/useCurrentProfile';
 
 /**
  * EventCard component.
@@ -31,7 +31,7 @@ import { useProfileStore } from '../../stores/profile';
 function EventCardComponent({ event, monitorName, thumbnailUrl, objectFit = 'contain', thumbnailWidth, thumbnailHeight }: EventCardProps) {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const currentProfile = useProfileStore((state) => state.currentProfile());
+  const { currentProfile } = useCurrentProfile();
   const toggleFavorite = useEventFavoritesStore((state) => state.toggleFavorite);
 
   // Subscribe to the specific favorite state for this event

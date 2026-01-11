@@ -6,6 +6,28 @@ vi.mock('react-router-dom', () => ({
   useNavigate: () => vi.fn(),
 }));
 
+vi.mock('../../hooks/useCurrentProfile', () => ({
+  useCurrentProfile: () => ({
+    currentProfile: { id: 'p1', name: 'Home' },
+    settings: {},
+    hasProfile: true,
+  }),
+}));
+
+vi.mock('../../stores/settings', () => ({
+  DEFAULT_SETTINGS: {
+    viewMode: 'snapshot',
+    displayMode: 'normal',
+    theme: 'light',
+  },
+  useSettingsStore: vi.fn((selector: any) => {
+    if (typeof selector === 'function') {
+      return selector({ profileSettings: {} });
+    }
+    return {};
+  }),
+}));
+
 vi.mock('../../stores/profile', () => ({
   useProfileStore: (selector: (state: any) => unknown) =>
     selector({
@@ -20,10 +42,7 @@ vi.mock('../../stores/profile', () => ({
           createdAt: 1,
         },
       ],
-      currentProfile: () => ({
-        id: 'p1',
-        name: 'Home',
-      }),
+      currentProfileId: 'p1',
       updateProfile: vi.fn(),
       deleteProfile: vi.fn(),
       deleteAllProfiles: vi.fn(),

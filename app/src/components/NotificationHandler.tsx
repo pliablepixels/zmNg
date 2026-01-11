@@ -10,6 +10,7 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNotificationStore } from '../stores/notifications';
+import { useCurrentProfile } from '../hooks/useCurrentProfile';
 import { useProfileStore } from '../stores/profile';
 import { toast } from 'sonner';
 import { Bell } from 'lucide-react';
@@ -26,7 +27,7 @@ import { getPushService } from '../services/pushNotifications';
  */
 export function NotificationHandler() {
   const navigate = useNavigate();
-  const currentProfile = useProfileStore((state) => state.currentProfile());
+  const { currentProfile } = useCurrentProfile();
   const getDecryptedPassword = useProfileStore((state) => state.getDecryptedPassword);
   const { t } = useTranslation();
 

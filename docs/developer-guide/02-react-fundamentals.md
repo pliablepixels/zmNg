@@ -374,7 +374,8 @@ This is called "closure over props/state" - each render has its own values.
 // app/src/hooks/useMonitorStream.ts
 export function useMonitorStream({ monitorId }) {
   const [connKey, setConnKey] = useState(0);
-  const currentProfile = useProfileStore(state => state.currentProfile());
+  // Use the useCurrentProfile() hook for stable references
+  const { currentProfile } = useCurrentProfile();
 
   // Store cleanup parameters in ref (we'll learn about refs soon)
   const cleanupParamsRef = useRef({ monitorId, connKey, profile: currentProfile });

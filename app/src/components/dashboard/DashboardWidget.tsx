@@ -4,7 +4,8 @@ import { Button } from '../ui/button';
 import { X, GripVertical, Pencil } from 'lucide-react';
 import { useDashboardStore } from '../../stores/dashboard';
 import { cn } from '../../lib/utils';
-import { useRef, useState } from 'react';
+import { useRef, useState, useMemo } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { WidgetEditDialog } from './WidgetEditDialog';
 
 /**
@@ -62,12 +63,18 @@ export function DashboardWidget({
 }: DashboardWidgetProps) {
     const isEditing = useDashboardStore((state) => state.isEditing);
     const removeWidget = useDashboardStore((state) => state.removeWidget);
-    const widgets = useDashboardStore((state) => state.widgets[profileId] ?? []);
+    // Use useShallow to prevent re-renders when other widgets change
+    const widgets = useDashboardStore(
+        useShallow((state) => state.widgets[profileId] ?? [])
+    );
     const widgetRef = useRef<HTMLDivElement>(null);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
 
-    // Get widget data for editing
-    const widget = widgets.find(w => w.id === id);
+    // Memoize widget lookup to prevent unnecessary recalculations
+    const widget = useMemo(
+        () => widgets.find(w => w.id === id),
+        [widgets, id]
+    );
 
     return (
         <Card

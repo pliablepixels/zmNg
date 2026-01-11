@@ -6,10 +6,9 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import { useShallow } from 'zustand/react/shallow';
 import { getMonitors } from '../api/monitors';
 import { GRID_LAYOUT } from '../lib/zmng-constants';
-import { useProfileStore } from '../stores/profile';
+import { useCurrentProfile } from '../hooks/useCurrentProfile';
 import { useAuthStore } from '../stores/auth';
 import { useSettingsStore } from '../stores/settings';
 import { useState, useEffect, useMemo, useRef } from 'react';
@@ -71,11 +70,8 @@ export default function Montage() {
     queryFn: getMonitors,
   });
 
-  const currentProfile = useProfileStore((state) => state.currentProfile());
+  const { currentProfile, settings } = useCurrentProfile();
   const accessToken = useAuthStore((state) => state.accessToken);
-  const settings = useSettingsStore(
-    useShallow((state) => state.getProfileSettings(currentProfile?.id || ''))
-  );
   const updateSettings = useSettingsStore((state) => state.updateProfileSettings);
   const saveMontageLayout = useSettingsStore((state) => state.saveMontageLayout);
 

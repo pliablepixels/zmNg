@@ -6,13 +6,12 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { formatForServer, formatLocalDateTime } from '../time';
 import { useProfileStore } from '../../stores/profile';
 
-// Mock the profile store
+// Mock the profile store - using primitives pattern (not deprecated currentProfile getter)
 vi.mock('../../stores/profile', () => ({
   useProfileStore: {
     getState: vi.fn(() => ({
-      currentProfile: vi.fn(() => ({
-        timezone: 'America/New_York',
-      })),
+      profiles: [{ id: 'profile-1', timezone: 'America/New_York' }],
+      currentProfileId: 'profile-1',
     })),
   },
 }));
@@ -99,9 +98,8 @@ describe('formatForServer', () => {
   it('falls back gracefully on timezone error', () => {
     // Mock a timezone that might cause issues
     vi.mocked(useProfileStore.getState).mockReturnValue({
-      currentProfile: vi.fn(() => ({
-        timezone: 'Invalid/Timezone',
-      })) as any,
+      profiles: [{ id: 'profile-1', timezone: 'Invalid/Timezone' }],
+      currentProfileId: 'profile-1',
     } as any);
 
     const date = new Date('2024-01-15T10:30:45Z');
@@ -113,7 +111,8 @@ describe('formatForServer', () => {
 
   it('uses browser timezone when profile has no timezone', () => {
     vi.mocked(useProfileStore.getState).mockReturnValue({
-      currentProfile: vi.fn(() => null),
+      profiles: [],
+      currentProfileId: null,
     } as any);
 
     const date = new Date('2024-01-15T10:30:45Z');

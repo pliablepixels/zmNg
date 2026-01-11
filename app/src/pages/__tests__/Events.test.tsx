@@ -30,6 +30,14 @@ vi.mock('../../stores/auth', () => ({
 }));
 
 vi.mock('../../stores/settings', () => ({
+  DEFAULT_SETTINGS: {
+    viewMode: 'snapshot',
+    displayMode: 'normal',
+    theme: 'light',
+    defaultEventLimit: 50,
+    eventsViewMode: 'list',
+    eventMontageGridCols: 3,
+  },
   useSettingsStore: (selector: (state: { getProfileSettings: (id: string) => { defaultEventLimit: number; eventsViewMode: 'list'; eventMontageGridCols: number } }) => unknown) =>
     selector({ getProfileSettings: () => ({ defaultEventLimit: 50, eventsViewMode: 'list', eventMontageGridCols: 3 }) }),
 }));

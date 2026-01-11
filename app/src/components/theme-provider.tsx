@@ -6,7 +6,7 @@
  * CSS class to the document root.
  */
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react"
+import { createContext, useContext, useEffect, useMemo, useState, useCallback } from "react"
 import { useProfileStore } from '../stores/profile';
 import { useSettingsStore } from '../stores/settings';
 
@@ -42,8 +42,10 @@ export function ThemeProvider({
     defaultTheme = "system",
 }: ThemeProviderProps) {
     const currentProfileId = useProfileStore((state) => state.currentProfileId);
+    // Select theme directly from profileSettings to avoid calling getProfileSettings()
+    // which creates a new object on each call and causes infinite re-renders
     const profileTheme = useSettingsStore(
-        (state) => (currentProfileId ? state.getProfileSettings(currentProfileId).theme : undefined)
+        (state) => (currentProfileId ? state.profileSettings[currentProfileId]?.theme : undefined)
     );
     const updateProfileSettings = useSettingsStore((state) => state.updateProfileSettings);
     const resolvedDefault = useMemo(() => profileTheme || defaultTheme, [defaultTheme, profileTheme]);
@@ -73,15 +75,17 @@ export function ThemeProvider({
         root.classList.add(theme)
     }, [theme])
 
-    const value = {
+    const handleSetTheme = useCallback((newTheme: Theme) => {
+        setTheme(newTheme)
+        if (currentProfileId) {
+            updateProfileSettings(currentProfileId, { theme: newTheme });
+        }
+    }, [currentProfileId, updateProfileSettings]);
+
+    const value = useMemo(() => ({
         theme,
-        setTheme: (theme: Theme) => {
-            setTheme(theme)
-            if (currentProfileId) {
-                updateProfileSettings(currentProfileId, { theme });
-            }
-        },
-    }
+        setTheme: handleSetTheme,
+    }), [theme, handleSetTheme]);
 
     return (
         <ThemeProviderContext.Provider {...value} value={value}>

@@ -9,7 +9,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getEvent, getEventVideoUrl, getEventImageUrl } from '../api/events';
 import { getMonitor } from '../api/monitors';
-import { useProfileStore } from '../stores/profile';
+import { useCurrentProfile } from '../hooks/useCurrentProfile';
 import { useAuthStore } from '../stores/auth';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
@@ -48,7 +48,7 @@ export default function EventDetail() {
     enabled: !!event?.Event.MonitorId,
   });
 
-  const currentProfile = useProfileStore((state) => state.currentProfile());
+  const { currentProfile } = useCurrentProfile();
   const accessToken = useAuthStore((state) => state.accessToken);
   const { isFavorited, toggleFavorite } = useEventFavoritesStore();
 

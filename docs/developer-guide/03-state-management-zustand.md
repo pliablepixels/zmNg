@@ -467,16 +467,18 @@ function AppRoutes() {
 Unlike React state, Zustand works outside components:
 
 ```tsx
-import { useProfileStore } from '../stores/useProfileStore';
+import { useProfileStore } from '../stores/profile';
 
 // In a regular function (not a component)
+// Access primitives directly - do NOT use currentProfile() getter
 export function getCurrentProfile(): Profile | null {
-  return useProfileStore.getState().currentProfile;
+  const { profiles, currentProfileId } = useProfileStore.getState();
+  return profiles.find(p => p.id === currentProfileId) ?? null;
 }
 
 // Update from outside React
 export function resetProfile(): void {
-  useProfileStore.getState().setCurrentProfile(null);
+  useProfileStore.getState().setCurrentProfileId(null);
 }
 ```
 

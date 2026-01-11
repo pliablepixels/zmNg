@@ -10,6 +10,7 @@
  * - Loading and empty states
  */
 
+import { memo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getEvents } from '../../../api/events';
 import { format } from 'date-fns';
@@ -25,7 +26,7 @@ interface EventsWidgetProps {
     refreshInterval?: number;
 }
 
-export function EventsWidget({ monitorId, limit = 5, refreshInterval = 30000 }: EventsWidgetProps) {
+export const EventsWidget = memo(function EventsWidget({ monitorId, limit = 5, refreshInterval = 30000 }: EventsWidgetProps) {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const { data: events, isLoading } = useQuery({
@@ -85,4 +86,4 @@ export function EventsWidget({ monitorId, limit = 5, refreshInterval = 30000 }: 
             </div>
         </div>
     );
-}
+});

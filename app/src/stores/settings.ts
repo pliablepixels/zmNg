@@ -75,7 +75,7 @@ const getDefaultLogLevel = (): LogLevel => (
   typeof import.meta !== 'undefined' && import.meta.env?.DEV ? LogLevel.DEBUG : LogLevel.INFO
 );
 
-const DEFAULT_SETTINGS: ProfileSettings = {
+export const DEFAULT_SETTINGS: ProfileSettings = {
   viewMode: 'snapshot',
   displayMode: getDefaultDisplayMode(),
   theme: 'light',

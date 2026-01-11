@@ -9,6 +9,23 @@ const updateProfileSettings = vi.fn();
 const logout = vi.fn();
 const changeLanguage = vi.fn();
 
+vi.mock('../../hooks/useCurrentProfile', () => ({
+  useCurrentProfile: () => ({
+    currentProfile: { id: 'profile-1', name: 'Test Profile' },
+    settings: {
+      viewMode: 'snapshot',
+      displayMode: 'normal',
+      snapshotRefreshInterval: 3,
+      streamMaxFps: 10,
+      streamScale: 50,
+      defaultEventLimit: 300,
+      disableLogRedaction: false,
+      dashboardRefreshInterval: 30,
+    },
+    hasProfile: true,
+  }),
+}));
+
 vi.mock('../../stores/profile', () => ({
   useProfileStore: (selector: (state: { currentProfile: () => { id: string } | null }) => unknown) =>
     selector({
@@ -23,6 +40,14 @@ vi.mock('../../stores/auth', () => ({
 }));
 
 vi.mock('../../stores/settings', () => ({
+  DEFAULT_SETTINGS: {
+    viewMode: 'snapshot',
+    displayMode: 'normal',
+    theme: 'light',
+    snapshotRefreshInterval: 3,
+    defaultEventLimit: 300,
+    disableLogRedaction: false,
+  },
   useSettingsStore: (selector: (state: { getProfileSettings: () => unknown; updateProfileSettings: typeof updateProfileSettings }) => unknown) =>
     selector({
       getProfileSettings: () => ({

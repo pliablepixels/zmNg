@@ -29,7 +29,6 @@ interface ProfileState {
   bootstrapStep: 'start' | 'auth' | 'timezone' | 'zms' | 'finalize' | null;
 
   // Computed
-  currentProfile: () => Profile | null;
   profileExists: (name: string, excludeId?: string) => boolean;
 
 
@@ -60,14 +59,6 @@ export const useProfileStore = create<ProfileState>()(
         isInitialized: false,
         isBootstrapping: false,
         bootstrapStep: null,
-
-        /**
-         * Get the currently active profile object.
-         */
-        currentProfile: () => {
-          const { profiles, currentProfileId } = get();
-          return profiles.find((p) => p.id === currentProfileId) || null;
-        },
 
         /**
          * Check if a profile with the given name already exists.
@@ -164,7 +155,8 @@ export const useProfileStore = create<ProfileState>()(
           }));
 
           // If updating current profile's API URL, reinitialize client
-          const currentProfile = get().currentProfile();
+          const { profiles, currentProfileId } = get();
+          const currentProfile = profiles.find(p => p.id === currentProfileId);
           if (currentProfile?.id === id && updates.apiUrl) {
             setApiClient(createApiClient(updates.apiUrl, get().reLogin));
           }
@@ -195,7 +187,8 @@ export const useProfileStore = create<ProfileState>()(
           });
 
           // Reinitialize API client if current profile changed
-          const newCurrentProfile = get().currentProfile();
+          const { profiles: updatedProfiles, currentProfileId: newCurrentId } = get();
+          const newCurrentProfile = updatedProfiles.find(p => p.id === newCurrentId);
           if (newCurrentProfile) {
             setApiClient(createApiClient(newCurrentProfile.apiUrl, get().reLogin));
           }
@@ -581,10 +574,10 @@ export const useProfileStore = create<ProfileState>()(
 // Subscribe to auth store to update refresh token in profile
 useAuthStore.subscribe((state) => {
   const { refreshToken } = state;
-  const { currentProfileId, updateProfile, currentProfile } = useProfileStore.getState();
+  const { currentProfileId, updateProfile, profiles } = useProfileStore.getState();
 
   if (currentProfileId && refreshToken) {
-    const profile = currentProfile();
+    const profile = profiles.find(p => p.id === currentProfileId);
     if (profile && profile.refreshToken !== refreshToken) {
       log.profileService('Updating profile with new refresh token', LogLevel.INFO, { profileId: currentProfileId });
       updateProfile(currentProfileId, { refreshToken });

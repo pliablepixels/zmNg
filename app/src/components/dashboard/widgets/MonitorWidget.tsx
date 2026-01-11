@@ -12,7 +12,7 @@
  * - Hover overlay with monitor name
  */
 
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef, useMemo, memo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { getMonitor, getMonitors, getStreamUrl } from '../../../api/monitors';
@@ -59,9 +59,17 @@ function SingleMonitor({ monitorId, objectFit }: { monitorId: string; objectFit:
     );
     const accessToken = useAuthStore((state) => state.accessToken);
     const regenerateConnKey = useMonitorStore((state) => state.regenerateConnKey);
-    const settings = useSettingsStore(
-        useShallow((state) => state.getProfileSettings(currentProfile?.id || ''))
+    // Select raw profileSettings to avoid calling getProfileSettings() which creates new objects
+    const rawSettings = useSettingsStore(
+        useShallow((state) => state.profileSettings[currentProfile?.id || ''])
     );
+    // Merge with defaults in render - only include settings actually used by this component
+    const settings = {
+        viewMode: rawSettings?.viewMode ?? 'snapshot',
+        snapshotRefreshInterval: rawSettings?.snapshotRefreshInterval ?? 3,
+        streamScale: rawSettings?.streamScale ?? 50,
+        streamMaxFps: rawSettings?.streamMaxFps ?? 10,
+    };
 
     const [connKey, setConnKey] = useState(0);
     const [cacheBuster, setCacheBuster] = useState(Date.now());
@@ -250,7 +258,7 @@ function SingleMonitor({ monitorId, objectFit }: { monitorId: string; objectFit:
     );
 }
 
-export function MonitorWidget({ monitorIds, objectFit = 'contain' }: MonitorWidgetProps) {
+export const MonitorWidget = memo(function MonitorWidget({ monitorIds, objectFit = 'contain' }: MonitorWidgetProps) {
     const { t } = useTranslation();
 
     // Fetch all monitors to check which ones are deleted
@@ -305,4 +313,4 @@ export function MonitorWidget({ monitorIds, objectFit = 'contain' }: MonitorWidg
             ))}
         </div>
     );
-}
+});

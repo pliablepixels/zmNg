@@ -7,10 +7,9 @@
 
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useShallow } from 'zustand/react/shallow';
 import { getEvents } from '../api/events';
 import { getMonitors } from '../api/monitors';
-import { useProfileStore } from '../stores/profile';
+import { useCurrentProfile } from '../hooks/useCurrentProfile';
 import { useAuthStore } from '../stores/auth';
 import { useSettingsStore } from '../stores/settings';
 import { useEventPagination } from '../hooks/useEventPagination';
@@ -28,11 +27,8 @@ import { log, LogLevel } from '../lib/logger';
 
 export default function EventMontage() {
   const { t } = useTranslation();
-  const currentProfile = useProfileStore((state) => state.currentProfile());
+  const { currentProfile, settings } = useCurrentProfile();
   const accessToken = useAuthStore((state) => state.accessToken);
-  const settings = useSettingsStore(
-    useShallow((state) => state.getProfileSettings(currentProfile?.id || ''))
-  );
   const normalizedThumbnailFit =
     settings.eventsThumbnailFit === 'fill' ? 'contain' : settings.eventsThumbnailFit;
   const updateSettings = useSettingsStore((state) => state.updateProfileSettings);

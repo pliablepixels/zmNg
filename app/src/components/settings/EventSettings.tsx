@@ -5,16 +5,12 @@ import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { useSettingsStore } from '../../stores/settings';
-import { useProfileStore } from '../../stores/profile';
-import { useShallow } from 'zustand/react/shallow';
+import { useCurrentProfile } from '../../hooks/useCurrentProfile';
 
 export function EventSettings() {
     const { t } = useTranslation();
 
-    const currentProfile = useProfileStore((state) => state.currentProfile());
-    const settings = useSettingsStore(
-        useShallow((state) => state.getProfileSettings(currentProfile?.id || ''))
-    );
+    const { currentProfile, settings } = useCurrentProfile();
     const updateSettings = useSettingsStore((state) => state.updateProfileSettings);
 
     const handleEventLimitChange = (value: number) => {

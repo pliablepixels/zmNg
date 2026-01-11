@@ -282,8 +282,9 @@ export class MobilePushService {
         let imageUrl: string | undefined;
 
         // Get current profile to construct proper image URL
-        const profileStore = useProfileStore.getState();
-        const currentProfile = profileStore.currentProfile();
+        // Access primitives directly to avoid deprecated currentProfile() getter
+        const { profiles, currentProfileId } = useProfileStore.getState();
+        const currentProfile = profiles.find(p => p.id === currentProfileId);
         const authStore = useAuthStore.getState();
 
         if (currentProfile && authStore.accessToken) {
@@ -330,8 +331,9 @@ export class MobilePushService {
         // Construct image URL using the app's portal URL and auth token
         let imageUrl: string | undefined;
 
-        const profileStore = useProfileStore.getState();
-        const currentProfile = profileStore.currentProfile();
+        // Access primitives directly to avoid deprecated currentProfile() getter
+        const { profiles, currentProfileId } = useProfileStore.getState();
+        const currentProfile = profiles.find(p => p.id === currentProfileId);
         const authStore = useAuthStore.getState();
 
         if (currentProfile && authStore.accessToken) {

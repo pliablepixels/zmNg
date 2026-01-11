@@ -13,7 +13,9 @@ import { log, LogLevel } from './logger';
  * @returns String formatted in server's timezone
  */
 export function formatForServer(date: Date): string {
-    const currentProfile = useProfileStore.getState().currentProfile();
+    // Access primitives directly to avoid deprecated currentProfile() getter
+    const { profiles, currentProfileId } = useProfileStore.getState();
+    const currentProfile = profiles.find(p => p.id === currentProfileId);
     const timeZone = currentProfile?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
 
     // Format: 'yyyy-MM-dd HH:mm:ss' in the TARGET timezone

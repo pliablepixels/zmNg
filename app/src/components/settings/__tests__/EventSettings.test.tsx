@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { EventSettings } from '../EventSettings';
 
 const mockUpdateSettings = vi.fn();
+const mockUseCurrentProfile = vi.fn();
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -11,32 +12,35 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-vi.mock('../../../stores/profile', () => ({
-  useProfileStore: vi.fn(() => ({
-    id: 'profile-1',
-    name: 'Test Profile',
-  })),
+vi.mock('../../../hooks/useCurrentProfile', () => ({
+  useCurrentProfile: () => mockUseCurrentProfile(),
 }));
 
 vi.mock('../../../stores/settings', () => ({
+  DEFAULT_SETTINGS: {
+    viewMode: 'snapshot',
+    displayMode: 'normal',
+    theme: 'light',
+    defaultEventLimit: 300,
+  },
   useSettingsStore: vi.fn((selector: any) => {
     if (typeof selector === 'function') {
       return selector({
-        getProfileSettings: () => ({ defaultEventLimit: 300 }),
         updateProfileSettings: mockUpdateSettings,
       });
     }
-    return { defaultEventLimit: 300 };
+    return mockUpdateSettings;
   }),
-}));
-
-vi.mock('zustand/react/shallow', () => ({
-  useShallow: (fn: any) => fn,
 }));
 
 describe('EventSettings', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseCurrentProfile.mockReturnValue({
+      currentProfile: { id: 'profile-1', name: 'Test Profile' },
+      settings: { defaultEventLimit: 300 },
+      hasProfile: true,
+    });
   });
 
   it('should render event settings card', () => {
