@@ -8,6 +8,7 @@ export type DisplayMode = 'normal' | 'compact';
 export type MonitorFeedFit = 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
 export type EventsViewMode = 'list' | 'montage';
 export type ThemePreference = 'dark' | 'light' | 'system';
+export type StreamingMethod = 'mjpeg' | 'webrtc' | 'auto';
 
 export interface ProfileSettings {
   viewMode: ViewMode;
@@ -42,6 +43,8 @@ export interface ProfileSettings {
   };
   disableLogRedaction: boolean;
   lastRoute: string; // Last visited route for this profile
+  streamingMethod: StreamingMethod; // Streaming protocol preference (mjpeg, webrtc, auto)
+  webrtcFallbackEnabled: boolean; // Enable automatic fallback to MJPEG if WebRTC fails
 }
 
 interface SettingsState {
@@ -108,6 +111,8 @@ export const DEFAULT_SETTINGS: ProfileSettings = {
   },
   disableLogRedaction: false,
   lastRoute: '/monitors',
+  streamingMethod: 'auto', // Auto-detect best method (WebRTC with fallback to MJPEG)
+  webrtcFallbackEnabled: true, // Enable fallback by default
 };
 
 export const useSettingsStore = create<SettingsState>()(

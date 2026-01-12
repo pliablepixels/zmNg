@@ -55,4 +55,67 @@ describe('Settings Store', () => {
     const settings = useSettingsStore.getState().getProfileSettings(profileId);
     expect(settings.eventMontageLayouts).toEqual(layout);
   });
+
+  describe('Streaming method settings', () => {
+    it('defaults to auto streaming method', () => {
+      const settings = useSettingsStore.getState().getProfileSettings('new-profile');
+      expect(settings.streamingMethod).toBe('auto');
+      expect(settings.webrtcFallbackEnabled).toBe(true);
+    });
+
+    it('updates streaming method to webrtc', () => {
+      const profileId = 'profile-1';
+      useSettingsStore.getState().updateProfileSettings(profileId, {
+        streamingMethod: 'webrtc',
+      });
+
+      const settings = useSettingsStore.getState().getProfileSettings(profileId);
+      expect(settings.streamingMethod).toBe('webrtc');
+    });
+
+    it('updates streaming method to mjpeg', () => {
+      const profileId = 'profile-1';
+      useSettingsStore.getState().updateProfileSettings(profileId, {
+        streamingMethod: 'mjpeg',
+      });
+
+      const settings = useSettingsStore.getState().getProfileSettings(profileId);
+      expect(settings.streamingMethod).toBe('mjpeg');
+    });
+
+    it('disables webrtc fallback', () => {
+      const profileId = 'profile-1';
+      useSettingsStore.getState().updateProfileSettings(profileId, {
+        webrtcFallbackEnabled: false,
+      });
+
+      const settings = useSettingsStore.getState().getProfileSettings(profileId);
+      expect(settings.webrtcFallbackEnabled).toBe(false);
+    });
+
+    it('updates both streaming settings together', () => {
+      const profileId = 'profile-1';
+      useSettingsStore.getState().updateProfileSettings(profileId, {
+        streamingMethod: 'webrtc',
+        webrtcFallbackEnabled: false,
+      });
+
+      const settings = useSettingsStore.getState().getProfileSettings(profileId);
+      expect(settings.streamingMethod).toBe('webrtc');
+      expect(settings.webrtcFallbackEnabled).toBe(false);
+    });
+
+    it('persists streaming method across store resets', () => {
+      const profileId = 'profile-1';
+      useSettingsStore.getState().updateProfileSettings(profileId, {
+        streamingMethod: 'mjpeg',
+        webrtcFallbackEnabled: false,
+      });
+
+      // Verify settings are stored
+      const storedSettings = useSettingsStore.getState().profileSettings[profileId];
+      expect(storedSettings.streamingMethod).toBe('mjpeg');
+      expect(storedSettings.webrtcFallbackEnabled).toBe(false);
+    });
+  });
 });
