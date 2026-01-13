@@ -168,12 +168,22 @@ export const MonitorSchema = z.object({
   // Go2RTC fields (ZoneMinder 1.37+)
   Go2RTCEnabled: z.coerce.boolean().optional().default(false),
   Go2RTCType: z.preprocess(
-    (val) => (val === '' ? null : val),
+    (val) => {
+      // Transform any falsy value (including '', 0, false, null, undefined) to null
+      // Also handle whitespace-only strings
+      if (!val || (typeof val === 'string' && !val.trim())) return null;
+      return val;
+    },
     z.enum(['WebRTC', 'MSE', 'HLS']).nullable().optional()
   ),
   RTSP2WebEnabled: z.coerce.boolean().optional().default(false),
   RTSP2WebType: z.preprocess(
-    (val) => (val === '' ? null : val),
+    (val) => {
+      // Transform any falsy value (including '', 0, false, null, undefined) to null
+      // Also handle whitespace-only strings
+      if (!val || (typeof val === 'string' && !val.trim())) return null;
+      return val;
+    },
     z.enum(['HLS', 'MSE']).nullable().optional()
   ),
   JanusEnabled: z.coerce.boolean().optional().default(false),
