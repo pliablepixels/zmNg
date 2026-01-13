@@ -184,7 +184,7 @@ export const MonitorSchema = z.object({
       if (!val || (typeof val === 'string' && !val.trim())) return null;
       return val;
     },
-    z.enum(['HLS', 'MSE']).nullable().optional()
+    z.enum(['HLS', 'MSE', 'WebRTC']).nullable().optional()
   ),
   JanusEnabled: z.coerce.boolean().optional().default(false),
   DefaultPlayer: z.string().nullable().optional(),
