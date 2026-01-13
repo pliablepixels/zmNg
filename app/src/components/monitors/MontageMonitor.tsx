@@ -24,6 +24,7 @@ import { useSettingsStore } from '../../stores/settings';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
+import { VideoPlayer } from '../video/VideoPlayer';
 import { Clock, ChartGantt, Settings2, Download, Maximize2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { ZM_INTEGRATION } from '../../lib/zmng-constants';
@@ -64,7 +65,7 @@ function MontageMonitorComponent({
   const [cacheBuster, setCacheBuster] = useState(Date.now());
   const [displayedImageUrl, setDisplayedImageUrl] = useState<string>('');
   const [imageLoaded, setImageLoaded] = useState(false);
-  const imgRef = useRef<HTMLImageElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const resolvedFit = objectFit ?? (isFullscreen ? 'cover' : 'contain');
   const aspectRatio = getMonitorAspectRatio(monitor.Width, monitor.Height, monitor.Orientation);
 
@@ -160,9 +161,9 @@ function MontageMonitorComponent({
       }
 
       // Abort image loading to release browser connection
-      if (imgRef.current) {
+      if (videoRef.current) {
         log.montageMonitor('Aborting image element', LogLevel.DEBUG, { monitorId: params.monitorId });
-        imgRef.current.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+        videoRef.current.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
       }
     };
   }, []); // Empty deps = only run on unmount
@@ -258,34 +259,14 @@ function MontageMonitorComponent({
           </div>
         )}
 
-        {(displayedImageUrl || streamUrl) && (
-          <img
-            ref={imgRef}
-            src={displayedImageUrl || streamUrl}
-            alt={monitor.Name}
-            className={cn("w-full h-full", !imageLoaded && "opacity-0")}
-            style={{ objectFit: resolvedFit }}
-            onLoad={() => setImageLoaded(true)}
-            onError={(e) => {
-              const img = e.target as HTMLImageElement;
-              setImageLoaded(false);
-              // Only retry if we haven't retried too recently (basic debounce)
-              if (!img.dataset.retrying) {
-                img.dataset.retrying = "true";
-                log.montageMonitor('Stream failed, regenerating connkey', LogLevel.WARN, { monitorName: monitor.Name });
-                regenerateConnKey(monitor.Id);
-                toast.error(t('montage.stream_lost_reconnecting', { name: monitor.Name }));
-
-                // Reset retry flag after a delay
-                setTimeout(() => {
-                  delete img.dataset.retrying;
-                }, ZM_INTEGRATION.streamReconnectDelay);
-              } else {
-                img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="320" height="240"%3E%3Crect fill="%231a1a1a" width="320" height="240"/%3E%3Ctext fill="%23444" x="50%" y="50%" text-anchor="middle" font-family="sans-serif" font-size="14"%3ENo Signal%3C/text%3E%3C/svg%3E';
-              }
-            }}
-          />
-        )}
+        <VideoPlayer
+          monitor={monitor}
+          profile={currentProfile}
+          externalVideoRef={videoRef}
+          objectFit={resolvedFit}
+          showStatus={false}
+          className="w-full h-full"
+        />
 
         {/* Overlay Controls (visible on hover) */}
         <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex justify-end gap-1 pointer-events-none group-hover:pointer-events-auto">
@@ -295,8 +276,8 @@ function MontageMonitorComponent({
             className="h-6 w-6 text-white hover:bg-white/20"
             onClick={(e) => {
               e.stopPropagation();
-              if (imgRef.current) {
-                downloadSnapshotFromElement(imgRef.current, monitor.Name)
+              if (videoRef.current) {
+                downloadSnapshotFromElement(videoRef.current, monitor.Name)
                   .then(() => toast.success(t('montage.snapshot_saved', { name: monitor.Name })))
                   .catch(() => toast.error(t('montage.snapshot_failed')));
               }

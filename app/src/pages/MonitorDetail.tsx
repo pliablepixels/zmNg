@@ -31,6 +31,7 @@ import { useTranslation } from 'react-i18next';
 import { useSwipeNavigation } from '../hooks/useSwipeNavigation';
 import { useInsomnia } from '../hooks/useInsomnia';
 import { PTZControls } from '../components/monitors/PTZControls';
+import { VideoPlayer } from '../components/video/VideoPlayer';
 import { controlMonitor } from '../api/monitors';
 import { filterEnabledMonitors } from '../lib/filters';
 import { log, LogLevel } from '../lib/logger';
@@ -168,7 +169,7 @@ export default function MonitorDetail() {
   const [connKey, setConnKey] = useState(0);
   const [displayedImageUrl, setDisplayedImageUrl] = useState<string>('');
   const [isSliding, setIsSliding] = useState(false);
-  const imgRef = useRef<HTMLImageElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   // Track previous connKey to send CMD_QUIT before regenerating
   const prevConnKeyRef = useRef<number>(0);
@@ -458,9 +459,9 @@ export default function MonitorDetail() {
       }
 
       // Abort image loading to release browser connection
-      if (imgRef.current && params.monitorId) {
+      if (videoRef.current && params.monitorId) {
         log.monitorDetail('Aborting image element', LogLevel.DEBUG, { monitorId: params.monitorId });
-        imgRef.current.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+        videoRef.current.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
       }
     };
   }, []); // Empty deps = only run on unmount
@@ -500,7 +501,7 @@ export default function MonitorDetail() {
     );
   }
 
-  if (error || !monitor) {
+  if (error || !monitor || !currentProfile) {
     return (
       <div className="p-8">
         <div className="p-4 bg-destructive/10 text-destructive rounded-lg flex items-center gap-2">
@@ -592,39 +593,13 @@ export default function MonitorDetail() {
             alarmBorderClass
           )}
         >
-          <img
-            ref={imgRef}
-            crossOrigin={corsAllowed ? "anonymous" : undefined}
-            src={displayedImageUrl || streamUrl}
-            alt={monitor.Monitor.Name}
-            className="w-full h-full"
-            style={{ objectFit: settings.monitorDetailFeedFit }}
-            data-testid="monitor-player"
-            onError={(e) => {
-              const img = e.target as HTMLImageElement;
-
-              // Check for CORS failure first
-              if (corsAllowed) {
-                log.monitorDetail('Image load failed with CORS enabled, disabling CORS and retrying', LogLevel.WARN);
-                setCorsAllowed(false);
-                // Regenerate connkey to force new connection (don't use cacheBuster in streaming mode)
-                const newKey = regenerateConnKey(monitor.Monitor.Id);
-                setConnKey(newKey);
-                return;
-              }
-
-              // Only retry if we haven't retried too recently
-              if (!img.dataset.retrying) {
-                img.dataset.retrying = "true";
-                log.monitorDetail('Stream failed, regenerating connkey', LogLevel.WARN);
-                regenerateConnKey(monitor.Monitor.Id);
-                toast.error(t('monitor_detail.stream_lost'));
-
-                setTimeout(() => {
-                  delete img.dataset.retrying;
-                }, 5000);
-              }
-            }}
+          <VideoPlayer
+            monitor={monitor.Monitor}
+            profile={currentProfile}
+            externalVideoRef={videoRef}
+            objectFit={settings.monitorDetailFeedFit}
+            showStatus={true}
+            className="data-[testid=monitor-player]"
           />
 
           {/* Controls Overlay */}
@@ -636,8 +611,8 @@ export default function MonitorDetail() {
                   size="icon"
                   className="text-white hover:bg-white/20"
                   onClick={() => {
-                    if (imgRef.current) {
-                      downloadSnapshotFromElement(imgRef.current, monitor.Monitor.Name)
+                    if (videoRef.current) {
+                      downloadSnapshotFromElement(videoRef.current, monitor.Monitor.Name)
                         .then(() => toast.success(t('monitor_detail.snapshot_saved', { name: monitor.Monitor.Name })))
                         .catch(() => toast.error(t('monitor_detail.snapshot_failed')));
                     }

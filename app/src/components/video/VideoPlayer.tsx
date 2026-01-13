@@ -43,6 +43,8 @@ export interface VideoPlayerProps {
   muted?: boolean;
   /** Additional controls */
   controls?: boolean;
+  /** External ref to video element (optional, for snapshot capture) */
+  externalVideoRef?: React.RefObject<HTMLVideoElement>;
 }
 
 export function VideoPlayer({
@@ -54,9 +56,12 @@ export function VideoPlayer({
   autoPlay = true,
   muted = true,
   controls = false,
+  externalVideoRef,
 }: VideoPlayerProps) {
   const { t } = useTranslation();
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const internalVideoRef = useRef<HTMLVideoElement>(null);
+  // Use external ref if provided, otherwise use internal ref
+  const videoRef = externalVideoRef || internalVideoRef;
   const settings = useSettingsStore((state) => state.getProfileSettings(profile.id));
 
   // Determine which streaming method to use
