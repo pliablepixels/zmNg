@@ -146,12 +146,21 @@ The `VideoRTC` custom HTML element handles WebRTC signaling and media playback. 
 
 **Key callbacks:**
 ```typescript
-videoRtc.oninit = () => { /* VideoRTC initialized */ };
-videoRtc.onconnect = () => { /* Peer connection established */ return true; };
+videoRtc.oninit = () => { /* VideoRTC initialized, apply initial muted state */ };
+videoRtc.onopen = () => { /* WebSocket connected */ };
 videoRtc.ondisconnect = () => { /* Connection lost */ };
 videoRtc.onclose = () => { /* Cleanup */ };
-videoRtc.onpcvideo = (video) => { /* Video element ready */ };
+videoRtc.onpcvideo = (video) => { /* Video track received, apply muted state */ };
 ```
+
+**Muting Strategy:**
+Muting is applied at 3 precise points to avoid race conditions:
+1. `oninit` - When video element is created
+2. `onpcvideo` - When WebRTC video track arrives (key moment)
+3. React effect - When `muted` prop changes
+
+**Picture-in-Picture:**
+PiP is disabled (`disablePictureInPicture = true`) on all video elements because iOS shows an empty window for streaming sources (both WebRTC and MSE).
 
 ### URL Building
 
@@ -246,16 +255,13 @@ Located in:
 Located in: `/app/tests/features/go2rtc-streaming.feature`
 
 **Scenarios:**
-1. View monitor with auto streaming (WebRTC/MJPEG fallback)
-2. Multiple monitors in montage grid with VideoPlayer
-3. Download snapshot from video element
-4. Change streaming method in settings
-5. Graceful null profile handling
-6. Snapshot capture ref compatibility
+1. View monitor with VideoPlayer in Montage
+2. View monitor detail with video player
+3. Download snapshot from monitor detail
 
 **Run tests:**
 ```bash
-npm run test:e2e -- go2rtc-streaming.feature
+npm run test:e2e -- tests/features/go2rtc-streaming.feature
 ```
 
 ### Manual Testing Checklist
@@ -342,6 +348,10 @@ npm run test:e2e -- go2rtc-streaming.feature
 1. Is video element actually playing? Check `videoRef.current.videoWidth`
 2. Is CORS blocking canvas capture? Check browser console
 3. Try waiting for 'connected' state before capturing
+
+### Issue: Picture-in-Picture not working
+
+**Expected behavior:** PiP is intentionally disabled for all video players (Go2RTC and Video.js). iOS Safari shows an empty window for streaming sources, so PiP is disabled to avoid broken UX.
 
 ## Performance Considerations
 
