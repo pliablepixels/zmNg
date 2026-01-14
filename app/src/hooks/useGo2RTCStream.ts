@@ -145,7 +145,6 @@ export function useGo2RTCStream(options: UseGo2RTCStreamOptions): UseGo2RTCStrea
           setActiveProtocol(modes[0] as StreamingProtocol);
           log.videoPlayer('GO2RTC: Active protocol', LogLevel.INFO, { monitorId, protocol: modes[0] });
         }
-        applyMuted(videoRtc.video);
         return modes;
       };
 
@@ -181,7 +180,6 @@ export function useGo2RTCStream(options: UseGo2RTCStreamOptions): UseGo2RTCStrea
       containerRef.current.appendChild(videoRtc);
       videoRtcRef.current = videoRtc;
       videoRtc.src = wsUrl;
-      applyMuted(videoRtc.video);
     } catch (err) {
       log.videoPlayer('GO2RTC: Connection failed', LogLevel.ERROR, { monitorId, error: err });
       setState('error');
@@ -249,24 +247,6 @@ export function useGo2RTCStream(options: UseGo2RTCStreamOptions): UseGo2RTCStrea
   useEffect(() => {
     applyMuted(videoRtcRef.current?.video);
   }, [muted, applyMuted]);
-
-  // Ensure muted stays applied after connection (catches async video creation)
-  useEffect(() => {
-    if (state !== 'connected' || !muted) return;
-
-    let attempts = 0;
-    const interval = setInterval(() => {
-      attempts++;
-      const video = videoRtcRef.current?.video;
-      if (video && !video.muted) {
-        applyMuted(video);
-        log.videoPlayer('GO2RTC: Force-muted via polling', LogLevel.DEBUG, { monitorId, attempt: attempts });
-      }
-      if (attempts >= 5) clearInterval(interval);
-    }, 200);
-
-    return () => clearInterval(interval);
-  }, [state, muted, monitorId, applyMuted]);
 
   return { state, error, activeProtocol, retry, stop, toggleMute, isMuted, getVideoElement };
 }
