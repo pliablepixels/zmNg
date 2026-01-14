@@ -128,6 +128,7 @@ export function VideoPlayer({
     monitorId: monitor.Id,
     channel: 0, // TODO: Support secondary channel based on monitor settings
     containerRef,
+    protocols: rawSettings?.webrtcProtocols,
     enabled: streamingMethod === 'webrtc' && !!profile?.go2rtcUrl && !go2rtcFailed,
     muted,
   });
@@ -183,7 +184,8 @@ export function VideoPlayer({
         type: effectiveStreamingMethod,
         state: go2rtcStream.state,
         error: go2rtcStream.error,
-        protocol: 'go2rtc' as const, // Video-rtc handles protocol selection internally
+        // Show actual protocol once connected (webrtc, mse, or hls), otherwise show 'go2rtc'
+        protocol: (go2rtcStream.activeProtocol || 'go2rtc') as 'webrtc' | 'mse' | 'hls' | 'go2rtc',
       };
     } else {
       return {
@@ -256,6 +258,9 @@ export function VideoPlayer({
         <div className="absolute top-2 left-2 flex gap-2" data-testid="video-player-status">
           {/* Protocol Badge */}
           <Badge variant="secondary" className="text-xs">
+            {status.protocol === 'webrtc' && 'WebRTC'}
+            {status.protocol === 'mse' && 'MSE'}
+            {status.protocol === 'hls' && 'HLS'}
             {status.protocol === 'go2rtc' && t('video.streaming_webrtc')}
             {status.protocol === 'mjpeg' && t('video.streaming_mjpeg')}
           </Badge>

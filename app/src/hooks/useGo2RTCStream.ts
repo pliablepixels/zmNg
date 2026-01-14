@@ -55,6 +55,8 @@ export interface UseGo2RTCStreamResult {
   state: ConnectionState;
   /** Error message if state is 'error' */
   error: string | null;
+  /** Active protocol after connection (webrtc, mse, or hls) */
+  activeProtocol: StreamingProtocol | null;
   /** Retry connection */
   retry: () => void;
   /** Stop and cleanup */
@@ -83,6 +85,7 @@ export function useGo2RTCStream(options: UseGo2RTCStreamOptions): UseGo2RTCStrea
 
   const [state, setState] = useState<ConnectionState>('idle');
   const [error, setError] = useState<string | null>(null);
+  const [activeProtocol, setActiveProtocol] = useState<StreamingProtocol | null>(null);
 
   const videoRtcRef = useRef<VideoRTC | null>(null);
   // Track if component is still mounted (survives React Strict Mode double-invoke)
@@ -108,6 +111,7 @@ export function useGo2RTCStream(options: UseGo2RTCStreamOptions): UseGo2RTCStrea
     }
 
     wsConnectedRef.current = false;
+    setActiveProtocol(null);
 
     if (videoRtcRef.current) {
       try {
@@ -190,6 +194,12 @@ export function useGo2RTCStream(options: UseGo2RTCStreamOptions): UseGo2RTCStrea
         const modes = originalOnopen();
         log.videoPlayer('GO2RTC: Active modes', LogLevel.DEBUG, { monitorId, modes });
         setState('connected');
+        // Track which protocol is actually being used (first in the array is the active one)
+        if (modes && modes.length > 0) {
+          const protocol = modes[0] as StreamingProtocol;
+          setActiveProtocol(protocol);
+          log.videoPlayer('GO2RTC: Active protocol', LogLevel.INFO, { monitorId, protocol });
+        }
         // Also ensure muted after connection established
         if (videoRtc.video) {
           videoRtc.video.muted = mutedRef.current;
@@ -274,6 +284,9 @@ export function useGo2RTCStream(options: UseGo2RTCStreamOptions): UseGo2RTCStrea
     setError(null);
   }, [cleanup, monitorId]);
 
+  // Stringify protocols for stable dependency comparison (arrays compared by reference would cause infinite loops)
+  const protocolsKey = protocols.join(',');
+
   // Effect: Connect when enabled
   useEffect(() => {
     // Mark as mounted (for React Strict Mode protection)
@@ -302,7 +315,7 @@ export function useGo2RTCStream(options: UseGo2RTCStreamOptions): UseGo2RTCStrea
       if (mountedRef.current) {
         log.videoPlayer('GO2RTC: Starting connection (after stabilization delay)', LogLevel.DEBUG, {
           monitorId,
-          mode: protocols.join(','),
+          mode: protocolsKey,
         });
         connect();
       }
@@ -314,7 +327,7 @@ export function useGo2RTCStream(options: UseGo2RTCStreamOptions): UseGo2RTCStrea
       cleanup();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, go2rtcUrl, monitorId, token]); // Intentionally omit protocols to avoid reconnect on protocol array change
+  }, [enabled, go2rtcUrl, monitorId, token, protocolsKey]); // protocolsKey triggers reconnect when protocols change
 
   // Apply muted state when prop changes on existing video
   useEffect(() => {
@@ -370,6 +383,7 @@ export function useGo2RTCStream(options: UseGo2RTCStreamOptions): UseGo2RTCStrea
   return {
     state,
     error,
+    activeProtocol,
     retry,
     stop,
     toggleMute,

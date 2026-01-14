@@ -6,7 +6,8 @@ import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Switch } from '../ui/switch';
 import { Badge } from '../ui/badge';
-import { useSettingsStore } from '../../stores/settings';
+import { Checkbox } from '../ui/checkbox';
+import { useSettingsStore, type WebRTCProtocol } from '../../stores/settings';
 import { useCurrentProfile } from '../../hooks/useCurrentProfile';
 
 export function VideoSettings() {
@@ -47,6 +48,30 @@ export function VideoSettings() {
         if (!currentProfile) return;
         updateSettings(currentProfile.id, {
             streamingMethod: enableGo2RTC ? 'auto' : 'mjpeg',
+        });
+    };
+
+    const handleProtocolChange = (protocol: WebRTCProtocol, enabled: boolean) => {
+        if (!currentProfile) return;
+        const currentProtocols = settings.webrtcProtocols || ['webrtc', 'mse', 'hls'];
+        let newProtocols: WebRTCProtocol[];
+
+        if (enabled) {
+            // Add protocol if not already present
+            newProtocols = currentProtocols.includes(protocol)
+                ? currentProtocols
+                : [...currentProtocols, protocol];
+        } else {
+            // Remove protocol, but ensure at least one remains
+            newProtocols = currentProtocols.filter(p => p !== protocol);
+            if (newProtocols.length === 0) {
+                // Don't allow removing the last protocol
+                return;
+            }
+        }
+
+        updateSettings(currentProfile.id, {
+            webrtcProtocols: newProtocols,
         });
     };
 
@@ -127,6 +152,70 @@ export function VideoSettings() {
                         data-testid="settings-go2rtc-switch"
                     />
                 </div>
+
+                {/* WebRTC Protocol Selection - Only shown when Go2RTC is enabled */}
+                {settings.streamingMethod === 'auto' && (
+                    <div className="space-y-3 p-4 rounded-lg border bg-muted/50 ml-4">
+                        <div>
+                            <Label className="text-base font-semibold">
+                                {t('settings.webrtc_protocols')}
+                            </Label>
+                            <p className="text-sm text-muted-foreground mt-1">
+                                {t('settings.webrtc_protocols_desc')}
+                            </p>
+                        </div>
+                        <div className="space-y-3">
+                            <div className="flex items-start space-x-3">
+                                <Checkbox
+                                    id="protocol-webrtc"
+                                    checked={settings.webrtcProtocols?.includes('webrtc') ?? true}
+                                    onCheckedChange={(checked) => handleProtocolChange('webrtc', checked === true)}
+                                    data-testid="protocol-webrtc-checkbox"
+                                />
+                                <div className="grid gap-0.5 leading-none">
+                                    <Label htmlFor="protocol-webrtc" className="font-medium cursor-pointer">
+                                        WebRTC
+                                    </Label>
+                                    <p className="text-xs text-muted-foreground">
+                                        {t('settings.protocol_webrtc_desc')}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex items-start space-x-3">
+                                <Checkbox
+                                    id="protocol-mse"
+                                    checked={settings.webrtcProtocols?.includes('mse') ?? true}
+                                    onCheckedChange={(checked) => handleProtocolChange('mse', checked === true)}
+                                    data-testid="protocol-mse-checkbox"
+                                />
+                                <div className="grid gap-0.5 leading-none">
+                                    <Label htmlFor="protocol-mse" className="font-medium cursor-pointer">
+                                        MSE
+                                    </Label>
+                                    <p className="text-xs text-muted-foreground">
+                                        {t('settings.protocol_mse_desc')}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex items-start space-x-3">
+                                <Checkbox
+                                    id="protocol-hls"
+                                    checked={settings.webrtcProtocols?.includes('hls') ?? true}
+                                    onCheckedChange={(checked) => handleProtocolChange('hls', checked === true)}
+                                    data-testid="protocol-hls-checkbox"
+                                />
+                                <div className="grid gap-0.5 leading-none">
+                                    <Label htmlFor="protocol-hls" className="font-medium cursor-pointer">
+                                        HLS
+                                    </Label>
+                                    <p className="text-xs text-muted-foreground">
+                                        {t('settings.protocol_hls_desc')}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Snapshot Refresh Interval */}
                 {settings.viewMode === 'snapshot' && (
