@@ -148,6 +148,7 @@ export function VideoPlayer({
         muted,
         aspectRatio,
         poster,
+        disablePictureInPicture: true,
         sources: [{
           src,
           type
