@@ -62,8 +62,6 @@ describe('discoverZoneminder', () => {
         portalUrl: 'http://zm.example.com',
         apiUrl: 'http://zm.example.com/zm/api',
         cgiUrl: 'http://zm.example.com/zm/cgi-bin/nph-zms',
-        go2rtcUrl: undefined,
-        go2rtcAvailable: false,
       });
     });
 
@@ -72,42 +70,16 @@ describe('discoverZoneminder', () => {
         // Portal check
         .mockResolvedValueOnce({ status: 200 })
         // API check
-        .mockResolvedValueOnce({ status: 200, data: { version: '1.36.0' } })
-        // Go2RTC check (not available)
-        .mockRejectedValueOnce(new Error('Not found'));
+        .mockResolvedValueOnce({ status: 200, data: { version: '1.36.0' } });
 
       (createApiClient as any).mockReturnValue({ get: mockGet });
 
       const result = await discoverZoneminder('http://zm.example.com');
 
-      // Verify discovery succeeded and Go2RTC fields are present
+      // Verify discovery succeeded
       expect(result.portalUrl).toBe('http://zm.example.com');
       expect(result.apiUrl).toBeTruthy();
       expect(result.cgiUrl).toBeTruthy();
-      expect(result.go2rtcAvailable).toBe(false);
-      expect(result.go2rtcUrl).toBeUndefined();
-    });
-
-    it('discovers ZoneMinder with Go2RTC available', async () => {
-      const mockGet = vi.fn()
-        // Portal check
-        .mockResolvedValueOnce({ status: 200 })
-        // API check for /zm/api
-        .mockResolvedValueOnce({ status: 200, data: { version: '1.37.0' } })
-        // Go2RTC check succeeds
-        .mockResolvedValueOnce({ status: 200, data: { streams: {} } });
-
-      (createApiClient as any).mockReturnValue({ get: mockGet });
-
-      const result = await discoverZoneminder('http://zm.example.com');
-
-      expect(result).toEqual({
-        portalUrl: 'http://zm.example.com',
-        apiUrl: 'http://zm.example.com/zm/api',
-        cgiUrl: 'http://zm.example.com/zm/cgi-bin/nph-zms',
-        go2rtcUrl: 'http://zm.example.com:1984',
-        go2rtcAvailable: true,
-      });
     });
 
     it('handles HTTPS URLs correctly', async () => {
@@ -115,9 +87,7 @@ describe('discoverZoneminder', () => {
         // Portal check
         .mockResolvedValueOnce({ status: 200 })
         // API check
-        .mockResolvedValueOnce({ status: 200, data: { version: '1.36.0' } })
-        // Go2RTC check (not available)
-        .mockRejectedValueOnce(new Error('Not found'));
+        .mockResolvedValueOnce({ status: 200, data: { version: '1.36.0' } });
 
       (createApiClient as any).mockReturnValue({ get: mockGet });
 
@@ -126,8 +96,6 @@ describe('discoverZoneminder', () => {
       expect(result.portalUrl).toBe('https://zm.example.com');
       expect(result.apiUrl).toContain('https://');
       expect(result.cgiUrl).toContain('https://');
-      expect(result.go2rtcUrl).toBeUndefined();
-      expect(result.go2rtcAvailable).toBe(false);
     });
 
     it('adds http:// prefix to scheme-less URLs', async () => {
@@ -135,88 +103,13 @@ describe('discoverZoneminder', () => {
         // Portal check
         .mockResolvedValueOnce({ status: 200 })
         // API check
-        .mockResolvedValueOnce({ status: 200, data: { version: '1.36.0' } })
-        // Go2RTC check (not available)
-        .mockRejectedValueOnce(new Error('Not found'));
+        .mockResolvedValueOnce({ status: 200, data: { version: '1.36.0' } });
 
       (createApiClient as any).mockReturnValue({ get: mockGet });
 
       const result = await discoverZoneminder('zm.example.com');
 
       expect(result.portalUrl).toMatch(/^https?:\/\//);
-    });
-  });
-
-  describe('Go2RTC detection', () => {
-    it('detects Go2RTC on standard port 1984', async () => {
-      const mockGet = vi.fn()
-        // Portal check
-        .mockResolvedValueOnce({ status: 200 })
-        // API check
-        .mockResolvedValueOnce({ status: 200, data: { version: '1.37.0' } })
-        // Go2RTC check succeeds
-        .mockResolvedValueOnce({ status: 200, data: { streams: {} } });
-
-      (createApiClient as any).mockReturnValue({ get: mockGet });
-
-      const result = await discoverZoneminder('http://zm.example.com');
-
-      expect(result.go2rtcAvailable).toBe(true);
-      expect(result.go2rtcUrl).toBe('http://zm.example.com:1984');
-    });
-
-    it('handles Go2RTC not available gracefully', async () => {
-      const mockGet = vi.fn()
-        // Portal check
-        .mockResolvedValueOnce({ status: 200 })
-        // API check
-        .mockResolvedValueOnce({ status: 200, data: { version: '1.36.0' } })
-        // Go2RTC check fails (not available)
-        .mockRejectedValueOnce(new Error('Connection refused'));
-
-      (createApiClient as any).mockReturnValue({ get: mockGet });
-
-      const result = await discoverZoneminder('http://zm.example.com');
-
-      expect(result.go2rtcAvailable).toBe(false);
-      expect(result.go2rtcUrl).toBeUndefined();
-      // Discovery should still succeed
-      expect(result.portalUrl).toBe('http://zm.example.com');
-    });
-
-    it('uses HTTPS for Go2RTC when portal uses HTTPS', async () => {
-      const mockGet = vi.fn()
-        // Portal check
-        .mockResolvedValueOnce({ status: 200 })
-        // API check
-        .mockResolvedValueOnce({ status: 200, data: { version: '1.37.0' } })
-        // Go2RTC check succeeds
-        .mockResolvedValueOnce({ status: 200, data: { streams: {} } });
-
-      (createApiClient as any).mockReturnValue({ get: mockGet });
-
-      const result = await discoverZoneminder('https://zm.example.com');
-
-      expect(result.go2rtcAvailable).toBe(true);
-      expect(result.go2rtcUrl).toBe('https://zm.example.com:1984');
-    });
-
-    it('is non-blocking when Go2RTC check times out', async () => {
-      const mockGet = vi.fn()
-        // Portal check
-        .mockResolvedValueOnce({ status: 200 })
-        // API check
-        .mockResolvedValueOnce({ status: 200, data: { version: '1.36.0' } })
-        // Go2RTC check times out
-        .mockRejectedValueOnce(new Error('Timeout'));
-
-      (createApiClient as any).mockReturnValue({ get: mockGet });
-
-      // Should not throw, should complete successfully
-      const result = await discoverZoneminder('http://zm.example.com');
-
-      expect(result.go2rtcAvailable).toBe(false);
-      expect(result.portalUrl).toBe('http://zm.example.com');
     });
   });
 

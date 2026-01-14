@@ -6,8 +6,8 @@
  */
 
 import { getApiClient } from './client';
-import type { LoginResponse, ZmsPathResponse, VersionResponse } from './types';
-import { LoginResponseSchema, ZmsPathResponseSchema, VersionResponseSchema } from './types';
+import type { Go2RTCPathResponse, LoginResponse, ZmsPathResponse, VersionResponse } from './types';
+import { Go2RTCPathResponseSchema, LoginResponseSchema, ZmsPathResponseSchema, VersionResponseSchema } from './types';
 import { log, LogLevel } from '../lib/logger';
 
 export interface LoginCredentials {
@@ -178,6 +178,50 @@ export async function fetchZmsPath(): Promise<string | null> {
     });
 
     // Return null to allow fallback to inference logic
+    return null;
+  }
+}
+
+/**
+ * Fetch the Go2RTC path from server configuration.
+ *
+ * This API endpoint returns the server-configured Go2RTC URL (ZM_GO2RTC_PATH),
+ * which includes protocol, host, port, and path (e.g., "http://server:1984").
+ * Only works after successful authentication.
+ *
+ * Not all ZoneMinder servers have Go2RTC configured - this is optional.
+ *
+ * @returns Promise resolving to the Go2RTC URL or null if not configured/fetch fails
+ */
+export async function fetchGo2RTCPath(): Promise<string | null> {
+  try {
+    const client = getApiClient();
+    log.auth('Fetching Go2RTC path from server config', LogLevel.DEBUG);
+
+    const response = await client.get<Go2RTCPathResponse>('/configs/viewByName/ZM_GO2RTC_PATH.json');
+
+    // Validate response with Zod
+    const validated = Go2RTCPathResponseSchema.parse(response.data);
+    const go2rtcPath = validated.config.Value;
+
+    // Check if value is empty (not configured)
+    if (!go2rtcPath || go2rtcPath.trim() === '') {
+      log.auth('Go2RTC not configured (empty value)', LogLevel.INFO);
+      return null;
+    }
+
+    log.auth('Go2RTC path fetched successfully', LogLevel.INFO, { go2rtcPath });
+    return go2rtcPath;
+  } catch (error: unknown) {
+    const err = error as { constructor: { name: string }; message: string; response?: { status: number; data: unknown } };
+    log.auth('Failed to fetch Go2RTC path from server', LogLevel.INFO, {
+      error,
+      errorType: err.constructor.name,
+      message: err.message,
+      status: err.response?.status,
+    });
+
+    // Return null - Go2RTC is optional
     return null;
   }
 }

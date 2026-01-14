@@ -164,7 +164,7 @@ export default function MonitorDetail() {
   const [scale, setScale] = useState(settings.streamScale);
   const [connKey, setConnKey] = useState(0);
   const [isSliding, setIsSliding] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const mediaRef = useRef<HTMLImageElement | HTMLVideoElement>(null);
 
   // Track previous connKey to send CMD_QUIT before regenerating
   const prevConnKeyRef = useRef<number>(0);
@@ -454,9 +454,9 @@ export default function MonitorDetail() {
       }
 
       // Abort image loading to release browser connection
-      if (videoRef.current && params.monitorId) {
-        log.monitorDetail('Aborting image element', LogLevel.DEBUG, { monitorId: params.monitorId });
-        videoRef.current.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+      if (mediaRef.current && params.monitorId) {
+        log.monitorDetail('Aborting media element', LogLevel.DEBUG, { monitorId: params.monitorId });
+        mediaRef.current.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
       }
     };
   }, []); // Empty deps = only run on unmount
@@ -569,60 +569,63 @@ export default function MonitorDetail() {
           <VideoPlayer
             monitor={monitor.Monitor}
             profile={currentProfile}
-            externalVideoRef={videoRef}
+            externalMediaRef={mediaRef}
             objectFit={settings.monitorDetailFeedFit}
             showStatus={true}
             className="data-[testid=monitor-player]"
           />
-
-          {/* Controls Overlay */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300">
-            <div className="flex items-center justify-between text-white">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-white hover:bg-white/20"
-                  onClick={() => {
-                    if (videoRef.current) {
-                      downloadSnapshotFromElement(videoRef.current, monitor.Monitor.Name)
-                        .then(() => toast.success(t('monitor_detail.snapshot_saved', { name: monitor.Monitor.Name })))
-                        .catch(() => toast.error(t('monitor_detail.snapshot_failed')));
-                    }
-                  }}
-                  title={t('monitor_detail.save_snapshot')}
-                  aria-label={t('monitor_detail.save_snapshot')}
-                  data-testid="snapshot-button"
-                >
-                  <Download className="h-5 w-5" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-white hover:bg-white/20"
-                  onClick={() => navigate(`/events?monitorId=${monitor.Monitor.Id}`)}
-                  title={t('monitor_detail.view_events')}
-                  aria-label={t('monitor_detail.view_events')}
-                >
-                  <Clock className="h-5 w-5" />
-                </Button>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-white hover:bg-white/20 text-xs"
-                  onClick={() => setScale(scale === settings.streamScale ? 150 : settings.streamScale)}
-                >
-                  {scale}%
-                </Button>
-                <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" aria-label={t('monitor_detail.maximize')}>
-                  <Maximize2 className="h-5 w-5" />
-                </Button>
-              </div>
-            </div>
-          </div>
         </Card>
+
+        {/* Video Controls Bar - below video to not interfere with native video controls */}
+        <div className="w-full max-w-5xl mt-2 px-2 flex items-center justify-between">
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => {
+                if (mediaRef.current) {
+                  downloadSnapshotFromElement(mediaRef.current, monitor.Monitor.Name)
+                    .then(() => toast.success(t('monitor_detail.snapshot_saved', { name: monitor.Monitor.Name })))
+                    .catch(() => toast.error(t('monitor_detail.snapshot_failed')));
+                }
+              }}
+              title={t('monitor_detail.save_snapshot')}
+              aria-label={t('monitor_detail.save_snapshot')}
+              data-testid="snapshot-button"
+            >
+              <Download className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => navigate(`/events?monitorId=${monitor.Monitor.Id}`)}
+              title={t('monitor_detail.view_events')}
+              aria-label={t('monitor_detail.view_events')}
+            >
+              <Clock className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 text-xs"
+              onClick={() => setScale(scale === settings.streamScale ? 150 : settings.streamScale)}
+            >
+              {scale}%
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              aria-label={t('monitor_detail.maximize')}
+            >
+              <Maximize2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
 
         {/* PTZ Controls */}
         {monitor.Monitor.Controllable === '1' && (

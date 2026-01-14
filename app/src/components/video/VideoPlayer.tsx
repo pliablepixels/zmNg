@@ -3,7 +3,6 @@
  *
  * Unified video player that automatically selects streaming method based on:
  * - User preference (settings.streamingMethod)
- * - Server capability (profile.go2rtcAvailable)
  * - Monitor support (monitor.Go2RTCEnabled)
  * - Connection health (automatic fallback)
  *
@@ -13,9 +12,11 @@
  * - Connection status display
  * - Error handling with retry
  * - Loading states
+ *
+ * Note: Go2RTC URL is constructed from the profile's API URL by replacing the port with 1984.
  */
 
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
 import type { Monitor, Profile } from '../../api/types';
@@ -37,14 +38,10 @@ export interface VideoPlayerProps {
   objectFit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
   /** Show connection status badge */
   showStatus?: boolean;
-  /** Enable autoplay (default: true) */
-  autoPlay?: boolean;
-  /** Enable muted (default: true) */
+  /** External ref to media element for snapshot capture (img for MJPEG, video for WebRTC) */
+  externalMediaRef?: React.RefObject<HTMLImageElement | HTMLVideoElement | null>;
+  /** Mute audio (default: false). Useful for montage view to avoid multiple audio streams. */
   muted?: boolean;
-  /** Additional controls */
-  controls?: boolean;
-  /** External ref to video element (optional, for snapshot capture) */
-  externalVideoRef?: React.RefObject<HTMLVideoElement | null>;
 }
 
 export function VideoPlayer({
@@ -53,112 +50,158 @@ export function VideoPlayer({
   className = '',
   objectFit = 'contain',
   showStatus = false,
-  autoPlay = true,
-  muted = true,
-  controls = false,
-  externalVideoRef,
+  externalMediaRef,
+  muted = false,
 }: VideoPlayerProps) {
   const { t } = useTranslation();
-  const internalVideoRef = useRef<HTMLVideoElement>(null);
-  // Use external ref if provided, otherwise use internal ref
-  const videoRef = externalVideoRef || internalVideoRef;
-  const settings = useSettingsStore(
-    useShallow((state) => state.getProfileSettings(profile?.id || ''))
+  // Container ref for WebRTC (VideoRTC custom element will be appended here)
+  const containerRef = useRef<HTMLDivElement>(null);
+  // Image ref for MJPEG streaming
+  const imgRef = useRef<HTMLImageElement>(null);
+  // Select only the specific setting we need to avoid creating new objects on every render
+  const rawSettings = useSettingsStore(
+    useShallow((state) => state.profileSettings[profile?.id || ''])
   );
+  // Only use the one setting we need, with default fallback
+  const userStreamingPreference = rawSettings?.streamingMethod ?? 'auto';
 
   // Determine which streaming method to use
+  // Rules:
+  // 1. If settings.streamingMethod === 'mjpeg', ALL monitors use MJPEG (user disabled Go2RTC)
+  // 2. If settings.streamingMethod === 'auto', use Go2RTC for monitors that support it
+  // 3. Go2RTC requires: monitor.Go2RTCEnabled === true AND profile.go2rtcUrl configured
+  // Use useRef to track if we've already logged for this monitor/method combo to avoid spam
+  const lastLoggedRef = useRef<string>('');
   const streamingMethod = useMemo(() => {
-    const userPreference = settings.streamingMethod;
-    const go2rtcAvailable = profile?.go2rtcAvailable ?? false;
-    const monitorSupportsGo2RTC = monitor.Go2RTCEnabled ?? false;
+    const monitorSupportsGo2RTC = monitor.Go2RTCEnabled === true;
+    const serverHasGo2RTC = !!profile?.go2rtcUrl;
 
-    log.videoPlayer('Determining streaming method', LogLevel.DEBUG, {
-      userPreference,
-      go2rtcAvailable,
-      monitorSupportsGo2RTC,
-      monitorId: monitor.Id,
-      monitorName: monitor.Name,
-    });
+    let method: 'mjpeg' | 'webrtc';
+    let reason: string;
 
-    // If user forces MJPEG, use it
-    if (userPreference === 'mjpeg') {
-      return 'mjpeg';
+    // Case 1: User has disabled Go2RTC globally - use MJPEG for all monitors
+    if (userStreamingPreference === 'mjpeg') {
+      method = 'mjpeg';
+      reason = 'User disabled Go2RTC in settings';
+    }
+    // Case 2: Auto mode - check if monitor supports Go2RTC
+    else if (!monitorSupportsGo2RTC) {
+      method = 'mjpeg';
+      reason = 'Monitor.Go2RTCEnabled is false or undefined';
+    }
+    // Case 3: Monitor supports Go2RTC but server not configured
+    else if (!serverHasGo2RTC) {
+      method = 'mjpeg';
+      reason = 'Profile has no go2rtcUrl configured';
+    }
+    // Case 4: All conditions met - use WebRTC/Go2RTC
+    else {
+      method = 'webrtc';
+      reason = 'Monitor supports Go2RTC and server is configured';
     }
 
-    // If user wants WebRTC only, check if available
-    if (userPreference === 'webrtc') {
-      if (go2rtcAvailable && monitorSupportsGo2RTC) {
-        return 'webrtc';
-      } else {
-        // WebRTC not available, log warning
-        log.videoPlayer('WebRTC requested but not available', LogLevel.WARN, {
-          go2rtcAvailable,
-          monitorSupportsGo2RTC,
-          monitorId: monitor.Id,
-        });
-        return 'mjpeg'; // Fallback to MJPEG
-      }
+    // Only log once per monitor/method combination to avoid spam
+    const logKey = `${monitor.Id}-${method}`;
+    if (lastLoggedRef.current !== logKey) {
+      lastLoggedRef.current = logKey;
+      log.videoPlayer(`STREAMING DECISION: Using ${method === 'webrtc' ? 'WebRTC/Go2RTC' : 'MJPEG'}`, LogLevel.INFO, {
+        monitorId: monitor.Id,
+        monitorName: monitor.Name,
+        reason,
+        monitorGo2RTCEnabled: monitor.Go2RTCEnabled,
+        ...(method === 'webrtc' && { go2rtcUrl: profile?.go2rtcUrl }),
+      });
     }
 
-    // Auto mode: use WebRTC if available, otherwise MJPEG
-    if (userPreference === 'auto') {
-      if (go2rtcAvailable && monitorSupportsGo2RTC) {
-        return 'webrtc';
-      } else {
-        return 'mjpeg';
-      }
-    }
+    return method;
+  }, [userStreamingPreference, monitor.Go2RTCEnabled, monitor.Id, monitor.Name, profile?.go2rtcUrl]);
 
-    // Default to MJPEG
-    return 'mjpeg';
-  }, [settings.streamingMethod, profile?.go2rtcAvailable, monitor.Go2RTCEnabled, monitor.Id, monitor.Name]);
+  // Track if Go2RTC has completely failed and we need native MJPEG fallback
+  const [go2rtcFailed, setGo2rtcFailed] = useState(false);
 
-  // WebRTC stream (only enabled if streamingMethod is 'webrtc')
+  // Effective streaming method - falls back to mjpeg if Go2RTC completely fails
+  const effectiveStreamingMethod = go2rtcFailed ? 'mjpeg' : streamingMethod;
+
+  // WebRTC stream (only enabled if streamingMethod is 'webrtc' and go2rtcUrl is configured)
   const go2rtcStream = useGo2RTCStream({
     go2rtcUrl: profile?.go2rtcUrl || '',
-    streamName: monitor.RTSPStreamName || monitor.Name || `monitor-${monitor.Id}`,
-    videoRef,
-    enableFallback: settings.webrtcFallbackEnabled,
-    enabled: streamingMethod === 'webrtc',
+    monitorId: monitor.Id,
+    channel: 0, // TODO: Support secondary channel based on monitor settings
+    containerRef,
+    enabled: streamingMethod === 'webrtc' && !!profile?.go2rtcUrl && !go2rtcFailed,
+    muted,
   });
 
-  // MJPEG stream using existing hook (only enabled when using MJPEG)
+  // Detect Go2RTC complete failure and fall back to native MJPEG
+  useEffect(() => {
+    if (streamingMethod === 'webrtc' && go2rtcStream.state === 'error' && !go2rtcFailed) {
+      log.videoPlayer('GO2RTC FAILED: WebSocket connection failed, falling back to native MJPEG', LogLevel.WARN, {
+        monitorId: monitor.Id,
+        monitorName: monitor.Name,
+        error: go2rtcStream.error,
+        finalDecision: 'MJPEG via ZMS',
+      });
+      setGo2rtcFailed(true);
+    }
+  }, [streamingMethod, go2rtcStream.state, go2rtcStream.error, go2rtcFailed, monitor.Id, monitor.Name]);
+
+  // Reset Go2RTC failed state when monitor changes
+  useEffect(() => {
+    setGo2rtcFailed(false);
+  }, [monitor.Id]);
+
+  // MJPEG stream using existing hook (enabled when using MJPEG or Go2RTC has failed)
   const mjpegStream = useMonitorStream({
     monitorId: monitor.Id,
     streamOptions: {
-      maxfps: settings.streamMaxFps,
-      scale: settings.streamScale,
+      maxfps: rawSettings?.streamMaxFps,
+      scale: rawSettings?.streamScale,
     },
-    enabled: streamingMethod === 'mjpeg',
+    enabled: effectiveStreamingMethod === 'mjpeg',
   });
+
+  // Sync internal imgRef with external media ref for snapshot capture
+  useEffect(() => {
+    if (externalMediaRef && effectiveStreamingMethod === 'mjpeg' && imgRef.current) {
+      // Cast to mutable ref to allow assignment
+      (externalMediaRef as React.MutableRefObject<HTMLImageElement | HTMLVideoElement | null>).current = imgRef.current;
+    }
+  }, [externalMediaRef, effectiveStreamingMethod, mjpegStream.streamUrl]);
 
   // Determine current status
   const status = useMemo(() => {
-    if (streamingMethod === 'webrtc') {
+    if (effectiveStreamingMethod === 'webrtc') {
       return {
-        type: streamingMethod,
+        type: effectiveStreamingMethod,
         state: go2rtcStream.state,
         error: go2rtcStream.error,
-        protocol: go2rtcStream.currentProtocol,
+        protocol: 'go2rtc' as const, // Video-rtc handles protocol selection internally
       };
     } else {
       return {
-        type: streamingMethod as 'mjpeg',
+        type: effectiveStreamingMethod as 'mjpeg',
         state: mjpegStream.streamUrl ? 'connected' : 'connecting',
         error: null,
         protocol: 'mjpeg' as const,
+        // Track if this is a fallback from Go2RTC failure
+        isFallback: go2rtcFailed,
       };
     }
-  }, [streamingMethod, go2rtcStream, mjpegStream.streamUrl]);
+  }, [effectiveStreamingMethod, go2rtcStream, mjpegStream.streamUrl, go2rtcFailed]);
 
   // Handle retry
   const handleRetry = () => {
     log.videoPlayer('Retry requested', LogLevel.INFO, {
-      streamingMethod,
+      streamingMethod: effectiveStreamingMethod,
       monitorId: monitor.Id,
+      go2rtcFailed,
     });
 
-    if (streamingMethod === 'webrtc') {
+    if (go2rtcFailed) {
+      // Reset Go2RTC failed state and try again
+      setGo2rtcFailed(false);
+      go2rtcStream.retry();
+    } else if (effectiveStreamingMethod === 'webrtc') {
       go2rtcStream.retry();
     } else {
       mjpegStream.regenerateConnection();
@@ -168,36 +211,44 @@ export function VideoPlayer({
   // Log stream changes
   useMemo(() => {
     log.videoPlayer('Stream status changed', LogLevel.DEBUG, {
-      streamingMethod,
+      streamingMethod: effectiveStreamingMethod,
       state: status.state,
       protocol: status.protocol,
       monitorId: monitor.Id,
+      go2rtcFailed,
     });
-  }, [streamingMethod, status.state, status.protocol, monitor.Id]);
+  }, [effectiveStreamingMethod, status.state, status.protocol, monitor.Id, go2rtcFailed]);
 
   return (
     <div className="relative w-full h-full" data-testid="video-player">
-      {/* Video Element */}
-      <video
-        ref={videoRef}
-        className={`w-full h-full ${className}`}
-        style={{ objectFit }}
-        autoPlay={autoPlay}
-        muted={muted}
-        controls={controls}
-        playsInline
-        data-testid="video-player-video"
-        src={streamingMethod === 'mjpeg' ? mjpegStream.streamUrl : undefined}
-      />
+      {/* WebRTC Container - VideoRTC custom element will be appended here */}
+      {effectiveStreamingMethod === 'webrtc' && (
+        <div
+          ref={containerRef}
+          className={`w-full h-full ${className}`}
+          style={{ objectFit } as React.CSSProperties}
+          data-testid="video-player-webrtc-container"
+        />
+      )}
+
+      {/* MJPEG Image Element - ZMS MJPEG is multipart JPEG, works with img tags */}
+      {effectiveStreamingMethod === 'mjpeg' && mjpegStream.streamUrl && (
+        <img
+          ref={imgRef}
+          className={`w-full h-full ${className}`}
+          style={{ objectFit }}
+          data-testid="video-player-mjpeg"
+          src={mjpegStream.streamUrl}
+          alt={monitor.Name}
+        />
+      )}
 
       {/* Status Badge */}
       {showStatus && (
         <div className="absolute top-2 left-2 flex gap-2" data-testid="video-player-status">
           {/* Protocol Badge */}
           <Badge variant="secondary" className="text-xs">
-            {status.protocol === 'webrtc' && t('video.streaming_webrtc')}
-            {status.protocol === 'mse' && 'MSE'}
-            {status.protocol === 'hls' && 'HLS'}
+            {status.protocol === 'go2rtc' && t('video.streaming_webrtc')}
             {status.protocol === 'mjpeg' && t('video.streaming_mjpeg')}
           </Badge>
 

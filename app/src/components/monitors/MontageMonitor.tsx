@@ -60,7 +60,7 @@ function MontageMonitorComponent({
   );
   const [connKey, setConnKey] = useState(0);
   const [imageLoaded, setImageLoaded] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const mediaRef = useRef<HTMLImageElement | HTMLVideoElement>(null);
   const resolvedFit = objectFit ?? (isFullscreen ? 'cover' : 'contain');
   const aspectRatio = getMonitorAspectRatio(monitor.Width, monitor.Height, monitor.Orientation);
 
@@ -144,9 +144,9 @@ function MontageMonitorComponent({
       }
 
       // Abort image loading to release browser connection
-      if (videoRef.current) {
+      if (mediaRef.current) {
         log.montageMonitor('Aborting image element', LogLevel.DEBUG, { monitorId: params.monitorId });
-        videoRef.current.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+        mediaRef.current.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
       }
     };
   }, []); // Empty deps = only run on unmount
@@ -208,7 +208,7 @@ function MontageMonitorComponent({
         <VideoPlayer
           monitor={monitor}
           profile={currentProfile}
-          externalVideoRef={videoRef}
+          externalMediaRef={mediaRef}
           objectFit={resolvedFit}
           showStatus={false}
           className="w-full h-full"
@@ -222,8 +222,8 @@ function MontageMonitorComponent({
             className="h-6 w-6 text-white hover:bg-white/20"
             onClick={(e) => {
               e.stopPropagation();
-              if (videoRef.current) {
-                downloadSnapshotFromElement(videoRef.current, monitor.Name)
+              if (mediaRef.current) {
+                downloadSnapshotFromElement(mediaRef.current, monitor.Name)
                   .then(() => toast.success(t('montage.snapshot_saved', { name: monitor.Name })))
                   .catch(() => toast.error(t('montage.snapshot_failed')));
               }

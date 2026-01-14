@@ -61,9 +61,13 @@ export function useMonitorStream({
   const prevConnKeyRef = useRef<number>(0);
   const isInitialMountRef = useRef(true);
 
-  // Regenerate connKey on mount and when monitor ID changes
+  // Regenerate connKey on mount, when monitor ID changes, or when enabled changes from false to true
   useEffect(() => {
     if (!enabled) return;
+
+    // If we already have a connKey for this monitor, don't regenerate
+    // (only regenerate when first enabled or monitor changes)
+    if (connKey !== 0 && !isInitialMountRef.current) return;
 
     // Send CMD_QUIT for previous connKey before generating new one (skip on initial mount)
     if (!isInitialMountRef.current && prevConnKeyRef.current !== 0 && settings.viewMode === 'streaming' && currentProfile) {
@@ -95,7 +99,7 @@ export function useMonitorStream({
     prevConnKeyRef.current = newKey;
     setCacheBuster(Date.now());
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [monitorId]); // ONLY regenerate when monitor ID changes
+  }, [monitorId, enabled]); // Regenerate when monitor ID changes or when first enabled
 
   // Snapshot mode: periodic refresh
   useEffect(() => {

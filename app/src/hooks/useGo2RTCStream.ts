@@ -1,268 +1,371 @@
 /**
  * useGo2RTCStream Hook
  *
- * Manages WebRTC streaming lifecycle via Go2RTC server using video-rtc.js.
- * Implements full fallback ladder: WebRTC → MSE → HLS → MJPEG
+ * Manages streaming via Go2RTC server using video-rtc.js.
+ * Video-rtc handles protocol negotiation internally:
+ * - Runs MSE/HLS and WebRTC in parallel
+ * - Whichever produces video first wins
+ * - Automatic reconnection on disconnect
  *
- * Features:
- * - WebSocket signaling for WebRTC offer/answer/ICE
- * - Automatic protocol fallback on connection failure
- * - Connection state management
- * - Error handling and retry logic
+ * This hook only manages:
+ * - VideoRTC element lifecycle
+ * - Connection state tracking
  * - Cleanup on unmount
+ * - Fallback to native MJPEG when Go2RTC WebSocket fails entirely
  */
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { VideoRTC } from '../lib/vendor/go2rtc/video-rtc';
-import { getGo2RTCWebSocketUrl, getGo2RTCStreamUrl } from '../lib/url-builder';
+import { getGo2RTCWebSocketUrl } from '../lib/url-builder';
 import { log, LogLevel } from '../lib/logger';
 
-export type StreamingProtocol = 'webrtc' | 'mse' | 'hls' | 'mjpeg';
+// Register VideoRTC as a custom element (required for connectedCallback to work)
+// This must happen before any VideoRTC instances are created
+if (typeof window !== 'undefined' && !customElements.get('video-rtc')) {
+  customElements.define('video-rtc', VideoRTC);
+  log.videoPlayer('Registered VideoRTC custom element', LogLevel.DEBUG);
+}
+
+// Go2RTC handles these protocols internally via video-rtc.js
+// Native MJPEG fallback is handled separately by VideoPlayer when Go2RTC fails
+export type StreamingProtocol = 'webrtc' | 'mse' | 'hls';
 export type ConnectionState = 'idle' | 'connecting' | 'connected' | 'error' | 'disconnected';
 
 export interface UseGo2RTCStreamOptions {
-  /** Go2RTC server URL (e.g., http://server:1984) */
+  /** Go2RTC server URL from ZM_GO2RTC_PATH config (e.g., http://server:1984) */
   go2rtcUrl: string;
-  /** RTSP stream name from monitor */
-  streamName: string;
-  /** Video element ref to attach stream */
-  videoRef: React.RefObject<HTMLVideoElement | null>;
-  /** Enable automatic fallback on WebRTC failure (default: true) */
-  enableFallback?: boolean;
-  /** Preferred protocols in order (default: ['webrtc', 'mse', 'hls', 'mjpeg']) */
+  /** Monitor ID (numeric) */
+  monitorId: string;
+  /** Channel number (0 = primary, 1 = secondary, default: 0) */
+  channel?: number;
+  /** Container element ref where VideoRTC element will be placed */
+  containerRef: React.RefObject<HTMLElement | null>;
+  /** Protocols to try (video-rtc runs compatible ones in parallel). Default: ['webrtc', 'mse', 'hls'] */
   protocols?: StreamingProtocol[];
   /** Authentication token (optional) */
   token?: string;
   /** Enable stream (default: true) */
   enabled?: boolean;
+  /** Mute audio (default: false). Useful for montage view to avoid cacophony. */
+  muted?: boolean;
 }
 
 export interface UseGo2RTCStreamResult {
   /** Current connection state */
   state: ConnectionState;
-  /** Currently active protocol */
-  currentProtocol: StreamingProtocol | null;
   /** Error message if state is 'error' */
   error: string | null;
-  /** Retry connection with current or next protocol */
+  /** Retry connection */
   retry: () => void;
   /** Stop and cleanup */
   stop: () => void;
+  /** Toggle muted state on the video element */
+  toggleMute: () => boolean;
+  /** Check if currently muted */
+  isMuted: () => boolean;
 }
 
 export function useGo2RTCStream(options: UseGo2RTCStreamOptions): UseGo2RTCStreamResult {
   const {
     go2rtcUrl,
-    streamName,
-    videoRef,
-    enableFallback = true,
-    protocols = ['webrtc', 'mse', 'hls', 'mjpeg'],
+    monitorId,
+    channel = 0,
+    containerRef,
+    // Video-rtc runs compatible protocols in parallel (MSE+WebRTC or HLS+WebRTC)
+    // Whichever produces video first wins
+    protocols = ['webrtc', 'mse', 'hls'],
     token,
     enabled = true,
+    muted = false,
   } = options;
 
   const [state, setState] = useState<ConnectionState>('idle');
-  const [currentProtocol, setCurrentProtocol] = useState<StreamingProtocol | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const videoRtcRef = useRef<VideoRTC | null>(null);
-  const protocolIndexRef = useRef<number>(0);
-  const cleanupRef = useRef<(() => void) | null>(null);
+  // Track if component is still mounted (survives React Strict Mode double-invoke)
+  const mountedRef = useRef<boolean>(false);
+  // Track initial connection timeout for React Strict Mode protection
+  const connectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Track WebSocket connection success for error detection
+  const wsConnectedRef = useRef<boolean>(false);
+  // Store muted in ref so callbacks can access latest value without causing reconnect
+  // Initialize with the prop value (not false) to ensure first render has correct value
+  const mutedRef = useRef<boolean>(muted);
+  // Always keep ref in sync with prop on every render
+  mutedRef.current = muted;
 
   // Cleanup function
   const cleanup = useCallback(() => {
-    log.videoPlayer('Cleaning up Go2RTC stream', LogLevel.DEBUG, {
-      protocol: currentProtocol,
-      streamName,
-    });
+    log.videoPlayer('GO2RTC: Cleaning up', LogLevel.DEBUG, { monitorId });
 
-    if (cleanupRef.current) {
-      cleanupRef.current();
-      cleanupRef.current = null;
+    // Cancel any pending connection attempts (React Strict Mode protection)
+    if (connectTimeoutRef.current) {
+      clearTimeout(connectTimeoutRef.current);
+      connectTimeoutRef.current = null;
     }
+
+    wsConnectedRef.current = false;
 
     if (videoRtcRef.current) {
       try {
-        videoRtcRef.current.onclose();
+        // Call ondisconnect to properly close WebSocket and WebRTC connections
+        videoRtcRef.current.ondisconnect();
       } catch (err) {
-        log.videoPlayer('Error closing VideoRTC', LogLevel.WARN, { streamName, error: err });
+        log.videoPlayer('GO2RTC: Error disconnecting', LogLevel.WARN, { monitorId, error: err });
+      }
+
+      // Remove from DOM
+      if (videoRtcRef.current.parentNode) {
+        videoRtcRef.current.parentNode.removeChild(videoRtcRef.current);
       }
       videoRtcRef.current = null;
     }
+  }, [monitorId]);
 
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
-      videoRef.current.src = '';
+  // Connect to Go2RTC - video-rtc handles protocol negotiation internally
+  const connect = useCallback(() => {
+    cleanup();
+
+    if (!containerRef.current) {
+      log.videoPlayer('GO2RTC: Container ref not available', LogLevel.WARN, { monitorId });
+      setState('error');
+      setError('Container element not available');
+      return;
     }
-  }, [currentProtocol, streamName, videoRef]);
 
-  // Connect with specific protocol
-  const connect = useCallback(
-    async (protocol: StreamingProtocol) => {
-      cleanup();
+    const modeString = protocols.join(',');
+    log.videoPlayer('GO2RTC: Connecting', LogLevel.INFO, {
+      monitorId,
+      mode: modeString,
+      go2rtcUrl,
+    });
 
-      if (!videoRef.current) {
-        log.videoPlayer('Video ref not available', LogLevel.WARN, { protocol, streamName });
-        setState('error');
-        setError('Video element not available');
-        return;
-      }
+    setState('connecting');
+    setError(null);
 
-      log.videoPlayer('Connecting with protocol', LogLevel.INFO, {
-        protocol,
-        streamName,
-        go2rtcUrl,
+    try {
+      const wsUrl = getGo2RTCWebSocketUrl(go2rtcUrl, monitorId, channel, { token });
+
+      log.videoPlayer('GO2RTC: Opening WebSocket', LogLevel.DEBUG, {
+        monitorId,
+        wsUrl,
+        mode: modeString,
       });
 
-      setState('connecting');
-      setCurrentProtocol(protocol);
-      setError(null);
+      // Create VideoRTC custom element
+      const videoRtc = new VideoRTC();
 
-      try {
-        if (protocol === 'webrtc' || protocol === 'mse' || protocol === 'hls') {
-          // WebRTC/MSE/HLS via VideoRTC library
-          const wsUrl = getGo2RTCWebSocketUrl(go2rtcUrl, streamName, { token });
-          const videoRtc = new VideoRTC();
+      // Style the element to fill its container
+      videoRtc.style.display = 'block';
+      videoRtc.style.width = '100%';
+      videoRtc.style.height = '100%';
 
-          // Configure VideoRTC
-          videoRtc.mode = protocol === 'webrtc' ? 'webrtc' : protocol; // 'webrtc', 'mse', or 'hls'
-          videoRtc.media = 'video,audio';
-          videoRtc.src = wsUrl;
+      // Configure VideoRTC - let it handle protocol negotiation
+      // Video-rtc runs compatible protocols in parallel (MSE+WebRTC or HLS+WebRTC)
+      videoRtc.mode = modeString;
+      videoRtc.media = 'video,audio';
+      videoRtc.background = true; // Don't stop when hidden
 
-          // Lifecycle hooks
-          videoRtc.oninit = () => {
-            log.videoPlayer('VideoRTC initialized', LogLevel.DEBUG, { protocol, streamName });
-          };
-
-          videoRtc.onconnect = () => {
-            log.videoPlayer('VideoRTC connected', LogLevel.INFO, { protocol, streamName });
-            setState('connected');
-            return true; // Allow connection
-          };
-
-          videoRtc.ondisconnect = () => {
-            log.videoPlayer('VideoRTC disconnected', LogLevel.WARN, { protocol, streamName });
-            setState('disconnected');
-          };
-
-          videoRtc.onclose = () => {
-            log.videoPlayer('VideoRTC closed', LogLevel.DEBUG, { protocol, streamName });
-          };
-
-          videoRtc.onpcvideo = (video: HTMLVideoElement) => {
-            log.videoPlayer('VideoRTC attached video element', LogLevel.DEBUG, {
-              protocol,
-              streamName,
-            });
-            if (videoRef.current && video !== videoRef.current) {
-              // Copy stream to our video element
-              videoRef.current.srcObject = video.srcObject;
-            }
-          };
-
-          // Attach to video element
-          videoRef.current.appendChild(videoRtc);
-          videoRtcRef.current = videoRtc;
-
-          // Store cleanup
-          cleanupRef.current = () => {
-            if (videoRtc.parentNode) {
-              videoRtc.parentNode.removeChild(videoRtc);
-            }
-          };
-
-          // Start playback
-          await videoRtc.play();
-        } else if (protocol === 'mjpeg') {
-          // MJPEG fallback via HTTP stream
-          const mjpegUrl = getGo2RTCStreamUrl(go2rtcUrl, streamName, 'mjpeg', { token });
-          log.videoPlayer('Using MJPEG fallback', LogLevel.INFO, {
-            protocol,
-            streamName,
-            url: mjpegUrl,
-          });
-
-          videoRef.current.src = mjpegUrl;
-          await videoRef.current.play();
-          setState('connected');
+      // Override oninit to set muted on the video element after creation
+      // This allows audio to be requested but muted by default (user can unmute)
+      const originalOninit = videoRtc.oninit.bind(videoRtc);
+      videoRtc.oninit = () => {
+        originalOninit();
+        if (videoRtc.video) {
+          // Always check mutedRef for latest value
+          videoRtc.video.muted = mutedRef.current;
+          videoRtc.video.volume = mutedRef.current ? 0 : 1; // Belt and suspenders
+          log.videoPlayer('GO2RTC: Set muted in oninit', LogLevel.DEBUG, { monitorId, muted: mutedRef.current });
         }
-      } catch (err) {
-        log.videoPlayer('Connection failed', LogLevel.ERROR, { protocol, streamName, error: err });
-        setState('error');
-        setError(err instanceof Error ? err.message : 'Connection failed');
+      };
 
-        // Try next protocol if fallback is enabled
-        if (enableFallback && protocolIndexRef.current < protocols.length - 1) {
-          protocolIndexRef.current += 1;
-          const nextProtocol = protocols[protocolIndexRef.current];
-          log.videoPlayer('Falling back to next protocol', LogLevel.INFO, {
-            from: protocol,
-            to: nextProtocol,
-            streamName,
-          });
-          setTimeout(() => connect(nextProtocol), 1000); // Wait 1s before retrying
+      // Track WebSocket open for error detection
+      const originalOnopen = videoRtc.onopen.bind(videoRtc);
+      videoRtc.onopen = () => {
+        wsConnectedRef.current = true;
+        log.videoPlayer('GO2RTC: WebSocket connected', LogLevel.INFO, { monitorId });
+        const modes = originalOnopen();
+        log.videoPlayer('GO2RTC: Active modes', LogLevel.DEBUG, { monitorId, modes });
+        setState('connected');
+        // Also ensure muted after connection established
+        if (videoRtc.video) {
+          videoRtc.video.muted = mutedRef.current;
+          videoRtc.video.volume = mutedRef.current ? 0 : 1;
         }
+        return modes;
+      };
+
+      // Track disconnection
+      const originalOndisconnect = videoRtc.ondisconnect.bind(videoRtc);
+      videoRtc.ondisconnect = () => {
+        log.videoPlayer('GO2RTC: Disconnected', LogLevel.DEBUG, { monitorId });
+        originalOndisconnect();
+        setState('disconnected');
+      };
+
+      // Track WebSocket close - if it never connected, signal error for MJPEG fallback
+      const originalOnclose = videoRtc.onclose.bind(videoRtc);
+      videoRtc.onclose = () => {
+        log.videoPlayer('GO2RTC: WebSocket closed', LogLevel.DEBUG, {
+          monitorId,
+          wasConnected: wsConnectedRef.current,
+        });
+
+        // If WebSocket never connected successfully, this is a connection failure
+        // Signal error so VideoPlayer can fall back to MJPEG
+        if (!wsConnectedRef.current) {
+          log.videoPlayer('GO2RTC: WebSocket failed to connect', LogLevel.WARN, { monitorId });
+          setState('error');
+          setError('Go2RTC WebSocket connection failed');
+          return false; // Don't let video-rtc auto-reconnect
+        }
+
+        // WebSocket was working - let video-rtc handle reconnection
+        return originalOnclose();
+      };
+
+      // Log when video track is received (for debugging)
+      videoRtc.onpcvideo = (video: HTMLVideoElement) => {
+        log.videoPlayer('GO2RTC: Video track received', LogLevel.INFO, {
+          monitorId,
+          videoWidth: video.videoWidth,
+          videoHeight: video.videoHeight,
+        });
+        // Ensure muted when video track is received - use ref for latest value
+        video.muted = mutedRef.current;
+        video.volume = mutedRef.current ? 0 : 1;
+        log.videoPlayer('GO2RTC: Set muted on video track', LogLevel.DEBUG, { monitorId, muted: mutedRef.current });
+      };
+
+      // Clear container and append VideoRTC element
+      containerRef.current.innerHTML = '';
+      containerRef.current.appendChild(videoRtc);
+      videoRtcRef.current = videoRtc;
+
+      // Set src AFTER adding to DOM (triggers connectedCallback -> oninit -> onconnect)
+      videoRtc.src = wsUrl;
+      
+      // AGGRESSIVE: Set muted immediately after src is set, video might exist now
+      // This catches race conditions where oninit fires before our override runs
+      if (videoRtc.video) {
+        videoRtc.video.muted = mutedRef.current;
+        log.videoPlayer('GO2RTC: Set muted immediately after src', LogLevel.DEBUG, { monitorId, muted: mutedRef.current });
       }
-    },
-    [cleanup, videoRef, streamName, go2rtcUrl, token, enableFallback, protocols]
-  );
-
-  // Retry current or next protocol
-  const retry = useCallback(() => {
-    log.videoPlayer('Retry requested', LogLevel.INFO, { currentProtocol, streamName });
-
-    // If no protocol tried yet or we want to retry current, reset to first
-    if (!currentProtocol || !enableFallback) {
-      protocolIndexRef.current = 0;
+    } catch (err) {
+      log.videoPlayer('GO2RTC: Connection failed', LogLevel.ERROR, { monitorId, error: err });
+      setState('error');
+      setError(err instanceof Error ? err.message : 'Connection failed');
     }
-
-    const protocol = protocols[protocolIndexRef.current];
-    connect(protocol);
-  }, [currentProtocol, streamName, enableFallback, protocols, connect]);
+  }, [cleanup, containerRef, monitorId, go2rtcUrl, token, protocols, channel]); // muted accessed via ref
+  // Retry connection
+  const retry = useCallback(() => {
+    log.videoPlayer('GO2RTC: Retry requested', LogLevel.INFO, { monitorId });
+    connect();
+  }, [monitorId, connect]);
 
   // Stop and cleanup
   const stop = useCallback(() => {
-    log.videoPlayer('Stop requested', LogLevel.INFO, { currentProtocol, streamName });
+    log.videoPlayer('GO2RTC: Stop requested', LogLevel.INFO, { monitorId });
     cleanup();
     setState('idle');
-    setCurrentProtocol(null);
     setError(null);
-    protocolIndexRef.current = 0;
-  }, [cleanup, currentProtocol, streamName]);
+  }, [cleanup, monitorId]);
 
   // Effect: Connect when enabled
   useEffect(() => {
+    // Mark as mounted (for React Strict Mode protection)
+    mountedRef.current = true;
+
     if (!enabled) {
       stop();
       return;
     }
 
-    if (!go2rtcUrl || !streamName || !videoRef.current) {
-      log.videoPlayer('Missing required parameters', LogLevel.WARN, {
+    if (!go2rtcUrl || !monitorId || !containerRef.current) {
+      log.videoPlayer('GO2RTC: Missing required parameters', LogLevel.WARN, {
         go2rtcUrl: !!go2rtcUrl,
-        streamName: !!streamName,
-        videoRef: !!videoRef.current,
+        monitorId: !!monitorId,
+        containerRef: !!containerRef.current,
       });
       return;
     }
 
-    // Start with first protocol
-    protocolIndexRef.current = 0;
-    const protocol = protocols[0];
-    connect(protocol);
+    // Delay connection start to survive React Strict Mode's double-invoke
+    // React Strict Mode unmounts and remounts components immediately in development
+    // This delay ensures we only connect after the component has stabilized
+    connectTimeoutRef.current = setTimeout(() => {
+      connectTimeoutRef.current = null;
+      // Only proceed if still mounted after the delay
+      if (mountedRef.current) {
+        log.videoPlayer('GO2RTC: Starting connection (after stabilization delay)', LogLevel.DEBUG, {
+          monitorId,
+          mode: protocols.join(','),
+        });
+        connect();
+      }
+    }, 100); // 100ms delay to survive React Strict Mode
 
     // Cleanup on unmount or dependency change
     return () => {
+      mountedRef.current = false;
       cleanup();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, go2rtcUrl, streamName, token]); // Intentionally omit protocols to avoid reconnect on protocol array change
+  }, [enabled, go2rtcUrl, monitorId, token]); // Intentionally omit protocols to avoid reconnect on protocol array change
+
+  // Apply muted state when prop changes on existing video
+  useEffect(() => {
+    if (videoRtcRef.current?.video) {
+      videoRtcRef.current.video.muted = muted;
+      videoRtcRef.current.video.volume = muted ? 0 : 1;
+      log.videoPlayer('GO2RTC: Muted prop changed', LogLevel.DEBUG, { monitorId, muted });
+    }
+  }, [muted, monitorId]);
+
+  // Ensure muted stays applied - poll briefly after connect to catch race conditions
+  useEffect(() => {
+    if (state !== 'connected' || !muted) return;
+    
+    // Poll a few times to ensure muted is applied (catches async video creation)
+    let attempts = 0;
+    const interval = setInterval(() => {
+      attempts++;
+      if (videoRtcRef.current?.video) {
+        if (!videoRtcRef.current.video.muted) {
+          videoRtcRef.current.video.muted = true;
+          videoRtcRef.current.video.volume = 0;
+          log.videoPlayer('GO2RTC: Force-muted via polling', LogLevel.DEBUG, { monitorId, attempt: attempts });
+        }
+      }
+      if (attempts >= 5) {
+        clearInterval(interval);
+      }
+    }, 200);
+    
+    return () => clearInterval(interval);
+  }, [state, muted, monitorId]);
+
+  // Toggle mute state on the video element
+  const toggleMute = useCallback(() => {
+    if (videoRtcRef.current?.video) {
+      videoRtcRef.current.video.muted = !videoRtcRef.current.video.muted;
+      return videoRtcRef.current.video.muted;
+    }
+    return true; // Default to muted if no video element
+  }, []);
+
+  // Check if currently muted
+  const isMuted = useCallback(() => {
+    return videoRtcRef.current?.video?.muted ?? true;
+  }, []);
 
   return {
     state,
-    currentProtocol,
     error,
     retry,
     stop,
+    toggleMute,
+    isMuted,
   };
 }

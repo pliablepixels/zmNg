@@ -1,7 +1,8 @@
 /**
  * useGo2RTCStream Hook Tests
  *
- * Tests WebRTC streaming lifecycle management, fallback ladder, and error handling.
+ * Tests Go2RTC streaming lifecycle management and error handling.
+ * Video-rtc handles protocol negotiation internally (WebRTC+MSE or WebRTC+HLS in parallel).
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -12,6 +13,7 @@ import { useGo2RTCStream } from '../useGo2RTCStream';
 vi.mock('../../lib/logger', () => ({
   log: {
     videoPlayer: vi.fn(),
+    http: vi.fn(),
   },
   LogLevel: {
     DEBUG: 'DEBUG',
@@ -47,7 +49,7 @@ import { VideoRTC } from '../../lib/vendor/go2rtc/video-rtc';
 const mockVideoRtcInstances: any[] = [];
 
 describe('useGo2RTCStream', () => {
-  let videoElement: HTMLVideoElement;
+  let containerElement: HTMLDivElement;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -58,6 +60,8 @@ describe('useGo2RTCStream', () => {
       this.mode = '';
       this.media = '';
       this.src = '';
+      this.style = {};
+      this.background = false;
       this.oninit = vi.fn();
       this.onconnect = vi.fn();
       this.ondisconnect = vi.fn();
@@ -65,20 +69,27 @@ describe('useGo2RTCStream', () => {
       this.onclose = vi.fn();
       this.onpcvideo = vi.fn();
       this.play = vi.fn().mockResolvedValue(undefined);
-      this.appendChild = vi.fn();
       this.parentNode = null;
       mockVideoRtcInstances.push(this);
       return this;
     });
 
-    // Create mock video element
-    videoElement = document.createElement('video');
-    videoElement.play = vi.fn().mockResolvedValue(undefined);
-    videoElement.src = '';
-    videoElement.srcObject = null;
+    // Create mock container element
+    containerElement = document.createElement('div');
+    // Mock innerHTML setter to track clearing
+    Object.defineProperty(containerElement, 'innerHTML', {
+      set: vi.fn(),
+      get: () => '',
+      configurable: true,
+    });
     // Mock appendChild to actually add the child
-    videoElement.appendChild = vi.fn().mockImplementation((child: any) => {
-      child.parentNode = videoElement;
+    containerElement.appendChild = vi.fn().mockImplementation((child: any) => {
+      child.parentNode = containerElement;
+      return child;
+    });
+    // Mock removeChild to handle cleanup
+    containerElement.removeChild = vi.fn().mockImplementation((child: any) => {
+      child.parentNode = null;
       return child;
     });
   });
@@ -89,28 +100,27 @@ describe('useGo2RTCStream', () => {
 
   describe('Connection lifecycle', () => {
     it('starts in idle state when disabled', () => {
-      const videoRef = { current: videoElement };
+      const containerRef = { current: containerElement };
       const { result } = renderHook(() =>
         useGo2RTCStream({
           go2rtcUrl: 'http://localhost:1984',
-          streamName: 'test-stream',
-          videoRef,
+          monitorId: '1',
+          containerRef,
           enabled: false,
         })
       );
 
       expect(result.current.state).toBe('idle');
-      expect(result.current.currentProtocol).toBeNull();
       expect(result.current.error).toBeNull();
     });
 
-    it('connects with WebRTC when enabled', async () => {
-      const videoRef = { current: videoElement };
+    it('connects when enabled', async () => {
+      const containerRef = { current: containerElement };
       const { result } = renderHook(() =>
         useGo2RTCStream({
           go2rtcUrl: 'http://localhost:1984',
-          streamName: 'test-stream',
-          videoRef,
+          monitorId: '1',
+          containerRef,
           enabled: true,
         })
       );
@@ -118,14 +128,14 @@ describe('useGo2RTCStream', () => {
       // Should transition to connecting
       await waitFor(() => {
         expect(result.current.state).toBe('connecting');
-        expect(result.current.currentProtocol).toBe('webrtc');
       });
 
-      // Simulate successful connection
+      // Simulate successful WebSocket open (which triggers 'connected' state)
       if (mockVideoRtcInstances.length > 0) {
         const instance = mockVideoRtcInstances[0];
         act(() => {
-          instance.onconnect();
+          // onopen is called when WebSocket opens - this triggers 'connected' state
+          instance.onopen();
         });
 
         await waitFor(() => {
@@ -134,13 +144,13 @@ describe('useGo2RTCStream', () => {
       }
     });
 
-    it('configures VideoRTC correctly for WebRTC', async () => {
-      const videoRef = { current: videoElement };
+    it('configures VideoRTC with all protocols', async () => {
+      const containerRef = { current: containerElement };
       renderHook(() =>
         useGo2RTCStream({
           go2rtcUrl: 'http://localhost:1984',
-          streamName: 'test-stream',
-          videoRef,
+          monitorId: '1',
+          containerRef,
           enabled: true,
         })
       );
@@ -150,19 +160,40 @@ describe('useGo2RTCStream', () => {
       });
 
       const instance = mockVideoRtcInstances[0];
-      expect(instance.mode).toBe('webrtc');
+      // Video-rtc handles protocol negotiation - mode should include all protocols
+      expect(instance.mode).toBe('webrtc,mse,hls');
       expect(instance.media).toBe('video,audio');
-      expect(instance.src).toContain('ws://localhost:1984/api/ws');
-      expect(instance.src).toContain('src=test-stream');
+      expect(instance.src).toContain('ws://localhost:1984/ws');
+      expect(instance.src).toContain('src=1_0');
     });
 
-    it('includes token in WebSocket URL when provided', async () => {
-      const videoRef = { current: videoElement };
+    it('respects custom protocol order', async () => {
+      const containerRef = { current: containerElement };
       renderHook(() =>
         useGo2RTCStream({
           go2rtcUrl: 'http://localhost:1984',
-          streamName: 'test-stream',
-          videoRef,
+          monitorId: '1',
+          containerRef,
+          protocols: ['mse', 'hls'],
+          enabled: true,
+        })
+      );
+
+      await waitFor(() => {
+        expect(VideoRTC).toHaveBeenCalled();
+      });
+
+      const instance = mockVideoRtcInstances[0];
+      expect(instance.mode).toBe('mse,hls');
+    });
+
+    it('includes token in WebSocket URL when provided', async () => {
+      const containerRef = { current: containerElement };
+      renderHook(() =>
+        useGo2RTCStream({
+          go2rtcUrl: 'http://localhost:1984',
+          monitorId: '1',
+          containerRef,
           token: 'test-token',
           enabled: true,
         })
@@ -177,12 +208,12 @@ describe('useGo2RTCStream', () => {
     });
 
     it('cleans up on unmount', async () => {
-      const videoRef = { current: videoElement };
+      const containerRef = { current: containerElement };
       const { unmount } = renderHook(() =>
         useGo2RTCStream({
           go2rtcUrl: 'http://localhost:1984',
-          streamName: 'test-stream',
-          videoRef,
+          monitorId: '1',
+          containerRef,
           enabled: true,
         })
       );
@@ -192,150 +223,25 @@ describe('useGo2RTCStream', () => {
       });
 
       const instance = mockVideoRtcInstances[0];
-      const onclose = vi.spyOn(instance, 'onclose');
+      // Cleanup calls ondisconnect() to properly close WebSocket and WebRTC connections
+      const ondisconnect = vi.spyOn(instance, 'ondisconnect');
 
       unmount();
 
       await waitFor(() => {
-        expect(onclose).toHaveBeenCalled();
-      });
-    });
-  });
-
-  describe('Fallback ladder', () => {
-    it('falls back to MSE on WebRTC failure when enabled', async () => {
-      const videoRef = { current: videoElement };
-      const { result } = renderHook(() =>
-        useGo2RTCStream({
-          go2rtcUrl: 'http://localhost:1984',
-          streamName: 'test-stream',
-          videoRef,
-          enableFallback: true,
-          enabled: true,
-        })
-      );
-
-      // Wait for initial WebRTC connection attempt
-      await waitFor(() => {
-        expect(result.current.state).toBe('connecting');
-        expect(result.current.currentProtocol).toBe('webrtc');
-      });
-
-      // Simulate WebRTC failure
-      const firstInstance = mockVideoRtcInstances[0];
-      act(() => {
-        firstInstance.play.mockRejectedValueOnce(new Error('WebRTC failed'));
-      });
-
-      // Should attempt WebRTC, fail, then try MSE
-      await waitFor(
-        () => {
-          expect(result.current.currentProtocol).toBe('mse');
-        },
-        { timeout: 2000 }
-      );
-    });
-
-    it('falls back through all protocols: WebRTC → MSE → HLS → MJPEG', async () => {
-      // Make VideoRTC play fail for all attempts
-      (VideoRTC as any).mockImplementation(function (this: any) {
-        this.mode = '';
-        this.media = '';
-        this.src = '';
-        this.oninit = vi.fn();
-        this.onconnect = vi.fn();
-        this.ondisconnect = vi.fn();
-        this.onopen = vi.fn();
-        this.onclose = vi.fn();
-        this.onpcvideo = vi.fn();
-        this.play = vi.fn().mockRejectedValue(new Error('Failed'));
-        this.appendChild = vi.fn();
-        this.parentNode = null;
-        mockVideoRtcInstances.push(this);
-        return this;
-      });
-
-      const videoRef = { current: videoElement };
-      const { result } = renderHook(() =>
-        useGo2RTCStream({
-          go2rtcUrl: 'http://localhost:1984',
-          streamName: 'test-stream',
-          videoRef,
-          enableFallback: true,
-          enabled: true,
-        })
-      );
-
-      // Wait for final MJPEG attempt (after WebRTC, MSE, HLS all fail)
-      await waitFor(
-        () => {
-          expect(result.current.currentProtocol).toBe('mjpeg');
-        },
-        { timeout: 5000 }
-      );
-
-      // MJPEG uses video.src, not VideoRTC
-      expect(videoElement.src).toContain('stream.mjpeg');
-    });
-
-    it('does not fall back when enableFallback is false', async () => {
-      const videoRef = { current: videoElement };
-      const { result } = renderHook(() =>
-        useGo2RTCStream({
-          go2rtcUrl: 'http://localhost:1984',
-          streamName: 'test-stream',
-          videoRef,
-          enableFallback: false,
-          enabled: true,
-        })
-      );
-
-      await waitFor(() => {
-        expect(result.current.state).toBe('connecting');
-      });
-
-      // Simulate WebRTC failure
-      const instance = mockVideoRtcInstances[0];
-      act(() => {
-        instance.play.mockRejectedValueOnce(new Error('WebRTC failed'));
-      });
-
-      // Should stay on error without fallback
-      await waitFor(() => {
-        expect(result.current.state).toBe('error');
-        expect(result.current.currentProtocol).toBe('webrtc');
-      });
-    });
-
-    it('respects custom protocol order', async () => {
-      const videoRef = { current: videoElement };
-      const { result } = renderHook(() =>
-        useGo2RTCStream({
-          go2rtcUrl: 'http://localhost:1984',
-          streamName: 'test-stream',
-          videoRef,
-          protocols: ['hls', 'mjpeg'],
-          enabled: true,
-        })
-      );
-
-      // Should start with HLS (first in custom order)
-      await waitFor(() => {
-        expect(result.current.state).toBe('connecting');
-        expect(result.current.currentProtocol).toBe('hls');
+        expect(ondisconnect).toHaveBeenCalled();
       });
     });
   });
 
   describe('Error handling', () => {
-    it('sets error state on connection failure', async () => {
-      const videoRef = { current: videoElement };
+    it('sets error state when WebSocket fails to connect', async () => {
+      const containerRef = { current: containerElement };
       const { result } = renderHook(() =>
         useGo2RTCStream({
           go2rtcUrl: 'http://localhost:1984',
-          streamName: 'test-stream',
-          videoRef,
-          enableFallback: false,
+          monitorId: '1',
+          containerRef,
           enabled: true,
         })
       );
@@ -344,25 +250,26 @@ describe('useGo2RTCStream', () => {
         expect(VideoRTC).toHaveBeenCalled();
       });
 
-      // Simulate connection error
+      // Simulate WebSocket close before connection established
       const instance = mockVideoRtcInstances[0];
       act(() => {
-        instance.play.mockRejectedValueOnce(new Error('Connection timeout'));
+        // onclose returns false to prevent auto-reconnect when WS never connected
+        instance.onclose();
       });
 
       await waitFor(() => {
         expect(result.current.state).toBe('error');
-        expect(result.current.error).toContain('timeout');
+        expect(result.current.error).toContain('WebSocket');
       });
     });
 
-    it('handles missing video ref gracefully', async () => {
-      const videoRef = { current: null };
+    it('handles missing container ref gracefully', async () => {
+      const containerRef = { current: null };
       const { result } = renderHook(() =>
         useGo2RTCStream({
           go2rtcUrl: 'http://localhost:1984',
-          streamName: 'test-stream',
-          videoRef: videoRef as any,
+          monitorId: '1',
+          containerRef: containerRef as any,
           enabled: true,
         })
       );
@@ -374,13 +281,13 @@ describe('useGo2RTCStream', () => {
   });
 
   describe('Retry and stop', () => {
-    it('retry resets to first protocol', async () => {
-      const videoRef = { current: videoElement };
+    it('retry reconnects', async () => {
+      const containerRef = { current: containerElement };
       const { result } = renderHook(() =>
         useGo2RTCStream({
           go2rtcUrl: 'http://localhost:1984',
-          streamName: 'test-stream',
-          videoRef,
+          monitorId: '1',
+          containerRef,
           enabled: true,
         })
       );
@@ -389,24 +296,27 @@ describe('useGo2RTCStream', () => {
         expect(result.current.state).toBe('connecting');
       });
 
+      // Get initial instance count
+      const initialCount = mockVideoRtcInstances.length;
+
       // Manually trigger retry
       act(() => {
         result.current.retry();
       });
 
       await waitFor(() => {
-        // Should restart with WebRTC (first protocol)
-        expect(result.current.currentProtocol).toBe('webrtc');
+        // Should create a new VideoRTC instance
+        expect(mockVideoRtcInstances.length).toBeGreaterThan(initialCount);
       });
     });
 
     it('stop cleans up and resets state', async () => {
-      const videoRef = { current: videoElement };
+      const containerRef = { current: containerElement };
       const { result } = renderHook(() =>
         useGo2RTCStream({
           go2rtcUrl: 'http://localhost:1984',
-          streamName: 'test-stream',
-          videoRef,
+          monitorId: '1',
+          containerRef,
           enabled: true,
         })
       );
@@ -421,7 +331,6 @@ describe('useGo2RTCStream', () => {
 
       await waitFor(() => {
         expect(result.current.state).toBe('idle');
-        expect(result.current.currentProtocol).toBeNull();
         expect(result.current.error).toBeNull();
       });
     });
@@ -429,25 +338,26 @@ describe('useGo2RTCStream', () => {
 
   describe('State transitions', () => {
     it('transitions: idle → connecting → connected', async () => {
-      const videoRef = { current: videoElement };
+      const containerRef = { current: containerElement };
       const { result } = renderHook(() =>
         useGo2RTCStream({
           go2rtcUrl: 'http://localhost:1984',
-          streamName: 'test-stream',
-          videoRef,
+          monitorId: '1',
+          containerRef,
           enabled: true,
         })
       );
 
-      expect(result.current.state).toBe('idle');
-
+      // Hook connects immediately when enabled=true, so state should already be 'connecting' or 'idle'
+      // Just verify it transitions to connecting (may already be there)
       await waitFor(() => {
         expect(result.current.state).toBe('connecting');
       });
 
       const instance = mockVideoRtcInstances[0];
       act(() => {
-        instance.onconnect();
+        // onopen triggers 'connected' state (called when WebSocket opens)
+        instance.onopen();
       });
 
       await waitFor(() => {
@@ -456,12 +366,12 @@ describe('useGo2RTCStream', () => {
     });
 
     it('transitions to disconnected on ondisconnect', async () => {
-      const videoRef = { current: videoElement };
+      const containerRef = { current: containerElement };
       const { result } = renderHook(() =>
         useGo2RTCStream({
           go2rtcUrl: 'http://localhost:1984',
-          streamName: 'test-stream',
-          videoRef,
+          monitorId: '1',
+          containerRef,
           enabled: true,
         })
       );
@@ -472,7 +382,8 @@ describe('useGo2RTCStream', () => {
 
       const instance = mockVideoRtcInstances[0];
       act(() => {
-        instance.onconnect();
+        // onopen triggers 'connected' state
+        instance.onopen();
       });
 
       await waitFor(() => {

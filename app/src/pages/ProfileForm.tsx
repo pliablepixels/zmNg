@@ -18,7 +18,7 @@ import { discoverZoneminder, DiscoveryError } from '../lib/discovery';
 import { Video, Server, ShieldCheck, ArrowRight, Loader2, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { log, LogLevel } from '../lib/logger';
-import { fetchZmsPath } from '../api/auth';
+import { fetchGo2RTCPath, fetchZmsPath } from '../api/auth';
 
 export default function ProfileForm() {
   const navigate = useNavigate();
@@ -85,6 +85,7 @@ export default function ProfileForm() {
       let confirmedPortalUrl: string;
       let apiUrl: string;
       let cgiUrl: string;
+      let go2rtcPath: string | null = null;
 
       if (showManualUrls) {
         // Manual URL entry mode
@@ -168,6 +169,16 @@ export default function ProfileForm() {
               cgiUrl
             });
           }
+
+          // Also fetch Go2RTC path if configured (optional, not all servers have it)
+          go2rtcPath = await fetchGo2RTCPath();
+          if (go2rtcPath) {
+            log.profileForm('Go2RTC path fetched from server config', LogLevel.INFO, {
+              go2rtcPath
+            });
+          } else {
+            log.profileForm('Go2RTC not configured on server', LogLevel.INFO);
+          }
         } catch (loginError: unknown) {
           log.profileForm('Login failed', LogLevel.ERROR, loginError);
           throw new Error(t('setup.login_failed', { error: (loginError as Error).message || 'Unknown error' }));
@@ -195,6 +206,7 @@ export default function ProfileForm() {
         username: normalizedUsername || undefined,
         password: password || undefined,
         isDefault: isFirstProfile,
+        go2rtcUrl: go2rtcPath || undefined,
       });
       log.profileForm('Profile created', LogLevel.INFO, { profileName: finalProfileName, profileId: newProfileId });
 

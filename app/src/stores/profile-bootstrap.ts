@@ -7,7 +7,7 @@
 
 import type { Profile } from '../api/types';
 import { getServerTimeZone } from '../api/time';
-import { fetchZmsPath } from '../api/auth';
+import { fetchGo2RTCPath, fetchZmsPath } from '../api/auth';
 import { log, LogLevel } from '../lib/logger';
 
 export interface BootstrapContext {
@@ -123,6 +123,44 @@ export async function bootstrapZmsPath(
 }
 
 /**
+ * Bootstrap Go2RTC path and update profile
+ */
+export async function bootstrapGo2RTCPath(
+  profile: Profile,
+  context: BootstrapContext
+): Promise<void> {
+  try {
+    log.profileService('Fetching Go2RTC path from server config', LogLevel.INFO);
+    const go2rtcPath = await fetchGo2RTCPath();
+
+    if (!go2rtcPath) {
+      log.profileService('Go2RTC not configured on server', LogLevel.INFO);
+      // Clear go2rtcUrl if it was previously set but is now missing
+      if (profile.go2rtcUrl) {
+        await context.updateProfile(profile.id, { go2rtcUrl: undefined });
+      }
+      return;
+    }
+
+    if (go2rtcPath !== profile.go2rtcUrl) {
+      log.profileService('Go2RTC path fetched, updating profile', LogLevel.INFO, {
+        oldGo2rtcUrl: profile.go2rtcUrl,
+        newGo2rtcUrl: go2rtcPath,
+      });
+      await context.updateProfile(profile.id, { go2rtcUrl: go2rtcPath });
+    } else {
+      log.profileService('Go2RTC path matches current value, no update needed', LogLevel.INFO, {
+        go2rtcUrl: profile.go2rtcUrl,
+      });
+    }
+  } catch (go2rtcError) {
+    log.profileService('Failed to fetch Go2RTC path', LogLevel.INFO, {
+      error: go2rtcError,
+    });
+  }
+}
+
+/**
  * Bootstrap multi-port streaming configuration
  */
 export async function bootstrapMultiPortStreaming(
@@ -183,5 +221,6 @@ export async function performBootstrap(
   await bootstrapAuth(profile, context);
   await bootstrapTimezone(profile, context);
   await bootstrapZmsPath(profile, context);
+  await bootstrapGo2RTCPath(profile, context);
   await bootstrapMultiPortStreaming(profile, context);
 }

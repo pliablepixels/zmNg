@@ -63,17 +63,7 @@ describe('Settings Store', () => {
       expect(settings.webrtcFallbackEnabled).toBe(true);
     });
 
-    it('updates streaming method to webrtc', () => {
-      const profileId = 'profile-1';
-      useSettingsStore.getState().updateProfileSettings(profileId, {
-        streamingMethod: 'webrtc',
-      });
-
-      const settings = useSettingsStore.getState().getProfileSettings(profileId);
-      expect(settings.streamingMethod).toBe('webrtc');
-    });
-
-    it('updates streaming method to mjpeg', () => {
+    it('updates streaming method to mjpeg from default', () => {
       const profileId = 'profile-1';
       useSettingsStore.getState().updateProfileSettings(profileId, {
         streamingMethod: 'mjpeg',
@@ -81,6 +71,21 @@ describe('Settings Store', () => {
 
       const settings = useSettingsStore.getState().getProfileSettings(profileId);
       expect(settings.streamingMethod).toBe('mjpeg');
+    });
+
+    it('updates streaming method back to auto', () => {
+      const profileId = 'profile-1';
+      // First set to mjpeg
+      useSettingsStore.getState().updateProfileSettings(profileId, {
+        streamingMethod: 'mjpeg',
+      });
+      // Then back to auto
+      useSettingsStore.getState().updateProfileSettings(profileId, {
+        streamingMethod: 'auto',
+      });
+
+      const settings = useSettingsStore.getState().getProfileSettings(profileId);
+      expect(settings.streamingMethod).toBe('auto');
     });
 
     it('disables webrtc fallback', () => {
@@ -96,12 +101,12 @@ describe('Settings Store', () => {
     it('updates both streaming settings together', () => {
       const profileId = 'profile-1';
       useSettingsStore.getState().updateProfileSettings(profileId, {
-        streamingMethod: 'webrtc',
+        streamingMethod: 'mjpeg',
         webrtcFallbackEnabled: false,
       });
 
       const settings = useSettingsStore.getState().getProfileSettings(profileId);
-      expect(settings.streamingMethod).toBe('webrtc');
+      expect(settings.streamingMethod).toBe('mjpeg');
       expect(settings.webrtcFallbackEnabled).toBe(false);
     });
 

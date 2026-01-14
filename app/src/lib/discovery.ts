@@ -9,8 +9,6 @@ export interface DiscoveryResult {
     portalUrl: string;
     apiUrl: string;
     cgiUrl: string;
-    go2rtcUrl?: string; // Go2RTC server URL if available
-    go2rtcAvailable: boolean; // Whether Go2RTC was detected
 }
 
 /**
@@ -253,58 +251,9 @@ export async function discoverZoneminder(inputUrl: string): Promise<DiscoveryRes
 
     log.discovery(`Protocol validation passed - both using ${portalProtocol}://`, LogLevel.INFO);
 
-    // 4. Go2RTC Discovery (optional, non-blocking)
-    // Try to detect Go2RTC endpoint for WebRTC streaming
-    let go2rtcUrl: string | undefined = undefined;
-    let go2rtcAvailable = false;
-
-    // Parse portal URL to construct Go2RTC candidates
-    const portalUrlObj = new URL(confirmedPortalUrl);
-    const go2rtcCandidates = [
-        // Try standard Go2RTC port 1984 on same host
-        `${portalUrlObj.protocol}//${portalUrlObj.hostname}:1984`,
-        // Try replacing standard HTTP ports with 1984
-        confirmedPortalUrl.replace(':80', ':1984').replace(':443', ':1984'),
-    ];
-
-    // Remove duplicates
-    const uniqueCandidates = Array.from(new Set(go2rtcCandidates));
-
-    for (const candidate of uniqueCandidates) {
-        try {
-            log.discovery(`Probing Go2RTC: ${candidate}/api`, LogLevel.DEBUG);
-
-            const probeClient = createApiClient(candidate);
-            const res = await probeClient.get('/api', {
-                timeout: 2000, // Short timeout - don't block discovery
-                headers: { 'Skip-Auth': 'true' },
-                validateStatus: (status) => status < 500, // Accept any non-server-error
-            });
-
-            // Go2RTC /api endpoint returns JSON with stream info
-            if (res.status === 200) {
-                go2rtcUrl = candidate;
-                go2rtcAvailable = true;
-                log.discovery(`Go2RTC detected at: ${candidate}`, LogLevel.INFO);
-                break; // Found it, stop probing
-            }
-        } catch (error) {
-            // Silent failure - Go2RTC is optional
-            log.discovery(`Go2RTC not found at ${candidate}`, LogLevel.DEBUG, {
-                error: error instanceof Error ? error.message : String(error),
-            });
-        }
-    }
-
-    if (!go2rtcAvailable) {
-        log.discovery('Go2RTC not available on this server', LogLevel.INFO);
-    }
-
     return {
         portalUrl: confirmedPortalUrl,
         apiUrl: confirmedApiUrl,
         cgiUrl: confirmedCgiUrl,
-        go2rtcUrl,
-        go2rtcAvailable,
     };
 }

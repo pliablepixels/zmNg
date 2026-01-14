@@ -1,4 +1,4 @@
-import { Image, Settings as SettingsIcon, Video as VideoIcon } from 'lucide-react';
+import { Image, Settings as SettingsIcon, Video as VideoIcon, Zap } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Label } from '../ui/label';
@@ -40,6 +40,13 @@ export function VideoSettings() {
         if (!currentProfile) return;
         updateSettings(currentProfile.id, {
             snapshotRefreshInterval: value,
+        });
+    };
+
+    const handleStreamingMethodChange = (enableGo2RTC: boolean) => {
+        if (!currentProfile) return;
+        updateSettings(currentProfile.id, {
+            streamingMethod: enableGo2RTC ? 'auto' : 'mjpeg',
         });
     };
 
@@ -93,6 +100,32 @@ export function VideoSettings() {
                             <span className="font-medium">{t('settings.streaming')}</span>
                         </div>
                     </div>
+                </div>
+
+                {/* WebRTC/HLS/MSE Toggle */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-lg border bg-card">
+                    <div className="flex-1 space-y-1">
+                        <div className="flex items-center gap-2">
+                            <Label htmlFor="go2rtc-mode" className="text-base font-semibold">
+                                {t('settings.enable_go2rtc')}
+                            </Label>
+                            <Zap className="h-4 w-4 text-yellow-500" />
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                            {t('settings.enable_go2rtc_desc')}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                            {settings.streamingMethod === 'auto'
+                                ? t('settings.go2rtc_enabled_note')
+                                : t('settings.go2rtc_disabled_note')}
+                        </p>
+                    </div>
+                    <Switch
+                        id="go2rtc-mode"
+                        checked={settings.streamingMethod === 'auto'}
+                        onCheckedChange={handleStreamingMethodChange}
+                        data-testid="settings-go2rtc-switch"
+                    />
                 </div>
 
                 {/* Snapshot Refresh Interval */}

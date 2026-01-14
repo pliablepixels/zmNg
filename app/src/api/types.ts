@@ -425,6 +425,15 @@ export const MinStreamingPortResponseSchema = z.object({
 
 export type MinStreamingPortResponse = z.infer<typeof MinStreamingPortResponseSchema>;
 
+// Go2RTC Path response schema for fetching ZM_GO2RTC_PATH config
+export const Go2RTCPathResponseSchema = z.object({
+  config: z.object({
+    Value: z.string(),
+  }),
+});
+
+export type Go2RTCPathResponse = z.infer<typeof Go2RTCPathResponseSchema>;
+
 // ZoneMinder server log types
 export const ZMLogSchema = z.object({
   Id: z.coerce.number(),
@@ -506,8 +515,7 @@ export interface Profile {
   lastUsed?: number;
   timezone?: string;
   minStreamingPort?: number; // ZM_MIN_STREAMING_PORT from server config
-  go2rtcUrl?: string; // Go2RTC server URL (e.g., http://server:1984)
-  go2rtcAvailable?: boolean; // Whether Go2RTC is available on this server
+  go2rtcUrl?: string; // ZM_GO2RTC_PATH from server config (full URL)
 }
 
 // Error types

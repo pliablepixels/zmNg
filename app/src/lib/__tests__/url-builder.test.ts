@@ -331,89 +331,112 @@ describe('Edge Cases', () => {
 });
 
 describe('getGo2RTCWebSocketUrl', () => {
-  it('builds WebSocket URL for Go2RTC', () => {
-    const result = getGo2RTCWebSocketUrl('http://zm.example.com:1984', 'front_camera');
-    expect(result).toBe('ws://zm.example.com:1984/api/ws?src=front_camera');
+  it('builds WebSocket URL with monitor ID and channel', () => {
+    const result = getGo2RTCWebSocketUrl('http://zm.example.com:1984', '1', 0);
+    expect(result).toBe('ws://zm.example.com:1984/ws?src=1_0');
   });
 
   it('converts https to wss', () => {
-    const result = getGo2RTCWebSocketUrl('https://zm.example.com:1984', 'front_camera');
-    expect(result).toBe('wss://zm.example.com:1984/api/ws?src=front_camera');
+    const result = getGo2RTCWebSocketUrl('https://zm.example.com:1984', '2', 0);
+    expect(result).toBe('wss://zm.example.com:1984/ws?src=2_0');
   });
 
-  it('adds protocol if missing (defaults to ws)', () => {
-    const result = getGo2RTCWebSocketUrl('zm.example.com:1984', 'front_camera');
-    expect(result).toBe('ws://zm.example.com:1984/api/ws?src=front_camera');
+  it('builds stream name as {monitorId}_{channel}', () => {
+    const result = getGo2RTCWebSocketUrl('http://zm.example.com:1984', '5', 1);
+    expect(result).toContain('src=5_1');
+  });
+
+  it('defaults channel to 0 when not provided', () => {
+    const result = getGo2RTCWebSocketUrl('http://zm.example.com:1984', '3');
+    expect(result).toContain('src=3_0');
   });
 
   it('preserves explicit port', () => {
-    const result = getGo2RTCWebSocketUrl('http://zm.example.com:8080', 'camera1');
-    expect(result).toBe('ws://zm.example.com:8080/api/ws?src=camera1');
+    const result = getGo2RTCWebSocketUrl('http://zm.example.com:8080', '1', 0);
+    expect(result).toBe('ws://zm.example.com:8080/ws?src=1_0');
   });
 
   it('includes auth token when provided', () => {
-    const result = getGo2RTCWebSocketUrl('http://zm.example.com:1984', 'camera1', {
+    const result = getGo2RTCWebSocketUrl('http://zm.example.com:1984', '1', 0, {
       token: 'mytoken123',
     });
-    expect(result).toBe('ws://zm.example.com:1984/api/ws?src=camera1&token=mytoken123');
+    expect(result).toBe('ws://zm.example.com:1984/ws?src=1_0&token=mytoken123');
   });
 
-  it('encodes stream name with special characters', () => {
-    const result = getGo2RTCWebSocketUrl('http://zm.example.com:1984', 'front camera #1');
-    expect(result).toContain('src=front+camera+%231');
+  it('handles URL with existing path (appends /ws)', () => {
+    const result = getGo2RTCWebSocketUrl('http://zm.example.com/go2rtc', '1', 0);
+    expect(result).toBe('ws://zm.example.com/go2rtc/ws?src=1_0');
   });
 
-  it('handles URL with path', () => {
-    const result = getGo2RTCWebSocketUrl('http://zm.example.com/go2rtc', 'camera1');
-    expect(result).toBe('ws://zm.example.com/api/ws?src=camera1');
+  it('handles URL with trailing slash in path', () => {
+    const result = getGo2RTCWebSocketUrl('http://zm.example.com:1984/', '2', 0);
+    expect(result).toBe('ws://zm.example.com:1984/ws?src=2_0');
+  });
+
+  it('preserves username and password in URL (ZoneMinder behavior)', () => {
+    const result = getGo2RTCWebSocketUrl('https://admin:pass@zm.example.com:1985/api', '4', 0);
+    // ZoneMinder keeps credentials in WebSocket URL - the server/proxy handles auth
+    expect(result).toBe('wss://admin:pass@zm.example.com:1985/api/ws?src=4_0');
+    expect(result).toContain('admin');
+    expect(result).toContain('pass');
   });
 });
 
 describe('getGo2RTCStreamUrl', () => {
-  it('builds MSE stream URL', () => {
-    const result = getGo2RTCStreamUrl('http://zm.example.com:1984', 'front_camera', 'mse');
-    expect(result).toBe('http://zm.example.com:1984/api/stream.mse?src=front_camera');
+  it('builds MSE stream URL when path includes /api', () => {
+    const result = getGo2RTCStreamUrl('http://zm.example.com:1984/api', '1', 0, 'mse');
+    expect(result).toBe('http://zm.example.com:1984/api/stream.mse?src=1_0');
   });
 
-  it('builds HLS stream URL', () => {
-    const result = getGo2RTCStreamUrl('http://zm.example.com:1984', 'front_camera', 'hls');
-    expect(result).toBe('http://zm.example.com:1984/api/stream.hls?src=front_camera');
+  it('builds HLS stream URL when path includes /api', () => {
+    const result = getGo2RTCStreamUrl('http://zm.example.com:1984/api', '2', 0, 'hls');
+    expect(result).toBe('http://zm.example.com:1984/api/stream.hls?src=2_0');
   });
 
-  it('builds MP4 stream URL', () => {
-    const result = getGo2RTCStreamUrl('http://zm.example.com:1984', 'camera1', 'mp4');
-    expect(result).toBe('http://zm.example.com:1984/api/stream.mp4?src=camera1');
+  it('builds MP4 stream URL when no path provided', () => {
+    const result = getGo2RTCStreamUrl('http://zm.example.com:1984', '3', 0, 'mp4');
+    expect(result).toBe('http://zm.example.com:1984/stream.mp4?src=3_0');
   });
 
-  it('builds MJPEG stream URL', () => {
-    const result = getGo2RTCStreamUrl('http://zm.example.com:1984', 'camera1', 'mjpeg');
-    expect(result).toBe('http://zm.example.com:1984/api/stream.mjpeg?src=camera1');
+  it('builds MJPEG stream URL when no path provided', () => {
+    const result = getGo2RTCStreamUrl('http://zm.example.com:1984', '4', 0, 'mjpeg');
+    expect(result).toBe('http://zm.example.com:1984/stream.mjpeg?src=4_0');
+  });
+
+  it('builds stream name as {monitorId}_{channel}', () => {
+    const result = getGo2RTCStreamUrl('http://zm.example.com:1984/api', '5', 1, 'hls');
+    expect(result).toContain('src=5_1');
+  });
+
+  it('defaults channel to 0 when not provided', () => {
+    const result = getGo2RTCStreamUrl('http://zm.example.com:1984/api', '6', undefined, 'mse');
+    expect(result).toContain('src=6_0');
   });
 
   it('preserves https protocol', () => {
-    const result = getGo2RTCStreamUrl('https://zm.example.com:1984', 'camera1', 'hls');
-    expect(result).toBe('https://zm.example.com:1984/api/stream.hls?src=camera1');
+    const result = getGo2RTCStreamUrl('https://zm.example.com:1984/api', '1', 0, 'hls');
+    expect(result).toBe('https://zm.example.com:1984/api/stream.hls?src=1_0');
   });
 
   it('includes auth token when provided', () => {
-    const result = getGo2RTCStreamUrl('http://zm.example.com:1984', 'camera1', 'mse', {
+    const result = getGo2RTCStreamUrl('http://zm.example.com:1984/api', '1', 0, 'mse', {
       token: 'mytoken123',
     });
-    expect(result).toBe('http://zm.example.com:1984/api/stream.mse?src=camera1&token=mytoken123');
+    expect(result).toBe('http://zm.example.com:1984/api/stream.mse?src=1_0&token=mytoken123');
   });
 
-  it('encodes stream name with special characters', () => {
-    const result = getGo2RTCStreamUrl('http://zm.example.com:1984', 'front camera #1', 'hls');
-    expect(result).toContain('src=front+camera+%231');
+  it('handles URL with custom path (appends /stream.type)', () => {
+    const result = getGo2RTCStreamUrl('http://zm.example.com/go2rtc/api', '1', 0, 'hls');
+    expect(result).toBe('http://zm.example.com/go2rtc/api/stream.hls?src=1_0');
   });
 
   it('preserves explicit port', () => {
-    const result = getGo2RTCStreamUrl('http://zm.example.com:8080', 'camera1', 'hls');
-    expect(result).toBe('http://zm.example.com:8080/api/stream.hls?src=camera1');
+    const result = getGo2RTCStreamUrl('http://zm.example.com:8080/api', '1', 0, 'hls');
+    expect(result).toBe('http://zm.example.com:8080/api/stream.hls?src=1_0');
   });
 
-  it('adds protocol if missing (defaults to http)', () => {
-    const result = getGo2RTCStreamUrl('zm.example.com:1984', 'camera1', 'mse');
-    expect(result).toBe('http://zm.example.com:1984/api/stream.mse?src=camera1');
+  it('handles trailing slash in path', () => {
+    const result = getGo2RTCStreamUrl('http://zm.example.com:1984/api/', '2', 0, 'mse');
+    expect(result).toBe('http://zm.example.com:1984/api/stream.mse?src=2_0');
   });
 });

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fetchZmsPath, getVersion, login, refreshToken, testConnection } from '../auth';
+import { fetchGo2RTCPath, fetchZmsPath, getVersion, login, refreshToken, testConnection } from '../auth';
 import { getApiClient } from '../client';
 import type { AxiosInstance } from 'axios';
 
@@ -142,6 +142,67 @@ describe('Auth API', () => {
     mockGet.mockRejectedValue(new Error('bad response'));
 
     const path = await fetchZmsPath();
+
+    expect(path).toBeNull();
+  });
+
+  it('fetches Go2RTC path when configured', async () => {
+    mockGet.mockResolvedValue({
+      data: {
+        config: {
+          Id: '2',
+          Name: 'ZM_GO2RTC_PATH',
+          Value: 'http://zm.example.com:1984',
+          Type: 'text',
+          DefaultValue: '',
+          Hint: null,
+          Pattern: null,
+          Format: null,
+          Prompt: null,
+          Help: null,
+          Category: 'Paths',
+          Readonly: null,
+          Requires: null,
+        },
+      },
+    });
+
+    const path = await fetchGo2RTCPath();
+
+    expect(mockGet).toHaveBeenCalledWith('/configs/viewByName/ZM_GO2RTC_PATH.json');
+    expect(path).toBe('http://zm.example.com:1984');
+  });
+
+  it('returns null when Go2RTC path is empty', async () => {
+    mockGet.mockResolvedValue({
+      data: {
+        config: {
+          Id: '2',
+          Name: 'ZM_GO2RTC_PATH',
+          Value: '',
+          Type: 'text',
+          DefaultValue: '',
+          Hint: null,
+          Pattern: null,
+          Format: null,
+          Prompt: null,
+          Help: null,
+          Category: 'Paths',
+          Readonly: null,
+          Requires: null,
+        },
+      },
+    });
+
+    const path = await fetchGo2RTCPath();
+
+    expect(path).toBeNull();
+  });
+
+  it('returns null when Go2RTC path fetch fails', async () => {
+    mockGet.mockRejectedValue(new Error('bad response'));
+
+    const path = await fetchGo2RTCPath();
 
     expect(path).toBeNull();
   });

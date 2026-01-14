@@ -347,43 +347,53 @@ export function getZmsControlUrl(
 /**
  * Build Go2RTC WebSocket URL for WebRTC signaling.
  *
- * Constructs a WebSocket URL for go2rtc WebRTC streaming with the format:
- * ws://server:1984/api/ws?src=streamname&token=xxx
+ * Uses ZM_GO2RTC_PATH from server config and constructs WebSocket URL matching
+ * ZoneMinder's official implementation. Stream name format: {monitorId}_{channel}
  *
  * Protocol conversion:
  * - http:// → ws://
  * - https:// → wss://
  *
- * @param go2rtcUrl - Go2RTC base URL (e.g., "http://server:1984")
- * @param streamName - RTSP stream name from Monitor.RTSPStreamName
+ * @param go2rtcPath - Full Go2RTC URL from ZM_GO2RTC_PATH config (e.g., "http://server:1984")
+ * @param monitorId - Monitor ID (numeric)
+ * @param channel - Channel number (0 = primary, 1 = secondary, default: 0)
  * @param options - Additional options
  * @returns WebSocket URL for go2rtc signaling
  *
  * @example
- * getGo2RTCWebSocketUrl('http://zm.example.com:1984', 'front_camera', { token: 'abc' })
- * // Returns: 'ws://zm.example.com:1984/api/ws?src=front_camera&token=abc'
+ * getGo2RTCWebSocketUrl('http://zm.example.com:1984', '1', 0, { token: 'abc' })
+ * // Returns: 'ws://zm.example.com:1984/ws?src=1_0&token=abc'
+ *
+ * getGo2RTCWebSocketUrl('http://zm.example.com:1984/go2rtc', '5', 1)
+ * // Returns: 'ws://zm.example.com:1984/go2rtc/ws?src=5_1'
  */
 export function getGo2RTCWebSocketUrl(
-  go2rtcUrl: string,
-  streamName: string,
+  go2rtcPath: string,
+  monitorId: string,
+  channel: number = 0,
   options: {
     token?: string;
   } = {}
 ): string {
   const { token } = options;
 
-  // Normalize URL and parse
-  const normalized = normalizePortalUrl(go2rtcUrl);
-  const url = new URL(normalized);
+  // Parse the configured Go2RTC path
+  const url = new URL(go2rtcPath);
 
-  // Convert http/https to ws/wss
-  url.protocol = url.protocol.replace('http', 'ws');
+  // NOTE: Keep credentials in URL if present - ZoneMinder does NOT strip them
+  // The server/proxy may handle authentication via URL credentials
+  // (ZoneMinder's MonitorStream.js keeps credentials when building WebSocket URL)
 
-  // Set path for WebSocket API
-  url.pathname = '/api/ws';
+  // Convert http/https to ws/wss (matches ZoneMinder implementation)
+  url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
 
-  // Build query parameters
+  // Append /ws to existing pathname (matches ZoneMinder: webrtcUrl.pathname += "/ws")
+  url.pathname += url.pathname.endsWith('/') ? 'ws' : '/ws';
+
+  // Build stream name: {monitorId}_{channel} (matches ZoneMinder format)
+  const streamName = `${monitorId}_${channel}`;
   url.searchParams.set('src', streamName);
+
   if (token) {
     url.searchParams.set('token', token);
   }
@@ -392,8 +402,8 @@ export function getGo2RTCWebSocketUrl(
 
   log.http(
     'Built Go2RTC WebSocket URL',
-    LogLevel.DEBUG,
-    { go2rtcUrl, streamName, hasToken: !!token, protocol: url.protocol }
+    LogLevel.INFO,
+    { go2rtcPath, monitorId, channel, streamName, finalUrl, hasToken: !!token, protocol: url.protocol }
   );
 
   return finalUrl;
@@ -402,22 +412,24 @@ export function getGo2RTCWebSocketUrl(
 /**
  * Build Go2RTC HTTP stream URL for MSE/HLS/MP4/MJPEG fallback.
  *
- * Constructs an HTTP URL for go2rtc fallback streaming with the format:
- * http://server:1984/api/stream.{type}?src=streamname&token=xxx
+ * Uses ZM_GO2RTC_PATH from server config and constructs HTTP streaming URL.
+ * Stream name format: {monitorId}_{channel}
  *
- * @param go2rtcUrl - Go2RTC base URL (e.g., "http://server:1984")
- * @param streamName - RTSP stream name from Monitor.RTSPStreamName
+ * @param go2rtcPath - Full Go2RTC URL from ZM_GO2RTC_PATH config (e.g., "http://server:1984")
+ * @param monitorId - Monitor ID (numeric)
+ * @param channel - Channel number (0 = primary, 1 = secondary, default: 0)
  * @param streamType - Stream type (mse, hls, mp4, mjpeg)
  * @param options - Additional options
  * @returns HTTP stream URL for go2rtc
  *
  * @example
- * getGo2RTCStreamUrl('http://zm.example.com:1984', 'front_camera', 'hls', { token: 'abc' })
- * // Returns: 'http://zm.example.com:1984/api/stream.hls?src=front_camera&token=abc'
+ * getGo2RTCStreamUrl('http://zm.example.com:1984', '1', 0, 'hls', { token: 'abc' })
+ * // Returns: 'http://zm.example.com:1984/api/stream.hls?src=1_0&token=abc'
  */
 export function getGo2RTCStreamUrl(
-  go2rtcUrl: string,
-  streamName: string,
+  go2rtcPath: string,
+  monitorId: string,
+  channel: number = 0,
   streamType: 'mse' | 'hls' | 'mp4' | 'mjpeg',
   options: {
     token?: string;
@@ -425,15 +437,19 @@ export function getGo2RTCStreamUrl(
 ): string {
   const { token } = options;
 
-  // Normalize URL and parse
-  const normalized = normalizePortalUrl(go2rtcUrl);
-  const url = new URL(normalized);
+  // Parse the configured Go2RTC path
+  const url = new URL(go2rtcPath);
 
-  // Set path for stream type
-  url.pathname = `/api/stream.${streamType}`;
+  // Append /stream.{type} to existing pathname (matches Go2RTC API structure)
+  // If ZM_GO2RTC_PATH is "http://server:1984/api", pathname is "/api"
+  // We append "/stream.{type}" to get "/api/stream.{type}"
+  const pathSuffix = url.pathname.endsWith('/') ? `stream.${streamType}` : `/stream.${streamType}`;
+  url.pathname += pathSuffix;
 
-  // Build query parameters
+  // Build stream name: {monitorId}_{channel}
+  const streamName = `${monitorId}_${channel}`;
   url.searchParams.set('src', streamName);
+
   if (token) {
     url.searchParams.set('token', token);
   }
@@ -442,8 +458,8 @@ export function getGo2RTCStreamUrl(
 
   log.http(
     'Built Go2RTC stream URL',
-    LogLevel.DEBUG,
-    { go2rtcUrl, streamName, streamType, hasToken: !!token }
+    LogLevel.INFO,
+    { go2rtcPath, monitorId, channel, streamName, streamType, finalUrl, hasToken: !!token }
   );
 
   return finalUrl;
