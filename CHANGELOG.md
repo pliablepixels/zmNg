@@ -2,6 +2,119 @@
 
 All notable changes to this project will be documented in this file.
 
+## [zmNg-0.2.0](https://github.com/pliablepixels/zmNg/compare/zmNg-0.1.5..zmNg-0.2.0) - 2026-01-14
+
+### ✨ Features
+
+- Add WebRTC protocol selection in settings - ([b3aab4d](https://github.com/pliablepixels/zmNg/commit/b3aab4d230a2e2e35a12e283face72974bbd06e9))
+- Move Montage controls to header bar with fullscreen hover support - ([a4db863](https://github.com/pliablepixels/zmNg/commit/a4db863a7ca355cac2749b871d9556bdae6fe021))
+- Integrate VideoPlayer into MonitorDetail and MontageMonitor - ([a5d3643](https://github.com/pliablepixels/zmNg/commit/a5d364312892254dfc1c0928092a19284b2bcb4e))
+- Integrate VideoPlayer into MonitorDetail and MontageMonitor - ([d69b8f0](https://github.com/pliablepixels/zmNg/commit/d69b8f0d560ecaa99b13d4b3000781a9ea6267a0))
+- Create VideoPlayer smart component with auto-selection - ([491c3d9](https://github.com/pliablepixels/zmNg/commit/491c3d9633f1705d243fd1a31314bdbb4c80f51c))
+- Implement useGo2RTCStream hook with fallback ladder - ([6a0188d](https://github.com/pliablepixels/zmNg/commit/6a0188d46deb8316a4cb434ca26d3a4a3abf0d07))
+- Add Go2RTC streaming i18n keys to all languages - ([ea4d25b](https://github.com/pliablepixels/zmNg/commit/ea4d25bec11b6459de3d39c21f4abb12d74ef6d3))
+- Add streaming method settings and state - ([28845fc](https://github.com/pliablepixels/zmNg/commit/28845fc04c835e9beee7d20137c5420bde201721))
+- Extend discovery system to detect Go2RTC endpoints - ([f4619f8](https://github.com/pliablepixels/zmNg/commit/f4619f8f5217726c55251faf401ec1f925af8fa2))
+- Vendor go2rtc video-rtc.js library and add URL builders - ([120c9a1](https://github.com/pliablepixels/zmNg/commit/120c9a1d3fafad7bb247c8f41285a2e61e6472b0))
+- Add bundle size analysis and optimization to build pipeline - ([969e526](https://github.com/pliablepixels/zmNg/commit/969e5267466166aafe5c322594026b57f17ccaa2))
+- Add comprehensive API logging with correlation IDs - ([48a142b](https://github.com/pliablepixels/zmNg/commit/48a142b9b4c5e276edb9c5992edd3b88f5ea3119))
+
+### 🐛 Bug Fixes
+
+- Update go2rtc-streaming e2e tests to use existing step definitions - ([25d63f6](https://github.com/pliablepixels/zmNg/commit/25d63f6fbfb18bc9c0167d1f5957c34a58639203))
+- Disable Picture-in-Picture for all video players - ([af23874](https://github.com/pliablepixels/zmNg/commit/af2387464ebd237e318cf3dd4d06595ba89d64d3))
+- Ensure WebRTC monitors start muted in Montage view - ([e0da3c6](https://github.com/pliablepixels/zmNg/commit/e0da3c688860097e340b9d6fc19a553209399424))
+- Add WebRTC to RTSP2WebType enum - ([f826757](https://github.com/pliablepixels/zmNg/commit/f8267577d0ef4b6a96f2ff49c7960d7c80c49a4a))
+- Handle all falsy values in Go2RTC type field validation - ([3f84adb](https://github.com/pliablepixels/zmNg/commit/3f84adba47a1c6f4e40610339502f83c3d56c760))
+- Handle empty string values in Go2RTCType and RTSP2WebType enum fields - ([65100cd](https://github.com/pliablepixels/zmNg/commit/65100cd2a6c8e7b58f3624e607039b07a683b10e))
+- Use useShallow for settings store in VideoPlayer to prevent infinite loop - ([ddac212](https://github.com/pliablepixels/zmNg/commit/ddac2124439ef043bf89d60b48244db5eaa81875))
+- Prevent infinite loop in VideoPlayer by adding enabled parameter to useMonitorStream - ([1d91769](https://github.com/pliablepixels/zmNg/commit/1d91769bf171a1dc9df045131118e5819c990e8b))
+- Correct TypeScript errors in MontageMonitor and useMonitorStream tests - ([e24223c](https://github.com/pliablepixels/zmNg/commit/e24223c75f094a7344e091dbe9aac08dbbb88b70))
+- Resolve infinite re-render loops caused by unstable Zustand selectors - ([7dbd2c4](https://github.com/pliablepixels/zmNg/commit/7dbd2c4008b5495cac67c4716de4d0e723514227))
+- Update AppLayout to use useCurrentProfile hook and fix TypeScript errors - ([2c8cc90](https://github.com/pliablepixels/zmNg/commit/2c8cc909972f1f10ede4a35790a013a9a47bb963))
+- Prevent infinite loop when adding dashboard widgets - ([07f8f41](https://github.com/pliablepixels/zmNg/commit/07f8f417bba4284b39b61ed04d8089b51d0f3014))
+- Prevent intermittent infinite loop in TimelineWidget - ([7113995](https://github.com/pliablepixels/zmNg/commit/71139953f8e763d4683e8729d6aa0ba05131e6de))
+- Wrap dashboard widgets in React.memo and fix reference equality issues - ([ccf3efc](https://github.com/pliablepixels/zmNg/commit/ccf3efc1fe073f6b9ad34434b31e6c31fe50ecba))
+- Prevent infinite re-renders in TimelineWidget and ThemeProvider - ([17bdd84](https://github.com/pliablepixels/zmNg/commit/17bdd8453183243c6e24ca52ceee6b57d6ce1f39))
+- Prevent empty src attribute warning in monitor image components - ([9b5b27a](https://github.com/pliablepixels/zmNg/commit/9b5b27a580390144c21a5f3c3ce799dc968d9db5))
+- Make downloadFromDataUrlWeb async to match type signature refs #11 - ([c9cc438](https://github.com/pliablepixels/zmNg/commit/c9cc438d1daae15372237e68e3f378ba671356e6))
+- Add NONE level to logger method map for TypeScript compliance refs #11 - ([566a38d](https://github.com/pliablepixels/zmNg/commit/566a38d014f348cdf986d9ac2c729b99786dff22))
+- Event favorites not updating in list view - ([8262cea](https://github.com/pliablepixels/zmNg/commit/8262ceae0fb48ce7b54da42afd593c011d229f62))
+
+### ♻️ Refactor
+
+- Simplify muting logic in useGo2RTCStream - ([ce98dbe](https://github.com/pliablepixels/zmNg/commit/ce98dbe5861d2fa3d9b64a0316d08da94a686308))
+- Simplify VideoSettings, VideoPlayer, and useGo2RTCStream - ([f6516c6](https://github.com/pliablepixels/zmNg/commit/f6516c6cedbb66deb1094b405f42d3cd06c2b846))
+- Extract profile initialization logic into separate module - ([06ac0b1](https://github.com/pliablepixels/zmNg/commit/06ac0b1bbd2effa4ac817a9c8eb56c9e961bfbde))
+- Implement code review recommendations - ([047a0e8](https://github.com/pliablepixels/zmNg/commit/047a0e8afcddb1c59d266a6adbd35bbe7b24a372))
+- Remove legacy patterns and fix code duplication - ([77046d0](https://github.com/pliablepixels/zmNg/commit/77046d063403ee65c71fe42394e58a3b15e0905e))
+- Replace state.currentProfile() with useCurrentProfile hook - ([255bcbc](https://github.com/pliablepixels/zmNg/commit/255bcbcd1656908151ec4f04981aa3609f61363d))
+- Remove duplicate HTTP logging and add request correlation - ([7dfd75b](https://github.com/pliablepixels/zmNg/commit/7dfd75b19c394dcfa300a0655078d48ab6f5268a))
+- Extract Events filter popover to separate component refs #11 - ([d369381](https://github.com/pliablepixels/zmNg/commit/d369381d45d67079b0c66a017787bab43141112c))
+- Implement platform handler strategy pattern in download.ts refs #11 - ([a57c9c9](https://github.com/pliablepixels/zmNg/commit/a57c9c9e68a9cad9de888dd5a89278dc16db7221))
+- Use existing updateProfileSettings in settings store refs #11 - ([babab78](https://github.com/pliablepixels/zmNg/commit/babab78a0b7bb522a0562b64844b9ce574760147))
+- Extract duplicate ConnKey generation logic refs #11 - ([4e700c6](https://github.com/pliablepixels/zmNg/commit/4e700c606e761f85d38c6eabbf3e8f6b022c5578))
+- Create shared proxy URL utility refs #11 - ([a9a93df](https://github.com/pliablepixels/zmNg/commit/a9a93df38edb40bb5899ecdc9aec6d0ae0755ab1))
+- Extract duplicate body serialization in http client refs #11 - ([0e9fccd](https://github.com/pliablepixels/zmNg/commit/0e9fccdd3360d6b34ace10a3912c447587e9e912))
+- Extract profile bootstrap logic to reduce duplication refs #11 - ([1c57c9c](https://github.com/pliablepixels/zmNg/commit/1c57c9c608b8554a0a35f8eef0c3af9221a0d5cb))
+- Simplify logger to eliminate DRY violations refs #11 - ([da1c748](https://github.com/pliablepixels/zmNg/commit/da1c7480e23c9a5f22910f95db18d47c6a05ff60))
+- Consolidate log retention and reduce route logging - ([5732c12](https://github.com/pliablepixels/zmNg/commit/5732c126e9f460ec2fa6af208ee1e11bdbf74741))
+
+### 📚 Documentation
+
+- Update go2rtc-integration with muting strategy and PiP info - ([c19a252](https://github.com/pliablepixels/zmNg/commit/c19a252153d233fd278ddfe7fa0f69b43c67019f))
+- Add comprehensive Go2RTC integration developer guide - ([dcdcec6](https://github.com/pliablepixels/zmNg/commit/dcdcec672d1c925174da0cd8a31f41760c2efd4e))
+- Optimize AGENTS.md size for AI agent performance - ([da8f18c](https://github.com/pliablepixels/zmNg/commit/da8f18cd563e06b9bb2f374c66bddf42a609fa2b))
+- Improve AGENTS.md for AI agent consumption - ([2c15c7d](https://github.com/pliablepixels/zmNg/commit/2c15c7d368119a36eb20e954ad1685d477eb5d42))
+- Update development guidelines with refactoring patterns and tooling - ([983bb49](https://github.com/pliablepixels/zmNg/commit/983bb4922a62de7ce9e86b41f51ad6980bf303e1))
+- Add pitfall #18 for store-to-component sync circular dependencies - ([842522e](https://github.com/pliablepixels/zmNg/commit/842522e91c25a14cd90db2dd7bab87876a7a7ef8))
+- Add pitfall #17 for creating new object references in component body - ([9cb0c9e](https://github.com/pliablepixels/zmNg/commit/9cb0c9e945e4025c953d08eff75620bf4ff07f6d))
+- Add comprehensive shared services and components guide refs #11 - ([80848b8](https://github.com/pliablepixels/zmNg/commit/80848b85fe3a0c5d1a11ca41459a63bd21348902))
+- Expand React fundamentals with detailed explanations - ([6a512ff](https://github.com/pliablepixels/zmNg/commit/6a512fffecd9bfef14eee499cb8279ad90888fb5))
+- Removed principles from readme - they are already in chapters - ([142f2b7](https://github.com/pliablepixels/zmNg/commit/142f2b759794edce629c8699b612135aa186c4fb))
+- Add timer and polling reference to developer guide - ([f0eda54](https://github.com/pliablepixels/zmNg/commit/f0eda5487146c76d0f39f236e04a1b3df9ff9201))
+- Add guidelines for avoiding superlative language - ([9c65a08](https://github.com/pliablepixels/zmNg/commit/9c65a080f0cee114810d273186a90ef7576407ed))
+
+### ✅ Tests
+
+- Add E2E tests for Go2RTC WebRTC streaming - ([dabe4be](https://github.com/pliablepixels/zmNg/commit/dabe4bef8150ba38a4b6381b5ab747ccd4717ed4))
+- Add unit tests for MontageMonitor and useMonitorStream - ([8b39ea4](https://github.com/pliablepixels/zmNg/commit/8b39ea4f756d747bb8c31ce40ba69f3968e1013f))
+- Add coverage thresholds (60% minimum for lines, functions, branches, statements) - ([09f58b8](https://github.com/pliablepixels/zmNg/commit/09f58b86dc329ea168394ba19ec9f5172d19f629))
+- Add unit tests for useCurrentProfile hook and DashboardLayout - ([161ff12](https://github.com/pliablepixels/zmNg/commit/161ff12d0b1739928dd48524d6b5da9a3d1c6ed1))
+
+### 🔧 Miscellaneous
+
+- Release bump - ([87519d8](https://github.com/pliablepixels/zmNg/commit/87519d89e96aed83b9b2571cae1585f20e18d7cd))
+- Add Claude Code CLI commands directory - ([cebac8b](https://github.com/pliablepixels/zmNg/commit/cebac8b3cd6ef20e8a8811b73b26e01bb5e897ee))
+- No reason why I added those words - ([26c152a](https://github.com/pliablepixels/zmNg/commit/26c152a772c9f1d9360bbd12534d450fca06eea5))
+- Sync tauri version to 0.1.5 - ([ba4fe56](https://github.com/pliablepixels/zmNg/commit/ba4fe56c695d5737f28b691917b69d9a89ebde00))
+
+### 📝 Other
+
+- Merge branch 'feature/go2rtc-webrtc-streaming' - ([b5af647](https://github.com/pliablepixels/zmNg/commit/b5af647870e118ce8be964ec5ab280da71fbadd6))
+- Merge feature/code-simplification-refactoring fixes #11
+
+Complete code simplification refactoring to eliminate DRY violations:
+
+Refactoring changes:
+- Logger: Factory pattern eliminates 30+ duplicate methods (~109 lines)
+- Profile store: Extract bootstrap logic (~236 lines)
+- HTTP client: Extract duplicate body serialization (~20 lines)
+- Proxy utils: Shared utility replaces 4× duplication
+- Monitors store: Extract ConnKey generation logic
+- Settings store: Use existing method (~20 lines)
+- Download utils: Platform handler strategy pattern (~50 lines)
+- Events page: Extract filter popover component (~78 lines)
+
+Documentation:
+- Add comprehensive shared services and components guide (Chapter 12)
+- Document all lib/ utilities, UI components, domain components
+- Include usage matrices and recent refactoring notes
+
+Total reduction: ~600+ lines eliminated through DRY principles
+Tests: All 675 tests passing ✓
+Type check: Passing ✓
+Build: Successful ✓ - ([9bf709e](https://github.com/pliablepixels/zmNg/commit/9bf709e18cddc4a08960117be35fb92134b9388e))
 ## [zmNg-0.1.5](https://github.com/pliablepixels/zmNg/compare/zmNg-0.1.4..zmNg-0.1.5) - 2026-01-08
 
 ### ✨ Features
@@ -23,6 +136,10 @@ All notable changes to this project will be documented in this file.
 
 - Release bump - ([9bfbdda](https://github.com/pliablepixels/zmNg/commit/9bfbdda2742c00fdbdad3599e26a98025bcbbd80))
 - Version bump artifacts for 0.1.4 - ([b9cf50d](https://github.com/pliablepixels/zmNg/commit/b9cf50d4185bbe87e775e8d1e8519c84a07c5b29))
+
+### 📝 Other
+
+- Preparing release for: zmNg-0.1.5 - ([6391bfe](https://github.com/pliablepixels/zmNg/commit/6391bfeff2c4d6ea71384fd8f7b7121a21eae22d))
 ## [zmNg-0.1.4](https://github.com/pliablepixels/zmNg/compare/zmNg-0.1.3..zmNg-0.1.4) - 2026-01-04
 
 ### ✨ Features
