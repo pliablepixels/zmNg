@@ -64,8 +64,17 @@ function EventCardComponent({ event, monitorName, thumbnailUrl, objectFit = 'con
 
   return (
     <Card
-      className="group overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-200 hover:ring-2 hover:ring-primary/50"
+      className="group overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-200 hover:ring-2 hover:ring-primary/50 focus:outline-none focus:ring-2 focus:ring-primary"
       onClick={() => navigate(`/events/${event.Id}`, { state: { from: '/events' } })}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          navigate(`/events/${event.Id}`, { state: { from: '/events' } });
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label={`${t('common.view')}: ${event.Name}`}
       data-testid="event-card"
     >
       <div className="flex gap-2 sm:gap-3 p-2 sm:p-3">

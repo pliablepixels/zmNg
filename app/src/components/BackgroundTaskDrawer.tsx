@@ -110,10 +110,10 @@ function TaskItem({ task }: TaskItemProps) {
 
       {/* Progress bar for active tasks */}
       {(task.status === 'pending' || task.status === 'in_progress') && (
-        <div className="space-y-1">
+        <div className="space-y-1" role="progressbar" aria-valuenow={task.progress} aria-valuemin={0} aria-valuemax={100}>
           <Progress value={task.progress} className="h-1.5" data-testid="task-progress-bar" />
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span data-testid="task-progress-text">{task.progress}%</span>
+            <span aria-live="polite" data-testid="task-progress-text">{task.progress}%</span>
             {task.metadata.fileSize && task.metadata.bytesProcessed !== undefined && (
               <span data-testid="task-size-text">
                 {formatBytes(task.metadata.bytesProcessed)} / {formatBytes(task.metadata.fileSize)}
@@ -125,14 +125,14 @@ function TaskItem({ task }: TaskItemProps) {
 
       {/* Error message */}
       {task.status === 'failed' && task.error && (
-        <p className="text-xs text-red-500" data-testid="task-error-message">
+        <p className="text-xs text-red-500" role="alert" aria-live="assertive" data-testid="task-error-message">
           {task.error.message}
         </p>
       )}
 
       {/* Completed status */}
       {task.status === 'completed' && (
-        <p className="text-xs text-green-500" data-testid="task-completed-text">
+        <p className="text-xs text-green-500" role="status" aria-live="polite" data-testid="task-completed-text">
           {t('backgroundTasks.completed')}
         </p>
       )}

@@ -222,6 +222,14 @@ function SidebarContent({ onMobileClose, isCollapsed }: SidebarContentProps) {
                           connectionState === 'disconnected' ? t('notifications.status.disconnected') :
                           t('notifications.status.connecting')
                         }
+                        role="status"
+                        aria-live="polite"
+                        aria-label={
+                          !settings?.enabled ? t('notifications.status.disabled') :
+                          connectionState === 'connected' ? t('notifications.status.connected') :
+                          connectionState === 'disconnected' ? t('notifications.status.disconnected') :
+                          t('notifications.status.connecting')
+                        }
                         data-testid="notification-status-indicator"
                       />
                     )}

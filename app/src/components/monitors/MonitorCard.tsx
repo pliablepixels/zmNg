@@ -112,9 +112,18 @@ function MonitorCardComponent({
       <div className="flex flex-col sm:flex-row gap-4 p-4">
         {/* Thumbnail Preview - Clickable */}
         <div
-          className="relative bg-black/90 cursor-pointer w-full sm:w-72 md:w-80"
+          className="relative bg-black/90 cursor-pointer w-full sm:w-72 md:w-80 focus:outline-none focus:ring-2 focus:ring-primary"
           style={{ aspectRatio: aspectRatio ?? '16 / 9' }}
           onClick={() => navigate(`/monitors/${monitor.Id}`, { state: { from: '/monitors' } })}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              navigate(`/monitors/${monitor.Id}`, { state: { from: '/monitors' } });
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          aria-label={`${t('monitors.view_live')}: ${monitor.Name}`}
         >
           {(displayedImageUrl || streamUrl) && (
             <img
