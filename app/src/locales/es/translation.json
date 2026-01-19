@@ -6,7 +6,7 @@
     "view_montage": "Vista de montaje",
     "close": "Cerrar",
     "settings": "Configuración",
-    "server": "Server",
+    "server": "Servidor",
     "loading": "Cargando...",
     "error": "Error",
     "save": "Guardar",
@@ -82,7 +82,7 @@
     "cancel": "Cancelar",
     "add": "Agregar Widget",
     "no_monitors_selected": "No hay monitores seleccionados",
-    "no_monitors_available": "No monitors available",
+    "no_monitors_available": "No hay monitores disponibles",
     "offline": "Desconectado",
     "no_recent_events": "No hay eventos recientes"
   },
@@ -238,7 +238,7 @@
     "marker_jumped": "Saltado a {{text}}"
   },
   "settings": {
-    "server": "Server",
+    "server": "Servidor",
     "title": "Configuración",
     "subtitle": "Configuración de la aplicación",
     "language": "Idioma",
@@ -350,7 +350,7 @@
     "view_events": "Ver Eventos",
     "timeline": "Línea de Tiempo",
     "settings": "Configuración",
-    "server": "Server",
+    "server": "Servidor",
     "ptz_controls": "Controles PTZ",
     "save_snapshot": "Guardar Instantánea",
     "snapshot_saved": "Instantánea guardada",
@@ -651,6 +651,7 @@
     "zm_version": "Versión de ZoneMinder",
     "api_version": "Versión de API",
     "app_version": "Versión de Aplicación",
+    "timezone": "Zona horaria",
     "load_average": "Carga Promedio",
     "load_desc": "Carga promedio del sistema",
     "disk_usage": "Uso de Disco",

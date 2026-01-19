@@ -6,7 +6,7 @@
     "view_montage": "蒙太奇视图",
     "close": "关闭",
     "settings": "设置",
-    "server": "Server",
+    "server": "服务器",
     "loading": "加载中...",
     "error": "错误",
     "save": "保存",
@@ -82,7 +82,7 @@
     "cancel": "取消",
     "add": "添加小部件",
     "no_monitors_selected": "未选择监控",
-    "no_monitors_available": "No monitors available",
+    "no_monitors_available": "无可用监控",
     "offline": "离线",
     "no_recent_events": "没有最近的事件"
   },
@@ -238,7 +238,7 @@
     "marker_jumped": "跳转到 {{text}}"
   },
   "settings": {
-    "server": "Server",
+    "server": "服务器",
     "title": "设置",
     "subtitle": "应用配置",
     "language": "语言",
@@ -350,7 +350,7 @@
     "view_events": "查看事件",
     "timeline": "时间轴",
     "settings": "设置",
-    "server": "Server",
+    "server": "服务器",
     "ptz_controls": "PTZ 控制",
     "save_snapshot": "保存快照",
     "snapshot_saved": "快照已保存",
@@ -651,6 +651,7 @@
     "zm_version": "ZoneMinder 版本",
     "api_version": "API 版本",
     "app_version": "应用版本",
+    "timezone": "时区",
     "load_average": "平均负载",
     "load_desc": "系统平均负载",
     "disk_usage": "磁盘使用",

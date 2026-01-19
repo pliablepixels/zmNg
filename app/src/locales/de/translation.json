@@ -82,7 +82,7 @@
     "cancel": "Abbrechen",
     "add": "Widget hinzufügen",
     "no_monitors_selected": "Keine Monitore ausgewählt",
-    "no_monitors_available": "No monitors available",
+    "no_monitors_available": "Keine Monitore verfügbar",
     "offline": "Offline",
     "no_recent_events": "Keine aktuellen Ereignisse"
   },
@@ -651,6 +651,7 @@
     "zm_version": "ZoneMinder-Version",
     "api_version": "API-Version",
     "app_version": "App-Version",
+    "timezone": "Zeitzone",
     "load_average": "Durchschnittliche Last",
     "load_desc": "System-Durchschnittslast",
     "disk_usage": "Festplattennutzung",
