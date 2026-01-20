@@ -961,6 +961,94 @@ Add to **ALL** language files (en, de, es, fr, zh):
 
 ---
 
+## Platform-Specific Pitfalls
+
+### 24. Tauri HTTP Scope Doesn't Allow Non-Standard Ports
+
+**Problem:**
+
+```json
+// src-tauri/capabilities/default.json
+{
+  "identifier": "http:default",
+  "allow": [
+    { "url": "https://**" }  // ❌ Only allows port 443
+  ]
+}
+```
+
+**Why it's wrong:**
+
+- `https://**` only matches the default HTTPS port (443)
+- ZoneMinder servers often run on non-standard ports (e.g., 30005, 30014)
+- Requests to `https://server.com:30005/...` fail with "url not allowed on the configured scope"
+- Works in development (web) but fails in Tauri production builds
+
+**Solution:**
+
+```json
+{
+  "identifier": "http:default",
+  "allow": [
+    { "url": "http://*:*/*" },   // ✅ Any HTTP URL, any port
+    { "url": "https://*:*/*" }   // ✅ Any HTTPS URL, any port
+  ]
+}
+```
+
+**Key principle:** Always use `*:*` in Tauri HTTP scope patterns to allow any port.
+
+### 25. ZMS Streaming URLs Hang Forever When Downloading Snapshots
+
+**Problem:**
+
+```typescript
+// Trying to download a snapshot from a ZMS stream URL
+const streamUrl = 'https://server/zm/cgi-bin/zms?monitor=1&mode=jpeg&maxfps=10&connkey=12345';
+await downloadFile(streamUrl, 'snapshot.jpg');  // ❌ Hangs forever
+```
+
+**Why it's wrong:**
+
+- ZMS with `mode=jpeg` and `maxfps` returns a continuous MJPEG stream
+- The stream never ends - it keeps sending frames forever
+- HTTP request never completes, download hangs indefinitely
+- Also applies to `/nph-zms` endpoints
+
+**Solution:**
+
+Normalize ZMS URLs before downloading by setting `mode=single` and removing streaming params:
+
+```typescript
+export function normalizeZmsSnapshotUrl(imageUrl: string): string {
+  const parsedUrl = new URL(imageUrl);
+
+  // Handle both /nph-zms and /zms streaming endpoints
+  if (!parsedUrl.pathname.includes('nph-zms') && !parsedUrl.pathname.endsWith('/zms')) {
+    return imageUrl;  // Not a ZMS URL, return as-is
+  }
+
+  const params = parsedUrl.searchParams;
+  params.set('mode', 'single');     // ✅ Request single frame, not stream
+  params.delete('maxfps');          // Remove streaming params
+  params.delete('connkey');
+  params.delete('buffer');
+
+  return parsedUrl.toString();
+}
+
+// Usage
+const snapshotUrl = normalizeZmsSnapshotUrl(streamUrl);
+// Result: https://server/zm/cgi-bin/zms?monitor=1&mode=single&scale=100&token=...
+await downloadFile(snapshotUrl, 'snapshot.jpg');  // ✅ Completes quickly
+```
+
+**Key principles:**
+- Always normalize ZMS/nph-zms URLs before downloading
+- Set `mode=single` to get a single JPEG frame
+- Remove `maxfps`, `connkey`, and other streaming parameters
+- Handle both `/zms` and `/nph-zms` path patterns
+
 ## Security Pitfalls
 
 ### 22. Storing Sensitive Data Unencrypted
@@ -1031,6 +1119,8 @@ Before submitting a PR, check for these pitfalls:
 - [ ] Invisible overlays have `pointer-events-none` (iOS touch fix)
 - [ ] No sensitive data in logs
 - [ ] Sensitive data stored encrypted
+- [ ] Tauri HTTP scope uses `*:*` pattern for non-standard ports
+- [ ] ZMS streaming URLs normalized to `mode=single` before download
 
 ## Next Steps
 
