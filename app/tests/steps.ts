@@ -193,11 +193,12 @@ When('I click into the first monitor detail page', async ({ page }) => {
     await maximizeBtn.click();
     log.info('E2E: Clicked montage-maximize-btn', { component: 'e2e' });
   } else {
-    // On Monitors page: click the monitor card
-    const monitorCard = page.getByTestId('monitor-card').first();
-    await expect(monitorCard).toBeVisible({ timeout: testConfig.timeouts.pageLoad });
-    await monitorCard.click();
-    log.info('E2E: Clicked monitor-card', { component: 'e2e' });
+    // On Monitors page: click the monitor thumbnail (monitor-player img)
+    // The img is inside a clickable div that navigates to detail
+    const monitorPlayer = page.getByTestId('monitor-player').first();
+    await expect(monitorPlayer).toBeVisible({ timeout: testConfig.timeouts.pageLoad });
+    await monitorPlayer.click();
+    log.info('E2E: Clicked monitor-player', { component: 'e2e' });
   }
 
   await page.waitForURL(/.*monitors\/\d+/, { timeout: testConfig.timeouts.transition });
