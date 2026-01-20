@@ -167,6 +167,41 @@ The workspace structure:
 
 ## Testing (MANDATORY - No Exceptions)
 
+### Testing Philosophy: Test Everything Like a Human Would
+
+**Core Principle**: Every button, every tap, every interaction must be tested exactly as a real user would experience it.
+
+**What This Means**:
+- ❌ **NOT** just checking if components render
+- ❌ **NOT** mocking away the functionality you're testing
+- ✅ **YES** clicking buttons and verifying the action happens
+- ✅ **YES** filling forms and verifying data is saved
+- ✅ **YES** downloading files and verifying they actually download
+- ✅ **YES** testing on mobile viewports with touch interactions
+
+**Every Interactive Element Must Be Tested**:
+- Buttons → Click and verify the expected action occurs
+- Forms → Fill fields, submit, verify persistence
+- Dropdowns → Open, select option, verify selection applies
+- Toggles → Toggle on/off, verify state changes
+- Navigation → Click links, verify correct page loads
+- Dialogs → Open, interact, close, verify state
+- Downloads → Trigger download, verify file is saved
+- Streaming → Start stream, verify video plays
+
+**Mobile Testing (Required)**:
+- All e2e tests must run on mobile viewport (375x812)
+- Test touch gestures: swipe, pinch-to-zoom, pull-to-refresh
+- Test responsive layouts collapse correctly
+- Test mobile-specific UI (sheets instead of dropdowns)
+
+**Anti-Patterns to Avoid**:
+- ❌ Mocking the thing you're testing (e.g., mocking download in download test)
+- ❌ Only testing happy path, ignoring errors
+- ❌ Testing that "component renders" without testing functionality
+- ❌ Skipping mobile viewport tests
+- ❌ Writing tests that pass but don't verify real behavior
+
 ### Test-First Development Workflow
 
 **Rule**: Write tests BEFORE or DURING implementation, NEVER skip tests.
@@ -236,12 +271,27 @@ The workspace structure:
 - **Workflow**: Write .feature file → playwright-bdd generates .spec → run tests
 - **Guide**: `app/tests/README.md`
 
-**What to Test**:
+**What to Test** (Comprehensive Coverage Required):
 - User can complete the intended action end-to-end
 - UI renders correctly in the new state
 - Error states display and are recoverable
 - Navigation works as expected
 - No console errors occur during the flow
+- **Every button on the page performs its action**
+- **Every form field accepts input and validates correctly**
+- **Every dropdown opens, selects, and applies selection**
+- **Every toggle changes state and persists**
+- **Every dialog opens, functions, and closes**
+- **Mobile viewport (375x812) renders correctly**
+- **Touch gestures work (swipe, pinch where applicable)**
+
+**Required Test Scenarios Per Page**:
+- Desktop viewport (1280x720) - full functionality
+- Mobile viewport (375x812) - responsive layout + touch
+- Loading states - skeleton/spinner displays
+- Empty states - correct message and action buttons
+- Error states - error message and recovery options
+- Success states - confirmation and next steps
 
 **Run**: `npm run test:e2e -- <feature>.feature`
 - **Example**: `npm run test:e2e -- dashboard.feature`
