@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { downloadFile, normalizeZmsSnapshotUrl } from '../download';
+import { downloadFile, convertToSnapshotUrl } from '../download';
 import { Platform } from '../platform';
 
 // Mock dependencies
@@ -91,7 +91,7 @@ describe('Mobile Download Logic', () => {
 describe('ZMS Snapshot URL normalization', () => {
     it('removes streaming params and forces single mode', () => {
         const url = 'http://zm.example.com/cgi-bin/nph-zms?monitor=1&mode=jpeg&scale=100&maxfps=10&connkey=4456&_t=123&token=abc';
-        const normalized = normalizeZmsSnapshotUrl(url);
+        const normalized = convertToSnapshotUrl(url);
         const parsed = new URL(normalized);
 
         expect(parsed.searchParams.get('mode')).toBe('single');
@@ -105,7 +105,7 @@ describe('ZMS Snapshot URL normalization', () => {
 
     it('normalizes /zms URLs (without nph- prefix)', () => {
         const url = 'https://zm.example.com:30005/zm/cgi-bin/zms?monitor=5&mode=jpeg&scale=100&maxfps=10&connkey=74238&token=abc';
-        const normalized = normalizeZmsSnapshotUrl(url);
+        const normalized = convertToSnapshotUrl(url);
         const parsed = new URL(normalized);
 
         expect(parsed.searchParams.get('mode')).toBe('single');
@@ -119,7 +119,7 @@ describe('ZMS Snapshot URL normalization', () => {
     it('normalizes proxied ZMS URLs', () => {
         const targetUrl = 'http://zm.example.com/cgi-bin/nph-zms?monitor=2&mode=jpeg&connkey=999';
         const proxyUrl = `http://localhost:3001/image-proxy?url=${encodeURIComponent(targetUrl)}`;
-        const normalized = normalizeZmsSnapshotUrl(proxyUrl);
+        const normalized = convertToSnapshotUrl(proxyUrl);
         const parsed = new URL(normalized);
         const normalizedTarget = parsed.searchParams.get('url');
 

@@ -1020,7 +1020,7 @@ await downloadFile(streamUrl, 'snapshot.jpg');  // ❌ Hangs forever
 Normalize ZMS URLs before downloading by setting `mode=single` and removing streaming params:
 
 ```typescript
-export function normalizeZmsSnapshotUrl(imageUrl: string): string {
+export function convertToSnapshotUrl(imageUrl: string): string {
   const parsedUrl = new URL(imageUrl);
 
   // Handle both /nph-zms and /zms streaming endpoints
@@ -1038,7 +1038,7 @@ export function normalizeZmsSnapshotUrl(imageUrl: string): string {
 }
 
 // Usage
-const snapshotUrl = normalizeZmsSnapshotUrl(streamUrl);
+const snapshotUrl = convertToSnapshotUrl(streamUrl);
 // Result: https://server/zm/cgi-bin/zms?monitor=1&mode=single&scale=100&token=...
 await downloadFile(snapshotUrl, 'snapshot.jpg');  // ✅ Completes quickly
 ```

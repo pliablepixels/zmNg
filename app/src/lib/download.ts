@@ -39,14 +39,14 @@ export interface DownloadOptions {
   signal?: AbortSignal;
 }
 
-export function normalizeZmsSnapshotUrl(imageUrl: string): string {
+export function convertToSnapshotUrl(imageUrl: string): string {
   try {
     const parsedUrl = new URL(imageUrl);
 
     if (parsedUrl.pathname.endsWith('/image-proxy') && parsedUrl.searchParams.has('url')) {
       const targetUrl = parsedUrl.searchParams.get('url');
       if (!targetUrl) return imageUrl;
-      const normalizedTarget = normalizeZmsSnapshotUrl(targetUrl);
+      const normalizedTarget = convertToSnapshotUrl(targetUrl);
       parsedUrl.searchParams.set('url', normalizedTarget);
       return parsedUrl.toString();
     }
@@ -309,7 +309,7 @@ export async function downloadSnapshot(imageUrl: string, monitorName: string): P
   }
 
   // Otherwise fetch and download
-  await downloadFile(normalizeZmsSnapshotUrl(imageUrl), filename);
+  await downloadFile(convertToSnapshotUrl(imageUrl), filename);
 }
 
 /**
@@ -341,7 +341,7 @@ export async function downloadSnapshotFromElement(
       if (imageUrl.startsWith('data:')) {
         await downloadSnapshot(imageUrl, monitorName);
       } else {
-        await downloadFile(normalizeZmsSnapshotUrl(imageUrl), filename);
+        await downloadFile(convertToSnapshotUrl(imageUrl), filename);
       }
     }
   } catch (error) {
