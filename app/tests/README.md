@@ -51,16 +51,16 @@ zmNg uses a layered testing approach:
 - ✓ Download utilities
 - ✓ Profile validation
 
-**E2E Tests**: 9 feature files covering all major features
-- ✓ Dashboard widgets (dashboard.feature)
-- ✓ Monitor list and cards (monitors.feature)
-- ✓ Monitor detail and controls (monitor-detail.feature)
-- ✓ Event browsing (events.feature)
-- ✓ Timeline interaction (timeline.feature)
-- ✓ Profiles management (profiles.feature)
-- ✓ Settings (settings.feature)
-- ✓ Go2RTC streaming (go2rtc-streaming.feature)
-- ✓ Full app walkthrough (full-app-walkthrough.feature)
+**E2E Tests**: 9 feature files with 74 scenarios covering all major features
+- ✓ Dashboard widgets and editing (dashboard.feature - 8 scenarios)
+- ✓ Monitor list, montage, and detail (monitors.feature - 7 scenarios)
+- ✓ Monitor detail page controls (monitor-detail.feature - 7 scenarios)
+- ✓ Event browsing, filtering, and favorites (events.feature - 14 scenarios)
+- ✓ Timeline visualization and filtering (timeline.feature - 10 scenarios)
+- ✓ Profile management (profiles.feature - 5 scenarios)
+- ✓ Settings, server info, and logs (settings.feature - 7 scenarios)
+- ✓ Go2RTC WebRTC streaming (go2rtc-streaming.feature - 3 scenarios)
+- ✓ Full app navigation walkthrough (full-app-walkthrough.feature - 8 scenarios)
 
 ---
 
@@ -177,23 +177,20 @@ All E2E tests are generated from Gherkin `.feature` files using playwright-bdd:
 ```
 tests/
 ├── features/
-│   ├── dashboard.feature         # Dashboard widget tests
-│   ├── monitors.feature          # Monitor list tests
-│   ├── monitor-detail.feature    # Monitor detail page tests
-│   ├── events.feature            # Event browsing tests
-│   ├── timeline.feature          # Timeline tests
-│   ├── profiles.feature          # Profile management tests
-│   ├── settings.feature          # Settings tests
-│   ├── go2rtc-streaming.feature  # WebRTC streaming tests
-│   ├── full-app-walkthrough.feature
-│   └── .wip/                     # Work-in-progress features (excluded from runs)
+│   ├── dashboard.feature           # Dashboard widget tests (8 scenarios)
+│   ├── monitors.feature            # Monitor list and montage tests (7 scenarios)
+│   ├── monitor-detail.feature      # Monitor detail page tests (7 scenarios)
+│   ├── events.feature              # Event browsing tests (14 scenarios)
+│   ├── timeline.feature            # Timeline visualization tests (10 scenarios)
+│   ├── profiles.feature            # Profile management tests (5 scenarios)
+│   ├── settings.feature            # Settings, server, logs tests (7 scenarios)
+│   ├── go2rtc-streaming.feature    # WebRTC streaming tests (3 scenarios)
+│   └── full-app-walkthrough.feature # Full navigation walkthrough (8 scenarios)
 ├── helpers/
-│   └── config.ts                 # Test configuration
-├── steps.ts                      # Step implementations
-└── README.md                     # This file
+│   └── config.ts                   # Test configuration
+├── steps.ts                        # Step implementations (150+ step definitions)
+└── README.md                       # This file
 ```
-
-**Note:** Features in `.wip/` folder are excluded from test runs. Move them to `features/` when ready.
 
 ## Configuration
 

@@ -34,3 +34,9 @@ Feature: Profile Management
     Then I should see the page heading "Profiles"
     And I should see the active profile indicator
     # Profile switching tested via profile-switcher component
+
+  @mobile
+  Scenario: Profiles page on mobile
+    When I navigate to the "Profiles" page
+    Then I should see the page heading "Profiles"
+    And I should see at least 1 profile cards

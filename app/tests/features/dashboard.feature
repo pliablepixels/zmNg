@@ -59,3 +59,36 @@ Feature: Dashboard Customization
     When I navigate to the "Dashboard" page
     Then I should see the page heading "Dashboard"
     # Empty dashboard state tested via EmptyState component
+
+  Scenario: Edit a widget title
+    When I navigate to the "Dashboard" page
+    Then I should see the page heading "Dashboard"
+    When I open the Add Widget dialog
+    And I select the "Timeline" widget type
+    And I enter widget title "Original Title"
+    And I click the Add button in the dialog
+    Then the widget "Original Title" should appear on the dashboard
+    When I enter dashboard edit mode
+    And I click the widget edit button on the first widget
+    Then I should see the widget edit dialog
+    When I change the widget title to "Updated Title"
+    And I save the widget changes
+    Then the widget "Updated Title" should appear on the dashboard
+
+  Scenario: Delete a widget
+    When I navigate to the "Dashboard" page
+    Then I should see the page heading "Dashboard"
+    When I open the Add Widget dialog
+    And I select the "Timeline" widget type
+    And I enter widget title "Widget To Delete"
+    And I click the Add button in the dialog
+    Then the widget "Widget To Delete" should appear on the dashboard
+    When I enter dashboard edit mode
+    And I click the widget delete button on the first widget
+    Then the widget should be removed from the dashboard
+
+  @mobile
+  Scenario: Dashboard displays in mobile layout
+    When I navigate to the "Dashboard" page
+    Then I should see the page heading "Dashboard"
+    And the add widget button should be visible

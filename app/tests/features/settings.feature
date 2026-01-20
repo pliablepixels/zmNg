@@ -34,3 +34,14 @@ Feature: Application Settings
     And I should see log control elements
     And I change the log level to "WARN"
     And I clear logs if available
+
+  Scenario: Settings has theme controls
+    When I navigate to the "Settings" page
+    Then I should see theme selector
+    And I should see language selector
+
+  @mobile
+  Scenario: Settings page on mobile
+    When I navigate to the "Settings" page
+    Then I should see the page heading "Settings"
+    And I should see settings interface elements

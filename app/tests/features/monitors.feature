@@ -29,3 +29,20 @@ Feature: Monitor Management and Viewing
     When I navigate to the "Montage" page
     Then I should see the page heading "Montage"
     And I should see the montage interface
+
+  Scenario: Montage grid shows monitors
+    When I navigate to the "Montage" page
+    Then I should see the page heading "Montage"
+    And I should see at least 1 monitor in montage grid
+
+  @mobile
+  Scenario: Monitors page on mobile
+    When I navigate to the "Monitors" page
+    Then I should see the page heading "Monitors"
+    And I should see at least 1 monitor cards
+
+  @mobile
+  Scenario: Montage page on mobile
+    When I navigate to the "Montage" page
+    Then I should see the page heading "Montage"
+    And I should see the montage interface

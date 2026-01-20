@@ -77,3 +77,21 @@ Feature: Event Browsing and Management
     And I favorite the event from detail page if on detail page
     And I navigate back if I clicked into an event
     Then I should be on the "Events" page
+
+  Scenario: View event detail page elements
+    When I navigate to the "Events" page
+    And I click into the first event if events exist
+    Then I should see event detail elements if on detail page
+    And I navigate back if I clicked into an event
+
+  Scenario: Navigate back from event detail
+    When I navigate to the "Events" page
+    And I click into the first event if events exist
+    And I navigate back if I clicked into an event
+    Then I should be on the "Events" page
+
+  @mobile
+  Scenario: Events page on mobile viewport
+    When I navigate to the "Events" page
+    Then I should see the page heading "Events"
+    And I should see events list or empty state
