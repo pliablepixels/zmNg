@@ -39,14 +39,14 @@
 **All `npm` commands must be run from the `app/` directory.**
 
 ```bash
-cd /Users/arjun/fiddle/zmNg/app
+cd app
 ```
 
-The workspace structure:
-- `/Users/arjun/fiddle/zmNg/` - workspace root (contains AGENTS.md, docs/, scripts/)
-- `/Users/arjun/fiddle/zmNg/app/` - main application (run npm commands here)
-- `/Users/arjun/fiddle/zmNg/app/src/` - source code
-- `/Users/arjun/fiddle/zmNg/app/tests/` - e2e test features and helpers
+The workspace structure (relative to repository root):
+- `./` - workspace root (contains AGENTS.md, docs/, scripts/)
+- `app/` - main application (run npm commands here)
+- `app/src/` - source code
+- `app/tests/` - e2e test features and helpers
 
 ---
 
