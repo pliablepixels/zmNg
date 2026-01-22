@@ -809,5 +809,10 @@
     "connection_failed": "Falló la conexión de transmisión",
     "fallback_to_mjpeg": "Cambiando a MJPEG",
     "retry_connection": "Reintentar Conexión"
+  },
+  "groups": {
+    "all_monitors": "Todos los Monitores",
+    "filter_by_group": "Filtrar por Grupo",
+    "no_groups": "No hay grupos disponibles"
   }
 }

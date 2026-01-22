@@ -809,5 +809,10 @@
     "connection_failed": "Stream-Verbindung fehlgeschlagen",
     "fallback_to_mjpeg": "Wechsle zu MJPEG",
     "retry_connection": "Verbindung wiederholen"
+  },
+  "groups": {
+    "all_monitors": "Alle Monitore",
+    "filter_by_group": "Nach Gruppe filtern",
+    "no_groups": "Keine Gruppen verfügbar"
   }
 }

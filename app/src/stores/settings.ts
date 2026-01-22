@@ -53,6 +53,8 @@ export interface ProfileSettings {
   webrtcProtocols: WebRTCProtocol[];
   // Bandwidth mode: 'normal' for default intervals, 'low' for reduced bandwidth usage
   bandwidthMode: BandwidthMode;
+  // Selected group ID for filtering monitors (null = show all monitors)
+  selectedGroupId: string | null;
 }
 
 interface SettingsState {
@@ -127,6 +129,8 @@ export const DEFAULT_SETTINGS: ProfileSettings = {
   webrtcProtocols: ['webrtc', 'mse', 'hls'],
   // Normal bandwidth mode by default
   bandwidthMode: 'normal',
+  // No group filter by default (show all monitors)
+  selectedGroupId: null,
 };
 
 export const useSettingsStore = create<SettingsState>()(

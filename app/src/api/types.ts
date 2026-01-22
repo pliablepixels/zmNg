@@ -605,6 +605,33 @@ export type ZoneType = z.infer<typeof ZoneTypeEnum>;
 export type ZoneData = z.infer<typeof ZoneDataSchema>;
 export type ZonesResponse = z.infer<typeof ZonesResponseSchema>;
 
+// Group types
+export const GroupSchema = z.object({
+  Id: z.coerce.string(),
+  Name: z.string(),
+  ParentId: z.coerce.string().nullable(),
+});
+
+// Monitor reference within a group (subset of full Monitor)
+export const GroupMonitorRefSchema = z.object({
+  Id: z.coerce.string(),
+  Name: z.string().optional(),
+});
+
+export const GroupDataSchema = z.object({
+  Group: GroupSchema,
+  Monitor: z.array(GroupMonitorRefSchema).optional().default([]),
+});
+
+export const GroupsResponseSchema = z.object({
+  groups: z.array(GroupDataSchema),
+});
+
+export type Group = z.infer<typeof GroupSchema>;
+export type GroupMonitorRef = z.infer<typeof GroupMonitorRefSchema>;
+export type GroupData = z.infer<typeof GroupDataSchema>;
+export type GroupsResponse = z.infer<typeof GroupsResponseSchema>;
+
 // Montage layout types
 export interface MontageLayout {
   lg?: ReactGridLayout.Layout[];

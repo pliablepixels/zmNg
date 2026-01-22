@@ -26,7 +26,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../components/ui/dialog';
-import { filterEnabledMonitors } from '../lib/filters';
+import { filterEnabledMonitors, filterMonitorsByGroup } from '../lib/filters';
+import { useGroupFilter } from '../hooks/useGroupFilter';
+import { GroupFilterSelect } from '../components/filters/GroupFilterSelect';
 import type { Monitor } from '../api/types';
 export default function Monitors() {
   const { t } = useTranslation();
@@ -38,6 +40,7 @@ export default function Monitors() {
   const bandwidth = useBandwidthSettings();
   const updateSettings = useSettingsStore((state) => state.updateProfileSettings);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const { isFilterActive, filteredMonitorIds } = useGroupFilter();
 
   // Allow fetching if authenticated OR if the profile doesn't require authentication (no username)
   const canFetch = !!currentProfile && (isAuthenticated || !currentProfile.username);
@@ -79,9 +82,15 @@ export default function Monitors() {
   });
 
   // Memoize filtered monitors (all monitors, regardless of status)
-  const allMonitors = useMemo(() => {
+  const enabledMonitors = useMemo(() => {
     return data?.monitors ? filterEnabledMonitors(data.monitors) : [];
   }, [data?.monitors]);
+
+  // Apply group filter if active
+  const allMonitors = useMemo(() => {
+    if (!isFilterActive) return enabledMonitors;
+    return filterMonitorsByGroup(enabledMonitors, filteredMonitorIds);
+  }, [enabledMonitors, isFilterActive, filteredMonitorIds]);
 
   const handleShowSettings = (monitor: Monitor) => {
     setSelectedMonitor(monitor);
@@ -132,6 +141,7 @@ export default function Monitors() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <GroupFilterSelect />
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground hidden md:inline">{t('monitors.feed_fit')}</span>
             <Select value={settings.monitorsFeedFit} onValueChange={handleFeedFitChange}>

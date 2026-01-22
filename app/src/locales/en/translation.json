@@ -807,5 +807,10 @@
     "connection_failed": "Stream connection failed",
     "fallback_to_mjpeg": "Falling back to MJPEG",
     "retry_connection": "Retry Connection"
+  },
+  "groups": {
+    "all_monitors": "All Monitors",
+    "filter_by_group": "Filter by Group",
+    "no_groups": "No groups available"
   }
 }

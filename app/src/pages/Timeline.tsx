@@ -235,7 +235,7 @@ export default function Timeline() {
   }
 
   return (
-    <div className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6">
+    <div className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6" data-testid="timeline-page">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">{t('timeline.title')}</h1>
@@ -245,7 +245,7 @@ export default function Timeline() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={() => refetch()} variant="outline" size="sm" className="h-8 sm:h-9">
+          <Button onClick={() => refetch()} variant="outline" size="sm" className="h-8 sm:h-9" data-testid="timeline-refresh-button">
             <RefreshCw className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">{t('common.refresh')}</span>
           </Button>
@@ -263,6 +263,7 @@ export default function Timeline() {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
+                data-testid="timeline-start-date"
               />
             </div>
             <div>
@@ -272,13 +273,14 @@ export default function Timeline() {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
+                data-testid="timeline-end-date"
               />
             </div>
             <div>
               <Label>{t('timeline.monitors')}</Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-between">
+                  <Button variant="outline" className="w-full justify-between" data-testid="timeline-monitor-filter">
                     {selectedMonitorIds.length === 0
                       ? t('timeline.all_monitors')
                       : t('timeline.monitors_selected', { count: selectedMonitorIds.length })}
@@ -314,12 +316,12 @@ export default function Timeline() {
       <Card className="shadow-lg">
         <CardContent className="p-0">
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center h-[600px] gap-4">
+            <div className="flex flex-col items-center justify-center h-[600px] gap-4" data-testid="timeline-loading">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
               <div className="text-muted-foreground">{t('timeline.loading')}</div>
             </div>
           ) : data?.events && data.events.length === 0 ? (
-            <div className="h-[600px] flex items-center justify-center">
+            <div className="h-[600px] flex items-center justify-center" data-testid="timeline-empty-state">
               <EmptyState
                 icon={Clock}
                 title={t('timeline.no_events_found')}
@@ -327,9 +329,9 @@ export default function Timeline() {
               />
             </div>
           ) : (
-            <div className="p-6">
+            <div className="p-6" data-testid="timeline-content">
               <div className="mb-4 flex items-center justify-between">
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm text-muted-foreground" data-testid="timeline-events-count">
                   {t('timeline.showing_events', { count: data?.events.length })}
                 </div>
                 <div className="text-xs text-muted-foreground">
@@ -339,6 +341,7 @@ export default function Timeline() {
               <div
                 ref={timelineRef}
                 className="vis-timeline-custom"
+                data-testid="timeline-container"
                 style={{
                   border: '1px solid hsl(var(--border))',
                   borderRadius: '8px',
@@ -353,7 +356,7 @@ export default function Timeline() {
 
       {/* Event Statistics */}
       {data?.events && data.events.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" data-testid="timeline-statistics">
           <Card className="border-l-4 border-l-blue-500 hover:shadow-md transition-shadow">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">

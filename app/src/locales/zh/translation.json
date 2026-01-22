@@ -809,5 +809,10 @@
     "connection_failed": "流媒体连接失败",
     "fallback_to_mjpeg": "切换至 MJPEG",
     "retry_connection": "重试连接"
+  },
+  "groups": {
+    "all_monitors": "所有监控",
+    "filter_by_group": "按分组筛选",
+    "no_groups": "无可用分组"
   }
 }

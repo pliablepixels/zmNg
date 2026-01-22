@@ -21,7 +21,9 @@ import { useEventMontageGrid } from '../hooks/useEventMontageGrid';
 import { PullToRefreshIndicator } from '../components/ui/pull-to-refresh-indicator';
 import { Button } from '../components/ui/button';
 import { RefreshCw, Filter, AlertCircle, ArrowLeft, LayoutGrid, List, Clock } from 'lucide-react';
-import { getEnabledMonitorIds, filterEnabledMonitors } from '../lib/filters';
+import { filterEnabledMonitors, filterMonitorsByGroup } from '../lib/filters';
+import { useGroupFilter } from '../hooks/useGroupFilter';
+import { GroupFilterSelect } from '../components/filters/GroupFilterSelect';
 import { Popover, PopoverTrigger } from '../components/ui/popover';
 import { EventHeatmap } from '../components/events/EventHeatmap';
 import { EventMontageView } from '../components/events/EventMontageView';
@@ -44,6 +46,7 @@ export default function Events() {
     : settings.eventsThumbnailFit;
   const updateSettings = useSettingsStore((state) => state.updateProfileSettings);
   const accessToken = useAuthStore((state) => state.accessToken);
+  const { isFilterActive: isGroupFilterActive, filteredMonitorIds: groupMonitorIds } = useGroupFilter();
 
   // Subscribe to the actual favorites data, not just the getter function
   // Use shallow comparison to avoid infinite re-renders from new array references
@@ -99,14 +102,20 @@ export default function Events() {
   });
 
   // Memoize enabled monitor IDs and monitors (before events query)
-  const enabledMonitorIds = useMemo(
-    () => (monitorsData?.monitors ? getEnabledMonitorIds(monitorsData.monitors) : []),
+  const allEnabledMonitors = useMemo(
+    () => (monitorsData?.monitors ? filterEnabledMonitors(monitorsData.monitors) : []),
     [monitorsData]
   );
 
-  const enabledMonitors = useMemo(
-    () => (monitorsData?.monitors ? filterEnabledMonitors(monitorsData.monitors) : []),
-    [monitorsData]
+  // Apply group filter to monitors if active
+  const enabledMonitors = useMemo(() => {
+    if (!isGroupFilterActive) return allEnabledMonitors;
+    return filterMonitorsByGroup(allEnabledMonitors, groupMonitorIds);
+  }, [allEnabledMonitors, isGroupFilterActive, groupMonitorIds]);
+
+  const enabledMonitorIds = useMemo(
+    () => enabledMonitors.map((m) => m.Monitor.Id),
+    [enabledMonitors]
   );
 
   // Use pagination hook (will be updated with event count later)
@@ -265,6 +274,7 @@ export default function Events() {
             </div>
 
             <div className="flex items-center gap-2">
+              <GroupFilterSelect />
               <Button
                 variant="outline"
                 size="icon"

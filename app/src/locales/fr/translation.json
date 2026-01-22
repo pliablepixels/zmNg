@@ -809,5 +809,10 @@
     "connection_failed": "Échec de la connexion de diffusion",
     "fallback_to_mjpeg": "Passage à MJPEG",
     "retry_connection": "Réessayer la Connexion"
+  },
+  "groups": {
+    "all_monitors": "Tous les Moniteurs",
+    "filter_by_group": "Filtrer par Groupe",
+    "no_groups": "Aucun groupe disponible"
   }
 }

@@ -19,6 +19,7 @@ https://your-server.com/zm/api/<endpoint>
 - `/monitors/<id>.json` - Single monitor details
 - `/events.json` - List events
 - `/events/<id>.json` - Event details
+- `/groups.json` - List monitor groups
 - `/host/login.json` - Authentication
 
 ### Authentication
@@ -272,6 +273,7 @@ function MonitorList() {
 ['monitor', monitorId]          // Single monitor
 ['events', profileId]           // Events for profile
 ['events', profileId, filters]  // Filtered events
+['groups', profileId]           // Monitor groups for profile
 ```
 
 Query keys are used for:
@@ -1077,6 +1079,7 @@ src/api/
 ├── auth.ts          # login(), logout(), refreshAccessToken()
 ├── monitors.ts      # fetchMonitors(), updateMonitor(), getAlarmStatus()
 ├── events.ts        # fetchEvents(), fetchEvent(), deleteEvent()
+├── groups.ts        # getGroups()
 ├── states.ts        # fetchStates(), changeState()
 ├── server.ts        # getVersion(), getDaemonStatus(), fetchMinStreamingPort()
 └── streaming.ts     # generateConnKey(), getStreamUrl()

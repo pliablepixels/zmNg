@@ -18,7 +18,9 @@ import { Button } from '../components/ui/button';
 import { MontageMonitor } from '../components/monitors/MontageMonitor';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { RefreshCw, Video, AlertCircle, LayoutDashboard, Maximize, Pencil } from 'lucide-react';
-import { filterEnabledMonitors } from '../lib/filters';
+import { filterEnabledMonitors, filterMonitorsByGroup } from '../lib/filters';
+import { useGroupFilter } from '../hooks/useGroupFilter';
+import { GroupFilterSelect } from '../components/filters/GroupFilterSelect';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -52,6 +54,7 @@ export default function Montage() {
   const { currentProfile, settings } = useCurrentProfile();
   const accessToken = useAuthStore((state) => state.accessToken);
   const updateSettings = useSettingsStore((state) => state.updateProfileSettings);
+  const { isFilterActive, filteredMonitorIds } = useGroupFilter();
 
   // Keep screen awake when Insomnia is enabled
   useInsomnia({ enabled: settings.insomnia });
@@ -65,11 +68,16 @@ export default function Montage() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Show enabled monitors only
-  const monitors = useMemo(
+  // Show enabled monitors only, filtered by group if active
+  const enabledMonitors = useMemo(
     () => (data?.monitors ? filterEnabledMonitors(data.monitors) : []),
     [data]
   );
+
+  const monitors = useMemo(() => {
+    if (!isFilterActive) return enabledMonitors;
+    return filterMonitorsByGroup(enabledMonitors, filteredMonitorIds);
+  }, [enabledMonitors, isFilterActive, filteredMonitorIds]);
 
   // Fullscreen mode
   const { isFullscreen, showFullscreenOverlay, handleToggleFullscreen, setShowFullscreenOverlay } =
@@ -193,6 +201,7 @@ export default function Montage() {
               </div>
             </div>
             <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+              <GroupFilterSelect />
               <GridLayoutControls
                 isMobile={isMobile}
                 gridCols={gridCols}

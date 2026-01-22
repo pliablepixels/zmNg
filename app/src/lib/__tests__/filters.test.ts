@@ -7,8 +7,10 @@ import {
   filterEnabledMonitors,
   getEnabledMonitorIds,
   isMonitorEnabled,
+  filterMonitorsByGroup,
+  buildGroupHierarchy,
 } from '../filters';
-import type { MonitorData } from '../../api/types';
+import type { MonitorData, GroupData } from '../../api/types';
 
 // Helper to create mock monitor data
 const createMockMonitor = (id: string, deleted = false): MonitorData => ({
@@ -285,5 +287,134 @@ describe('isMonitorEnabled', () => {
     ];
 
     expect(isMonitorEnabled('1', explicitMonitors)).toBe(true);
+  });
+});
+
+describe('filterMonitorsByGroup', () => {
+  const monitors = [
+    createMockMonitor('1'),
+    createMockMonitor('2'),
+    createMockMonitor('3'),
+    createMockMonitor('4'),
+  ];
+
+  it('returns all monitors when groupMonitorIds is empty', () => {
+    const result = filterMonitorsByGroup(monitors, []);
+
+    expect(result).toHaveLength(4);
+    expect(result).toEqual(monitors);
+  });
+
+  it('filters monitors by group membership', () => {
+    const result = filterMonitorsByGroup(monitors, ['1', '3']);
+
+    expect(result).toHaveLength(2);
+    expect(result[0].Monitor.Id).toBe('1');
+    expect(result[1].Monitor.Id).toBe('3');
+  });
+
+  it('returns empty array when no monitors match', () => {
+    const result = filterMonitorsByGroup(monitors, ['999', '888']);
+
+    expect(result).toHaveLength(0);
+  });
+
+  it('handles single monitor filter', () => {
+    const result = filterMonitorsByGroup(monitors, ['2']);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].Monitor.Id).toBe('2');
+  });
+
+  it('handles empty monitors array', () => {
+    const result = filterMonitorsByGroup([], ['1', '2']);
+
+    expect(result).toHaveLength(0);
+  });
+});
+
+describe('buildGroupHierarchy', () => {
+  const mockGroups: GroupData[] = [
+    {
+      Group: { Id: '1', Name: 'Inside', ParentId: null },
+      Monitor: [{ Id: '1' }, { Id: '2' }],
+    },
+    {
+      Group: { Id: '2', Name: 'Outside', ParentId: null },
+      Monitor: [{ Id: '3' }],
+    },
+    {
+      Group: { Id: '3', Name: 'Downstairs', ParentId: '1' },
+      Monitor: [{ Id: '4' }],
+    },
+    {
+      Group: { Id: '4', Name: 'Upstairs', ParentId: '1' },
+      Monitor: [{ Id: '5' }, { Id: '6' }],
+    },
+  ];
+
+  it('returns empty array for empty groups', () => {
+    const result = buildGroupHierarchy([]);
+
+    expect(result).toHaveLength(0);
+  });
+
+  it('builds hierarchy with correct levels', () => {
+    const result = buildGroupHierarchy(mockGroups);
+
+    // Root groups first (sorted by name)
+    expect(result[0].group.Group.Name).toBe('Inside');
+    expect(result[0].level).toBe(0);
+
+    // Children of Inside follow
+    expect(result[1].group.Group.Name).toBe('Downstairs');
+    expect(result[1].level).toBe(1);
+
+    expect(result[2].group.Group.Name).toBe('Upstairs');
+    expect(result[2].level).toBe(1);
+
+    // Outside (root) after Inside and its children
+    expect(result[3].group.Group.Name).toBe('Outside');
+    expect(result[3].level).toBe(0);
+  });
+
+  it('includes monitor counts', () => {
+    const result = buildGroupHierarchy(mockGroups);
+
+    const inside = result.find((h) => h.group.Group.Name === 'Inside');
+    expect(inside?.monitorCount).toBe(2);
+
+    const outside = result.find((h) => h.group.Group.Name === 'Outside');
+    expect(outside?.monitorCount).toBe(1);
+
+    const downstairs = result.find((h) => h.group.Group.Name === 'Downstairs');
+    expect(downstairs?.monitorCount).toBe(1);
+  });
+
+  it('handles groups with no monitors', () => {
+    const groups: GroupData[] = [
+      {
+        Group: { Id: '1', Name: 'Empty', ParentId: null },
+        Monitor: [],
+      },
+    ];
+
+    const result = buildGroupHierarchy(groups);
+
+    expect(result[0].monitorCount).toBe(0);
+  });
+
+  it('sorts root groups alphabetically', () => {
+    const groups: GroupData[] = [
+      { Group: { Id: '1', Name: 'Zebra', ParentId: null }, Monitor: [] },
+      { Group: { Id: '2', Name: 'Alpha', ParentId: null }, Monitor: [] },
+      { Group: { Id: '3', Name: 'Mango', ParentId: null }, Monitor: [] },
+    ];
+
+    const result = buildGroupHierarchy(groups);
+
+    expect(result[0].group.Group.Name).toBe('Alpha');
+    expect(result[1].group.Group.Name).toBe('Mango');
+    expect(result[2].group.Group.Name).toBe('Zebra');
   });
 });
