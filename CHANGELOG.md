@@ -1,11 +1,12 @@
 # Changelog
 
-## [Unreleased](https://github.com/pliablepixels/zmNg/tree/HEAD)
+## [zmNg-0.2.1](https://github.com/pliablepixels/zmNg/tree/zmNg-0.2.1) (2026-01-22)
 
-[Full Changelog](https://github.com/pliablepixels/zmNg/compare/zmNg-0.2.0...HEAD)
+[Full Changelog](https://github.com/pliablepixels/zmNg/compare/zmNg-0.2.0...zmNg-0.2.1)
 
 **Implemented enhancements:**
 
+- Reconfigure changelog generation to be issue-based [\#17](https://github.com/pliablepixels/zmNg/issues/17)
 - Add bandwidth savings mode for reduced data usage [\#16](https://github.com/pliablepixels/zmNg/issues/16)
 
 **Closed issues:**
