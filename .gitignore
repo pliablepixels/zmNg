@@ -43,3 +43,7 @@ android/keystore.properties
 
 # Claude Code CLI
 .claude/settings.local.json
+
+# Ruby/Bundler
+.bundle/
+vendor/bundle/

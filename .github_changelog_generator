@@ -16,12 +16,15 @@ issues=true
 pulls=false
 unreleased=true
 
-# Labels for categorization
-enhancement-labels=enhancement,feature
-bug-labels=bug,fix
+# Labels for categorization (must match actual GitHub labels)
+enhancement-labels=enhancement
+bug-labels=bug
+
+# Add custom sections for other labels
+add-sections={"documentation":{"prefix":"**Documentation:**","labels":["documentation"]},"refactor":{"prefix":"**Refactoring:**","labels":["refactor"]}}
 
 # Exclude labels
-exclude-labels=duplicate,question,invalid,wontfix,ignore-for-release
+exclude-labels=duplicate,question,invalid,wontfix,good first issue,help wanted
 
 # Formatting
 simple-list=false
