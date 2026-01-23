@@ -814,5 +814,28 @@
     "all_monitors": "Tous",
     "filter_by_group": "Filtrer par Groupe",
     "no_groups": "Aucun groupe disponible"
+  },
+  "qr_scanner": {
+    "title": "Scanner le code QR",
+    "description": "Pointez votre caméra vers un code QR de profil pour importer les paramètres.",
+    "import_button": "Importer depuis un code QR",
+    "or_manual": "ou saisir manuellement",
+    "starting": "Démarrage de la caméra...",
+    "retry": "Réessayer",
+    "hint": "Positionnez le code QR dans le cadre",
+    "import_success": "Profil \"{{name}}\" importé",
+    "errors": {
+      "camera_permission_denied": "Accès à la caméra refusé. Veuillez autoriser l'accès à la caméra dans les paramètres de votre appareil.",
+      "camera_not_found": "Aucune caméra trouvée sur cet appareil.",
+      "camera_error": "Échec de l'accès à la caméra. Veuillez réessayer."
+    },
+    "parse_errors": {
+      "invalid_json": "Code QR invalide. Ce n'est pas un profil valide.",
+      "missing_name": "Code QR invalide. Le nom du profil est requis.",
+      "missing_portal_url": "Code QR invalide. L'URL du serveur est requise.",
+      "invalid_portal_url": "Code QR invalide. L'URL du serveur n'est pas valide.",
+      "invalid_api_url": "Code QR invalide. L'URL de l'API n'est pas valide.",
+      "invalid_cgi_url": "Code QR invalide. L'URL CGI n'est pas valide."
+    }
   }
 }

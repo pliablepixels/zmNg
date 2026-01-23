@@ -4,6 +4,8 @@ PODS:
     - KeychainSwift (~> 21.0)
   - Capacitor (7.4.4):
     - CapacitorCordova
+  - CapacitorBarcodeScanner (2.5.0):
+    - Capacitor
   - CapacitorCommunityMedia (8.0.1):
     - Capacitor
     - SDWebImage
@@ -30,6 +32,7 @@ PODS:
 DEPENDENCIES:
   - "AparajitaCapacitorSecureStorage (from `../../node_modules/@aparajita/capacitor-secure-storage`)"
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
+  - CapacitorBarcodeScanner (from `../../node_modules/capacitor-barcode-scanner`)
   - "CapacitorCommunityMedia (from `../../node_modules/@capacitor-community/media`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorFilesystem (from `../../node_modules/@capacitor/filesystem`)"
@@ -50,6 +53,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@aparajita/capacitor-secure-storage"
   Capacitor:
     :path: "../../node_modules/@capacitor/ios"
+  CapacitorBarcodeScanner:
+    :path: "../../node_modules/capacitor-barcode-scanner"
   CapacitorCommunityMedia:
     :path: "../../node_modules/@capacitor-community/media"
   CapacitorCordova:
@@ -70,6 +75,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   AparajitaCapacitorSecureStorage: 502bff73187cf9d0164459458ccf47ec65d5895a
   Capacitor: 358dd1c3fdd71d969547b17e159fd8a7736cb45f
+  CapacitorBarcodeScanner: 16eacd05fb1bbc8dee20dde07439d5f7b002b574
   CapacitorCommunityMedia: d1538b56a3303298e7cf45a18b11e624fbcbdc8e
   CapacitorCordova: bf648a636f3c153f652d312ae145fb508b6ffced
   CapacitorFilesystem: 609d5cceca1ed93d7f25839dbfdfd224bfe78209
@@ -82,6 +88,6 @@ SPEC CHECKSUMS:
   KeychainSwift: 4a71a45c802fd9e73906457c2dcbdbdc06c9419d
   SDWebImage: d0184764be51240d49c761c37f53dd017e1ccaaf
 
-PODFILE CHECKSUM: a4eaf8d1d996b6865b92273a87dbfef4946f2896
+PODFILE CHECKSUM: cdca1bb44af1489c4765c1d83e4a8db6810012ce
 
 COCOAPODS: 1.16.2

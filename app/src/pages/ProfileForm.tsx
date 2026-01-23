@@ -15,10 +15,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useProfileStore } from '../stores/profile';
 import { createApiClient, setApiClient } from '../api/client';
 import { discoverZoneminder, DiscoveryError } from '../lib/discovery';
-import { Video, Server, ShieldCheck, ArrowRight, Loader2, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Video, Server, ShieldCheck, ArrowRight, Loader2, Eye, EyeOff, ArrowLeft, QrCode } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { log, LogLevel } from '../lib/logger';
 import { fetchGo2RTCPath, fetchZmsPath } from '../api/auth';
+import { QRScanner } from '../components/QRScanner';
+import { parseQRProfile } from '../lib/qr-profile';
+import { toast } from 'sonner';
 
 export default function ProfileForm() {
   const navigate = useNavigate();
@@ -45,6 +48,37 @@ export default function ProfileForm() {
   const [showManualUrls, setShowManualUrls] = useState(false);
   const [manualApiUrl, setManualApiUrl] = useState('');
   const [manualCgiUrl, setManualCgiUrl] = useState('');
+
+  // QR Scanner state
+  const [showQRScanner, setShowQRScanner] = useState(false);
+
+  // Handle QR code scan result
+  const handleQRScan = (data: string) => {
+    const result = parseQRProfile(data);
+
+    if (!result.success) {
+      log.profileForm('QR profile parse failed', LogLevel.WARN, { error: result.error });
+      toast.error(t(`qr_scanner.parse_errors.${result.error}`));
+      return;
+    }
+
+    log.profileForm('QR profile imported', LogLevel.INFO, { name: result.data.name });
+
+    // Pre-fill form fields with scanned data
+    setProfileName(result.data.name);
+    setPortalUrl(result.data.portalUrl);
+    if (result.data.username) setUsername(result.data.username);
+    if (result.data.password) setPassword(result.data.password);
+
+    // If manual URLs were provided in QR, enable manual mode
+    if (result.data.apiUrl || result.data.cgiUrl) {
+      setShowManualUrls(true);
+      if (result.data.apiUrl) setManualApiUrl(result.data.apiUrl);
+      if (result.data.cgiUrl) setManualCgiUrl(result.data.cgiUrl);
+    }
+
+    toast.success(t('qr_scanner.import_success', { name: result.data.name }));
+  };
 
   // Discover API and CGI URLs from portal URL
   const discoverUrls = async (portal: string) => {
@@ -249,6 +283,28 @@ export default function ProfileForm() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* QR Import Button */}
+          <Button
+            variant="outline"
+            onClick={() => setShowQRScanner(true)}
+            className="w-full"
+            data-testid="qr-import-button"
+          >
+            <QrCode className="mr-2 h-4 w-4" />
+            {t('qr_scanner.import_button')}
+          </Button>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">
+                {t('qr_scanner.or_manual')}
+              </span>
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="profileName" className="text-sm font-medium">{t('setup.profile_name')}</Label>
             <Input
@@ -419,6 +475,13 @@ export default function ProfileForm() {
           )}
         </CardFooter>
       </Card>
+
+      {/* QR Scanner Dialog */}
+      <QRScanner
+        open={showQRScanner}
+        onOpenChange={setShowQRScanner}
+        onScan={handleQRScan}
+      />
     </div>
   );
 }

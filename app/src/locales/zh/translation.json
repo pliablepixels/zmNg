@@ -814,5 +814,28 @@
     "all_monitors": "全部",
     "filter_by_group": "按分组筛选",
     "no_groups": "无可用分组"
+  },
+  "qr_scanner": {
+    "title": "扫描二维码",
+    "description": "将摄像头对准配置文件二维码以导入设置。",
+    "import_button": "从二维码导入",
+    "or_manual": "或手动输入",
+    "starting": "正在启动摄像头...",
+    "retry": "重试",
+    "hint": "将二维码置于框内",
+    "import_success": "配置文件 \"{{name}}\" 已导入",
+    "errors": {
+      "camera_permission_denied": "摄像头访问被拒绝。请在设备设置中允许摄像头访问。",
+      "camera_not_found": "未在此设备上找到摄像头。",
+      "camera_error": "无法访问摄像头。请重试。"
+    },
+    "parse_errors": {
+      "invalid_json": "无效的二维码。不是有效的配置文件。",
+      "missing_name": "无效的二维码。需要配置文件名称。",
+      "missing_portal_url": "无效的二维码。需要服务器URL。",
+      "invalid_portal_url": "无效的二维码。服务器URL无效。",
+      "invalid_api_url": "无效的二维码。API URL无效。",
+      "invalid_cgi_url": "无效的二维码。CGI URL无效。"
+    }
   }
 }

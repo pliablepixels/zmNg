@@ -814,5 +814,28 @@
     "all_monitors": "Alle",
     "filter_by_group": "Nach Gruppe filtern",
     "no_groups": "Keine Gruppen verfügbar"
+  },
+  "qr_scanner": {
+    "title": "QR-Code scannen",
+    "description": "Richten Sie Ihre Kamera auf einen Profil-QR-Code, um die Einstellungen zu importieren.",
+    "import_button": "Aus QR-Code importieren",
+    "or_manual": "oder manuell eingeben",
+    "starting": "Kamera wird gestartet...",
+    "retry": "Erneut versuchen",
+    "hint": "Positionieren Sie den QR-Code im Rahmen",
+    "import_success": "Profil \"{{name}}\" importiert",
+    "errors": {
+      "camera_permission_denied": "Kamerazugriff verweigert. Bitte erlauben Sie den Kamerazugriff in den Geräteeinstellungen.",
+      "camera_not_found": "Keine Kamera auf diesem Gerät gefunden.",
+      "camera_error": "Kamerazugriff fehlgeschlagen. Bitte versuchen Sie es erneut."
+    },
+    "parse_errors": {
+      "invalid_json": "Ungültiger QR-Code. Kein gültiges Profil.",
+      "missing_name": "Ungültiger QR-Code. Profilname erforderlich.",
+      "missing_portal_url": "Ungültiger QR-Code. Server-URL erforderlich.",
+      "invalid_portal_url": "Ungültiger QR-Code. Server-URL ist ungültig.",
+      "invalid_api_url": "Ungültiger QR-Code. API-URL ist ungültig.",
+      "invalid_cgi_url": "Ungültiger QR-Code. CGI-URL ist ungültig."
+    }
   }
 }

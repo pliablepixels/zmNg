@@ -814,5 +814,28 @@
     "all_monitors": "Todos",
     "filter_by_group": "Filtrar por Grupo",
     "no_groups": "No hay grupos disponibles"
+  },
+  "qr_scanner": {
+    "title": "Escanear código QR",
+    "description": "Apunte su cámara a un código QR de perfil para importar la configuración.",
+    "import_button": "Importar desde código QR",
+    "or_manual": "o ingresar manualmente",
+    "starting": "Iniciando cámara...",
+    "retry": "Reintentar",
+    "hint": "Posicione el código QR dentro del marco",
+    "import_success": "Perfil \"{{name}}\" importado",
+    "errors": {
+      "camera_permission_denied": "Acceso a cámara denegado. Por favor, permita el acceso a la cámara en la configuración de su dispositivo.",
+      "camera_not_found": "No se encontró cámara en este dispositivo.",
+      "camera_error": "Error al acceder a la cámara. Por favor, inténtelo de nuevo."
+    },
+    "parse_errors": {
+      "invalid_json": "Código QR inválido. No es un perfil válido.",
+      "missing_name": "Código QR inválido. Se requiere nombre de perfil.",
+      "missing_portal_url": "Código QR inválido. Se requiere URL del servidor.",
+      "invalid_portal_url": "Código QR inválido. La URL del servidor no es válida.",
+      "invalid_api_url": "Código QR inválido. La URL de API no es válida.",
+      "invalid_cgi_url": "Código QR inválido. La URL de CGI no es válida."
+    }
   }
 }

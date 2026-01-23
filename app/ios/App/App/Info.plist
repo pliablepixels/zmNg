@@ -27,6 +27,8 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>We need camera access to scan QR codes for importing server profiles.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>We need access to your local network to connect to your ZoneMinder server.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>

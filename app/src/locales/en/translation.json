@@ -812,5 +812,28 @@
     "all_monitors": "All",
     "filter_by_group": "Filter by Group",
     "no_groups": "No groups available"
+  },
+  "qr_scanner": {
+    "title": "Scan QR Code",
+    "description": "Point your camera at a profile QR code to import settings.",
+    "import_button": "Import from QR Code",
+    "or_manual": "or enter manually",
+    "starting": "Starting camera...",
+    "retry": "Try Again",
+    "hint": "Position the QR code within the frame",
+    "import_success": "Profile \"{{name}}\" imported",
+    "errors": {
+      "camera_permission_denied": "Camera access denied. Please allow camera access in your device settings.",
+      "camera_not_found": "No camera found on this device.",
+      "camera_error": "Failed to access camera. Please try again."
+    },
+    "parse_errors": {
+      "invalid_json": "Invalid QR code. Not a valid profile.",
+      "missing_name": "Invalid QR code. Profile name is required.",
+      "missing_portal_url": "Invalid QR code. Server URL is required.",
+      "invalid_portal_url": "Invalid QR code. Server URL is not valid.",
+      "invalid_api_url": "Invalid QR code. API URL is not valid.",
+      "invalid_cgi_url": "Invalid QR code. CGI URL is not valid."
+    }
   }
 }

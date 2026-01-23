@@ -129,3 +129,25 @@ vi.mock('@capacitor/haptics', () => ({
     Error: 'Error',
   },
 }));
+
+// Mock html5-qrcode for QR scanner tests
+vi.mock('html5-qrcode', () => ({
+  Html5Qrcode: vi.fn().mockImplementation(() => ({
+    start: vi.fn().mockResolvedValue(undefined),
+    stop: vi.fn().mockResolvedValue(undefined),
+    getState: vi.fn().mockReturnValue(0), // NOT_STARTED
+  })),
+  Html5QrcodeScannerState: {
+    NOT_STARTED: 0,
+    SCANNING: 1,
+    PAUSED: 2,
+  },
+}));
+
+// Mock capacitor-barcode-scanner for native QR scanning tests
+vi.mock('capacitor-barcode-scanner', () => ({
+  BarcodeScanner: {
+    scan: vi.fn().mockResolvedValue({ result: false, code: null }),
+    multiScan: vi.fn().mockResolvedValue({ result: false, count: 0, codes: [] }),
+  },
+}));
