@@ -603,7 +603,7 @@
     "username": "Username",
     "username_placeholder": "username",
     "password": "Password",
-    "password_placeholder": "••••••••",
+    "password_placeholder": "",
     "credentials_optional": "Optional - leave blank for public servers",
     "credentials_incomplete": "Please enter both username and password, or leave both empty.",
     "connect_server": "Connect to Server",

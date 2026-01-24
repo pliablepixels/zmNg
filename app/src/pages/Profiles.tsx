@@ -499,29 +499,32 @@ export default function Profiles() {
               <div className="relative">
                 <Input
                   id="edit-password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword || !formData.password ? "text" : "password"}
                   placeholder={t('profiles.enter_password')}
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="pr-10"
                   autoCapitalize="none"
                   autoCorrect="off"
+                  autoComplete="new-password"
                   data-testid="profile-edit-password"
                 />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowPassword(!showPassword)}
-                  tabIndex={-1}
-                >
-                  {showPassword ? (
-                    <Eye className="h-4 w-4 text-muted-foreground" />
-                  ) : (
-                    <EyeOff className="h-4 w-4 text-muted-foreground" />
-                  )}
-                </Button>
+                {formData.password && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                    tabIndex={-1}
+                  >
+                    {showPassword ? (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                )}
               </div>
               <p className="text-xs text-muted-foreground">
                 {t('profiles.password_hint')}

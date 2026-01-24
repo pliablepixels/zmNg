@@ -605,7 +605,7 @@
     "username": "用户名",
     "username_placeholder": "username",
     "password": "密码",
-    "password_placeholder": "••••••••",
+    "password_placeholder": "",
     "credentials_optional": "可选 - 公共服务器可留空",
     "credentials_incomplete": "请输入用户名和密码，或两者都留空。",
     "connect_server": "连接服务器",

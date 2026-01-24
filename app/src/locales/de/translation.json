@@ -605,7 +605,7 @@
     "username": "Benutzername",
     "username_placeholder": "username",
     "password": "Passwort",
-    "password_placeholder": "••••••••",
+    "password_placeholder": "",
     "credentials_optional": "Optional - leer lassen für öffentliche Server",
     "credentials_incomplete": "Bitte geben Sie Benutzername und Passwort ein oder lassen Sie beide leer.",
     "connect_server": "Mit Server verbinden",

@@ -362,7 +362,7 @@ export default function ProfileForm() {
             <div className="relative">
               <Input
                 id="password"
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword || !password ? 'text' : 'password'}
                 placeholder={t('setup.password_placeholder')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -370,15 +370,18 @@ export default function ProfileForm() {
                 className="h-10 pr-10 bg-background/50 border-input/50 focus:border-primary/50 transition-colors"
                 autoCapitalize="none"
                 autoCorrect="off"
+                autoComplete="new-password"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground transition-colors"
-                tabIndex={-1}
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
+              {password && (
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground transition-colors"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              )}
             </div>
             <p className="text-xs text-muted-foreground">
               {t('setup.credentials_optional')}
