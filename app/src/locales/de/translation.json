@@ -823,11 +823,15 @@
     "starting": "Kamera wird gestartet...",
     "retry": "Erneut versuchen",
     "hint": "Positionieren Sie den QR-Code im Rahmen",
+    "scan_with_camera": "Mit Kamera scannen",
+    "load_from_file": "Aus Foto laden",
+    "processing_file": "Bild wird verarbeitet...",
     "import_success": "Profil \"{{name}}\" importiert",
     "errors": {
       "camera_permission_denied": "Kamerazugriff verweigert. Bitte erlauben Sie den Kamerazugriff in den Geräteeinstellungen.",
       "camera_not_found": "Keine Kamera auf diesem Gerät gefunden.",
-      "camera_error": "Kamerazugriff fehlgeschlagen. Bitte versuchen Sie es erneut."
+      "camera_error": "Kamerazugriff fehlgeschlagen. Bitte versuchen Sie es erneut.",
+      "no_qr_in_file": "Kein QR-Code im ausgewählten Bild gefunden."
     },
     "parse_errors": {
       "invalid_json": "Ungültiger QR-Code. Kein gültiges Profil.",

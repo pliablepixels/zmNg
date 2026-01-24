@@ -23,7 +23,7 @@ import {
   DialogTitle,
 } from './ui/dialog';
 import { Button } from './ui/button';
-import { Camera, CameraOff, Loader2, AlertCircle } from 'lucide-react';
+import { Camera, CameraOff, Loader2, AlertCircle, ImageIcon } from 'lucide-react';
 import { log, LogLevel } from '../lib/logger';
 
 interface QRScannerProps {
@@ -45,7 +45,9 @@ export function QRScanner({ open, onOpenChange, onScan }: QRScannerProps) {
   const { t } = useTranslation();
   const scannerRef = useRef<Html5QrcodeType | null>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isStarting, setIsStarting] = useState(false);
+  const [isProcessingFile, setIsProcessingFile] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scannerReady, setScannerReady] = useState(false);
@@ -105,6 +107,7 @@ export function QRScanner({ open, onOpenChange, onScan }: QRScannerProps) {
     setError(null);
     setHasPermission(null);
     setScannerReady(false);
+    setNativeScannerLaunched(false);
     onOpenChange(false);
   }, [isNative, cleanupScanner, onOpenChange]);
 
@@ -112,6 +115,7 @@ export function QRScanner({ open, onOpenChange, onScan }: QRScannerProps) {
   const startNativeScanner = useCallback(async () => {
     setIsStarting(true);
     setError(null);
+    setNativeScannerLaunched(true);
 
     try {
       const { BarcodeScanner } = await import('capacitor-barcode-scanner');
@@ -124,12 +128,14 @@ export function QRScanner({ open, onOpenChange, onScan }: QRScannerProps) {
         onScan(result.code);
         onOpenChange(false);
       } else {
-        onOpenChange(false);
+        // User cancelled - go back to selection UI
+        setNativeScannerLaunched(false);
       }
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : 'Unknown error';
       log.profile('Native QR scanner failed', LogLevel.ERROR, e);
 
+      setNativeScannerLaunched(false);
       if (
         errorMessage.toLowerCase().includes('permission') ||
         errorMessage.toLowerCase().includes('denied') ||
@@ -221,16 +227,64 @@ export function QRScanner({ open, onOpenChange, onScan }: QRScannerProps) {
     }
   }, [isNative, startNativeScanner, startWebScanner]);
 
-  // Start scanner when dialog opens
+  // Handle file selection for QR code scanning from image
+  const handleFileSelect = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      setIsProcessingFile(true);
+      setError(null);
+
+      // Create a temporary hidden element for the scanner
+      const tempElementId = 'file-scanner-temp';
+      let tempElement: HTMLDivElement | null = null;
+
+      try {
+        // Create temporary element in DOM (required by html5-qrcode)
+        tempElement = document.createElement('div');
+        tempElement.id = tempElementId;
+        tempElement.style.display = 'none';
+        document.body.appendChild(tempElement);
+
+        const { Html5Qrcode } = await import('html5-qrcode');
+        const scanner = new Html5Qrcode(tempElementId);
+        const result = await scanner.scanFile(file, false);
+        log.profile('QR code scanned from file', LogLevel.INFO);
+        onScan(result);
+        onOpenChange(false);
+      } catch (err) {
+        log.profile('Failed to scan QR code from file', LogLevel.WARN, err);
+        setError('no_qr_in_file');
+      } finally {
+        // Clean up temporary element
+        if (tempElement && tempElement.parentNode) {
+          tempElement.parentNode.removeChild(tempElement);
+        }
+        setIsProcessingFile(false);
+        // Reset file input so the same file can be selected again
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      }
+    },
+    [onScan, onOpenChange]
+  );
+
+  // Trigger file input click
+  const handleLoadFromFile = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  // Start scanner when dialog opens (only for web - native shows selection UI first)
   useEffect(() => {
     if (open && !isNative) {
       const timer = setTimeout(() => {
         startScanner();
       }, 300);
       return () => clearTimeout(timer);
-    } else if (open && isNative) {
-      startScanner();
     }
+    // On native, we show selection UI first - user chooses camera or photo
   }, [open, isNative, startScanner]);
 
   // Cleanup on unmount
@@ -252,8 +306,11 @@ export function QRScanner({ open, onOpenChange, onScan }: QRScannerProps) {
     };
   }, [isNative, removeScannerElement]);
 
-  // For native platforms, we don't show the dialog UI
-  if (isNative && !error) {
+  // Track if native scanner has been launched (to show selection UI first)
+  const [nativeScannerLaunched, setNativeScannerLaunched] = useState(false);
+
+  // For native platforms, show selection UI first, then hide dialog when scanner is active
+  if (isNative && nativeScannerLaunched && !error) {
     return null;
   }
 
@@ -275,7 +332,7 @@ export function QRScanner({ open, onOpenChange, onScan }: QRScannerProps) {
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Scanner wrapper - the actual scanner element is created dynamically */}
+          {/* Scanner wrapper - the actual scanner element is created dynamically (web only) */}
           {!isNative && !error && (
             <div
               ref={wrapperRef}
@@ -308,7 +365,7 @@ export function QRScanner({ open, onOpenChange, onScan }: QRScannerProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={startScanner}
+                  onClick={isNative ? startNativeScanner : startScanner}
                   data-testid="qr-scanner-retry"
                 >
                   {t('qr_scanner.retry')}
@@ -320,6 +377,59 @@ export function QRScanner({ open, onOpenChange, onScan }: QRScannerProps) {
           {!isNative && !error && (
             <p className="text-xs text-center text-muted-foreground">{t('qr_scanner.hint')}</p>
           )}
+
+          {/* Hidden file input for image selection */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileSelect}
+            data-testid="qr-scanner-file-input"
+          />
+
+          {/* Native: Scan with Camera button */}
+          {isNative && !error && (
+            <Button
+              className="w-full"
+              onClick={startNativeScanner}
+              disabled={isStarting}
+              data-testid="qr-scanner-camera"
+            >
+              {isStarting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  {t('qr_scanner.starting')}
+                </>
+              ) : (
+                <>
+                  <Camera className="h-4 w-4 mr-2" />
+                  {t('qr_scanner.scan_with_camera')}
+                </>
+              )}
+            </Button>
+          )}
+
+          {/* Load from file button */}
+          <Button
+            variant={isNative ? 'outline' : 'outline'}
+            className="w-full"
+            onClick={handleLoadFromFile}
+            disabled={isProcessingFile}
+            data-testid="qr-scanner-load-file"
+          >
+            {isProcessingFile ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                {t('qr_scanner.processing_file')}
+              </>
+            ) : (
+              <>
+                <ImageIcon className="h-4 w-4 mr-2" />
+                {t('qr_scanner.load_from_file')}
+              </>
+            )}
+          </Button>
 
           <Button
             variant="outline"

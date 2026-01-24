@@ -823,11 +823,15 @@
     "starting": "正在启动摄像头...",
     "retry": "重试",
     "hint": "将二维码置于框内",
+    "scan_with_camera": "使用相机扫描",
+    "load_from_file": "从照片加载",
+    "processing_file": "正在处理图片...",
     "import_success": "配置文件 \"{{name}}\" 已导入",
     "errors": {
       "camera_permission_denied": "摄像头访问被拒绝。请在设备设置中允许摄像头访问。",
       "camera_not_found": "未在此设备上找到摄像头。",
-      "camera_error": "无法访问摄像头。请重试。"
+      "camera_error": "无法访问摄像头。请重试。",
+      "no_qr_in_file": "在所选图片中未找到二维码。"
     },
     "parse_errors": {
       "invalid_json": "无效的二维码。不是有效的配置文件。",

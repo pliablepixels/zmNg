@@ -821,11 +821,15 @@
     "starting": "Starting camera...",
     "retry": "Try Again",
     "hint": "Position the QR code within the frame",
+    "scan_with_camera": "Scan with Camera",
+    "load_from_file": "Load from Photo",
+    "processing_file": "Processing image...",
     "import_success": "Profile \"{{name}}\" imported",
     "errors": {
       "camera_permission_denied": "Camera access denied. Please allow camera access in your device settings.",
       "camera_not_found": "No camera found on this device.",
-      "camera_error": "Failed to access camera. Please try again."
+      "camera_error": "Failed to access camera. Please try again.",
+      "no_qr_in_file": "No QR code found in the selected image."
     },
     "parse_errors": {
       "invalid_json": "Invalid QR code. Not a valid profile.",

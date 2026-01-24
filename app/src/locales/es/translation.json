@@ -823,11 +823,15 @@
     "starting": "Iniciando cámara...",
     "retry": "Reintentar",
     "hint": "Posicione el código QR dentro del marco",
+    "scan_with_camera": "Escanear con cámara",
+    "load_from_file": "Cargar desde foto",
+    "processing_file": "Procesando imagen...",
     "import_success": "Perfil \"{{name}}\" importado",
     "errors": {
       "camera_permission_denied": "Acceso a cámara denegado. Por favor, permita el acceso a la cámara en la configuración de su dispositivo.",
       "camera_not_found": "No se encontró cámara en este dispositivo.",
-      "camera_error": "Error al acceder a la cámara. Por favor, inténtelo de nuevo."
+      "camera_error": "Error al acceder a la cámara. Por favor, inténtelo de nuevo.",
+      "no_qr_in_file": "No se encontró código QR en la imagen seleccionada."
     },
     "parse_errors": {
       "invalid_json": "Código QR inválido. No es un perfil válido.",
