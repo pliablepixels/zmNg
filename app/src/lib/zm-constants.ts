@@ -129,3 +129,10 @@ export const ZM_MONITOR_FUNCTIONS = {
 export type ZmsCommand = typeof ZMS_COMMANDS[keyof typeof ZMS_COMMANDS];
 export type ZmsMode = typeof ZMS_MODES[keyof typeof ZMS_MODES];
 export type ZmMonitorFunction = typeof ZM_MONITOR_FUNCTIONS[keyof typeof ZM_MONITOR_FUNCTIONS];
+
+/**
+ * Tags API Constants
+ */
+
+/** Maximum number of event IDs per batch when fetching event tags to avoid URL length limits */
+export const TAGS_BATCH_SIZE = 50;

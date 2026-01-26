@@ -2,12 +2,12 @@
  * Events Filter Popover Component
  *
  * Extracted from Events.tsx to reduce component complexity.
- * Provides filtering UI for events by monitors, favorites, and date range.
+ * Provides filtering UI for events by monitors, favorites, tags, and date range.
  */
 
-import { Star } from 'lucide-react';
+import { Star, Tag, X, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { MonitorData } from '../../api/types';
+import type { MonitorData, Tag as TagType } from '../../api/types';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -15,6 +15,8 @@ import { PopoverContent } from '../ui/popover';
 import { Switch } from '../ui/switch';
 import { QuickDateRangeButtons } from '../ui/quick-date-range-buttons';
 import { MonitorFilterPopoverContent } from '../filters/MonitorFilterPopover';
+import { TagChip } from './TagChip';
+import { cn } from '../../lib/utils';
 
 interface EventsFilterPopoverProps {
   monitors: MonitorData[];
@@ -29,6 +31,12 @@ interface EventsFilterPopoverProps {
   onQuickRangeSelect: (range: { start: Date; end: Date }) => void;
   onApplyFilters: () => void;
   onClearFilters: () => void;
+  // Tags filter props
+  tagsSupported?: boolean;
+  availableTags?: TagType[];
+  selectedTagIds?: string[];
+  onTagSelectionChange?: (ids: string[]) => void;
+  isLoadingTags?: boolean;
 }
 
 export function EventsFilterPopover({
@@ -44,8 +52,31 @@ export function EventsFilterPopover({
   onQuickRangeSelect,
   onApplyFilters,
   onClearFilters,
+  tagsSupported = false,
+  availableTags = [],
+  selectedTagIds = [],
+  onTagSelectionChange,
+  isLoadingTags = false,
 }: EventsFilterPopoverProps) {
   const { t } = useTranslation();
+
+  // Get selected tags for display
+  const selectedTags = availableTags.filter((tag) =>
+    selectedTagIds.includes(tag.Id)
+  );
+
+  const handleTagToggle = (tagId: string) => {
+    if (!onTagSelectionChange) return;
+    const newSelection = selectedTagIds.includes(tagId)
+      ? selectedTagIds.filter((id) => id !== tagId)
+      : [...selectedTagIds, tagId];
+    onTagSelectionChange(newSelection);
+  };
+
+  const handleRemoveTag = (tagId: string) => {
+    if (!onTagSelectionChange) return;
+    onTagSelectionChange(selectedTagIds.filter((id) => id !== tagId));
+  };
 
   return (
     <PopoverContent
@@ -74,6 +105,74 @@ export function EventsFilterPopover({
             data-testid="events-favorites-toggle"
           />
         </div>
+
+        {/* Tags filter - only show if tags are supported */}
+        {tagsSupported && (
+          <div className="p-3 rounded-md border bg-card space-y-2">
+            <div className="flex items-center gap-2">
+              <Tag className="h-4 w-4 text-muted-foreground" />
+              <Label className="font-medium">{t('events.filter.tags')}</Label>
+            </div>
+
+            {/* Loading state */}
+            {isLoadingTags && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>{t('events.tags.loading')}</span>
+              </div>
+            )}
+
+            {/* No tags available */}
+            {!isLoadingTags && availableTags.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                {t('events.filter.noTags')}
+              </p>
+            )}
+
+            {/* Selected tags */}
+            {selectedTags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5" data-testid="events-selected-tags">
+                {selectedTags.map((tag) => (
+                  <TagChip
+                    key={tag.Id}
+                    tag={tag}
+                    removable
+                    onRemove={handleRemoveTag}
+                    size="md"
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Available tags dropdown */}
+            {!isLoadingTags && availableTags.length > 0 && (
+              <div className="max-h-32 overflow-y-auto space-y-1 border rounded-md p-2">
+                {availableTags.map((tag) => {
+                  const isSelected = selectedTagIds.includes(tag.Id);
+                  return (
+                    <button
+                      key={tag.Id}
+                      type="button"
+                      onClick={() => handleTagToggle(tag.Id)}
+                      className={cn(
+                        'w-full text-left px-2 py-1.5 rounded text-sm transition-colors flex items-center justify-between',
+                        isSelected
+                          ? 'bg-primary/10 text-primary'
+                          : 'hover:bg-muted'
+                      )}
+                      data-testid={`tag-option-${tag.Id}`}
+                    >
+                      <span className="truncate">{tag.Name}</span>
+                      {isSelected && (
+                        <X className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
       <div className="grid gap-4 mt-4">
         <div className="grid gap-2">

@@ -185,7 +185,16 @@
     "favorited": "Favorited",
     "favorites_only": "Favorites Only",
     "added_to_favorites": "Event added to favorites",
-    "removed_from_favorites": "Event removed from favorites"
+    "removed_from_favorites": "Event removed from favorites",
+    "filter": {
+      "tags": "Tags",
+      "selectTags": "Select tags...",
+      "noTags": "No tags available"
+    },
+    "tags": {
+      "loading": "Loading tags...",
+      "moreCount": "+{{count}} more"
+    }
   },
   "event_detail": {
     "event_id": "Event ID",
@@ -235,7 +244,8 @@
     "alarm_frames_count": "{{count}} of {{total}} frames alarmed",
     "alarm_frame_marker": "Alarm Frame {{frameId}}",
     "max_score_marker": "Max Score Frame {{frameId}}",
-    "marker_jumped": "Jumped to {{text}}"
+    "marker_jumped": "Jumped to {{text}}",
+    "tags": "Tags"
   },
   "settings": {
     "title": "Settings",

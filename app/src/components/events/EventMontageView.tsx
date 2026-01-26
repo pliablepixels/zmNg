@@ -21,8 +21,9 @@ import { downloadEventVideo } from '../../lib/download';
 import { getEventImageUrl } from '../../api/events';
 import { calculateThumbnailDimensions } from '../../lib/event-utils';
 import { ZM_INTEGRATION } from '../../lib/zmng-constants';
-import type { Monitor } from '../../api/types';
+import type { Monitor, Tag } from '../../api/types';
 import { Capacitor } from '@capacitor/core';
+import { TagChipList } from './TagChip';
 
 interface EventMontageViewProps {
   events: any[];
@@ -34,6 +35,7 @@ interface EventMontageViewProps {
   eventLimit: number;
   isLoadingMore: boolean;
   onLoadMore: () => void;
+  eventTagMap?: Map<string, Tag[]>;
 }
 
 export const EventMontageView = ({
@@ -46,6 +48,7 @@ export const EventMontageView = ({
   eventLimit,
   isLoadingMore,
   onLoadMore,
+  eventTagMap,
 }: EventMontageViewProps) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -149,6 +152,15 @@ export const EventMontageView = ({
                     </Badge>
                   );
                 })()}
+                {/* Tags */}
+                {eventTagMap && eventTagMap.get(event.Id) && (
+                  <TagChipList
+                    tags={eventTagMap.get(event.Id) || []}
+                    maxVisible={3}
+                    size="sm"
+                    overflowText={(count) => t('events.tags.moreCount', { count })}
+                  />
+                )}
               </div>
             </Card>
           );

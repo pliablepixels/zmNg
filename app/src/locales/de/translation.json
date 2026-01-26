@@ -185,7 +185,16 @@
     "favorited": "Favorisiert",
     "favorites_only": "Nur Favoriten",
     "added_to_favorites": "Ereignis zu Favoriten hinzugefügt",
-    "removed_from_favorites": "Ereignis aus Favoriten entfernt"
+    "removed_from_favorites": "Ereignis aus Favoriten entfernt",
+    "filter": {
+      "tags": "Tags",
+      "selectTags": "Tags auswählen...",
+      "noTags": "Keine Tags verfügbar"
+    },
+    "tags": {
+      "loading": "Tags werden geladen...",
+      "moreCount": "+{{count}} mehr"
+    }
   },
   "event_detail": {
     "event_id": "Ereignis ID",
@@ -235,7 +244,8 @@
     "alarm_frames_count": "{{count}} von {{total}} Frames mit Alarm",
     "alarm_frame_marker": "Alarm-Frame {{frameId}}",
     "max_score_marker": "Max Score Frame {{frameId}}",
-    "marker_jumped": "Gesprungen zu {{text}}"
+    "marker_jumped": "Gesprungen zu {{text}}",
+    "tags": "Tags"
   },
   "settings": {
     "server": "Server",

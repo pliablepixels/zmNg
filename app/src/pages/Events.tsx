@@ -18,6 +18,7 @@ import { useEventFilters } from '../hooks/useEventFilters';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { useEventPagination } from '../hooks/useEventPagination';
 import { useEventMontageGrid } from '../hooks/useEventMontageGrid';
+import { useEventTags, useEventTagMapping } from '../hooks/useEventTags';
 import { PullToRefreshIndicator } from '../components/ui/pull-to-refresh-indicator';
 import { Button } from '../components/ui/button';
 import { RefreshCw, Filter, AlertCircle, ArrowLeft, LayoutGrid, List, Clock } from 'lucide-react';
@@ -75,10 +76,12 @@ export default function Events() {
   const {
     filters,
     selectedMonitorIds,
+    selectedTagIds,
     startDateInput,
     endDateInput,
     favoritesOnly,
     setSelectedMonitorIds,
+    setSelectedTagIds,
     setStartDateInput,
     setEndDateInput,
     setFavoritesOnly,
@@ -86,6 +89,13 @@ export default function Events() {
     clearFilters,
     activeFilterCount,
   } = useEventFilters();
+
+  // Fetch available tags and check if tags are supported
+  const {
+    availableTags,
+    tagsSupported,
+    isLoadingTags,
+  } = useEventTags();
 
   const [viewMode, setViewMode] = useState<'list' | 'montage'>(() => {
     const paramView = searchParams.get('view');
@@ -146,6 +156,20 @@ export default function Events() {
     enabled: true,
   });
 
+  // Get event IDs for tag fetching (before filtering by tags)
+  const eventIdsForTagFetch = useMemo(() =>
+    (eventsData?.events || [])
+      .filter(({ Event }: any) => enabledMonitorIds.includes(Event.MonitorId))
+      .map(({ Event }: any) => Event.Id),
+    [eventsData?.events, enabledMonitorIds]
+  );
+
+  // Fetch tags for displayed events
+  const { eventTagMap } = useEventTagMapping({
+    eventIds: eventIdsForTagFetch,
+    enabled: tagsSupported && eventIdsForTagFetch.length > 0,
+  });
+
   // Memoize filtered events
   const allEvents = useMemo(() => {
     let filtered = (eventsData?.events || []).filter(({ Event }: any) =>
@@ -157,8 +181,17 @@ export default function Events() {
       filtered = filtered.filter(({ Event }: any) => favoriteIds.includes(Event.Id));
     }
 
+    // Apply tag filter if tags are selected
+    if (selectedTagIds.length > 0 && eventTagMap.size > 0) {
+      filtered = filtered.filter(({ Event }: any) => {
+        const eventTags = eventTagMap.get(Event.Id) || [];
+        // Event must have at least one of the selected tags
+        return eventTags.some(tag => selectedTagIds.includes(tag.Id));
+      });
+    }
+
     return filtered;
-  }, [eventsData?.events, enabledMonitorIds, favoritesOnly, favoriteIds]);
+  }, [eventsData?.events, enabledMonitorIds, favoritesOnly, favoriteIds, selectedTagIds, eventTagMap]);
 
   // Use grid management hook (only active when in montage mode)
   const gridControls = useEventMontageGrid({
@@ -348,6 +381,11 @@ export default function Events() {
                   }}
                   onApplyFilters={applyFilters}
                   onClearFilters={clearFilters}
+                  tagsSupported={tagsSupported}
+                  availableTags={availableTags}
+                  selectedTagIds={selectedTagIds}
+                  onTagSelectionChange={setSelectedTagIds}
+                  isLoadingTags={isLoadingTags}
                 />
               </Popover>
 
@@ -426,6 +464,7 @@ export default function Events() {
             eventLimit={eventLimit}
             isLoadingMore={isLoadingMore}
             onLoadMore={loadNextPage}
+            eventTagMap={eventTagMap}
           />
         ) : (
           <EventListView
@@ -439,6 +478,7 @@ export default function Events() {
             onLoadMore={loadNextPage}
             parentRef={parentRef}
             parentElement={parentElement}
+            eventTagMap={eventTagMap}
           />
         )}
       </div>

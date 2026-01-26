@@ -11,12 +11,14 @@ import { getEvent, getEventVideoUrl, getEventImageUrl } from '../api/events';
 import { getMonitor } from '../api/monitors';
 import { useCurrentProfile } from '../hooks/useCurrentProfile';
 import { useAuthStore } from '../stores/auth';
+import { useEventTagMapping } from '../hooks/useEventTags';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { VideoPlayer } from '../components/ui/video-player';
 import { ZmsEventPlayer } from '../components/events/ZmsEventPlayer';
-import { ArrowLeft, Calendar, Clock, HardDrive, AlertTriangle, Download, Archive, Video, Star, Timer } from 'lucide-react';
+import { TagChip } from '../components/events/TagChip';
+import { ArrowLeft, Calendar, Clock, HardDrive, AlertTriangle, Download, Archive, Video, Star, Timer, Tag } from 'lucide-react';
 import { getEventCauseIcon } from '../lib/event-icons';
 import { format } from 'date-fns';
 import { downloadEventVideo } from '../lib/download';
@@ -54,6 +56,16 @@ export default function EventDetail() {
   const { isFavorited, toggleFavorite } = useEventFavoritesStore();
 
   const isFav = currentProfile && event ? isFavorited(currentProfile.id, event.Event.Id) : false;
+
+  // Fetch tags for this event
+  const { getTagsForEvent } = useEventTagMapping({
+    eventIds: id ? [id] : [],
+    enabled: !!id,
+  });
+
+  const eventTags = useMemo(() => {
+    return id ? getTagsForEvent(id) : [];
+  }, [id, getTagsForEvent]);
 
   const handleFavoriteToggle = useCallback(() => {
     if (currentProfile && event) {
@@ -387,6 +399,23 @@ export default function EventDetail() {
               </div>
             </Card>
           </div>
+
+          {/* Tags Section */}
+          {eventTags.length > 0 && (
+            <Card className="p-6 space-y-4">
+              <div className="flex items-center gap-2">
+                <Tag className="h-5 w-5 text-primary" />
+                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">
+                  {t('event_detail.tags')}
+                </h3>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {eventTags.map((tag) => (
+                  <TagChip key={tag.Id} tag={tag} size="md" />
+                ))}
+              </div>
+            </Card>
+          )}
         </div>
       </div>
     </div>

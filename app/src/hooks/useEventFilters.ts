@@ -19,16 +19,19 @@ import type { EventFilters } from '../api/events';
 interface UseEventFiltersReturn {
   filters: EventFilters;
   selectedMonitorIds: string[];
+  selectedTagIds: string[];
   startDateInput: string;
   endDateInput: string;
   favoritesOnly: boolean;
   setSelectedMonitorIds: (ids: string[]) => void;
+  setSelectedTagIds: (ids: string[]) => void;
   setStartDateInput: (date: string) => void;
   setEndDateInput: (date: string) => void;
   setFavoritesOnly: (enabled: boolean) => void;
   applyFilters: () => void;
   clearFilters: () => void;
   toggleMonitorSelection: (monitorId: string) => void;
+  toggleTagSelection: (tagId: string) => void;
   activeFilterCount: number;
 }
 
@@ -87,6 +90,12 @@ export function useEventFilters(): UseEventFiltersReturn {
     return searchParams.get('favorites') === 'true';
   });
 
+  // Local state for tag filter
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>(() => {
+    const tagIds = searchParams.get('tagIds');
+    return tagIds ? tagIds.split(',') : [];
+  });
+
   // Update local inputs when URL params change (e.g. navigation)
   useEffect(() => {
     const monitorId = searchParams.get('monitorId');
@@ -101,6 +110,9 @@ export function useEventFilters(): UseEventFiltersReturn {
 
     const favorites = searchParams.get('favorites') === 'true';
     setFavoritesOnly(favorites);
+
+    const tagIds = searchParams.get('tagIds');
+    setSelectedTagIds(tagIds ? tagIds.split(',') : []);
   }, [searchParams]);
 
   // Apply filters to URL
@@ -115,6 +127,9 @@ export function useEventFilters(): UseEventFiltersReturn {
     if (startDateInput) newParams.startDateTime = startDateInput;
     if (endDateInput) newParams.endDateTime = endDateInput;
     if (favoritesOnly) newParams.favorites = 'true';
+    if (selectedTagIds.length > 0) {
+      newParams.tagIds = selectedTagIds.join(',');
+    }
 
     // Preserve navigation state when updating search params
     setSearchParams(newParams, {
@@ -123,6 +138,7 @@ export function useEventFilters(): UseEventFiltersReturn {
     });
   }, [
     selectedMonitorIds,
+    selectedTagIds,
     startDateInput,
     endDateInput,
     favoritesOnly,
@@ -135,6 +151,7 @@ export function useEventFilters(): UseEventFiltersReturn {
   // Clear all filters
   const clearFilters = useCallback(() => {
     setSelectedMonitorIds([]);
+    setSelectedTagIds([]);
     setStartDateInput('');
     setEndDateInput('');
     setFavoritesOnly(false);
@@ -159,31 +176,44 @@ export function useEventFilters(): UseEventFiltersReturn {
     );
   }, []);
 
+  // Toggle tag selection
+  const toggleTagSelection = useCallback((tagId: string) => {
+    setSelectedTagIds((prev) =>
+      prev.includes(tagId)
+        ? prev.filter((id) => id !== tagId)
+        : [...prev, tagId]
+    );
+  }, []);
+
   // Calculate active filter count
   const activeFilterCount = useMemo(
     () =>
       [
         selectedMonitorIds.length > 0 ? 'monitors' : null,
+        selectedTagIds.length > 0 ? 'tags' : null,
         filters.startDateTime,
         filters.endDateTime,
         favoritesOnly ? 'favorites' : null,
       ].filter(Boolean).length,
-    [selectedMonitorIds.length, filters.startDateTime, filters.endDateTime, favoritesOnly]
+    [selectedMonitorIds.length, selectedTagIds.length, filters.startDateTime, filters.endDateTime, favoritesOnly]
   );
 
   return {
     filters,
     selectedMonitorIds,
+    selectedTagIds,
     startDateInput,
     endDateInput,
     favoritesOnly,
     setSelectedMonitorIds,
+    setSelectedTagIds,
     setStartDateInput,
     setEndDateInput,
     setFavoritesOnly,
     applyFilters,
     clearFilters,
     toggleMonitorSelection,
+    toggleTagSelection,
     activeFilterCount,
   };
 }

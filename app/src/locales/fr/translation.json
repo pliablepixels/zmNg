@@ -185,7 +185,16 @@
     "favorited": "Mis en favori",
     "favorites_only": "Favoris Uniquement",
     "added_to_favorites": "Événement ajouté aux favoris",
-    "removed_from_favorites": "Événement retiré des favoris"
+    "removed_from_favorites": "Événement retiré des favoris",
+    "filter": {
+      "tags": "Tags",
+      "selectTags": "Sélectionner des tags...",
+      "noTags": "Aucun tag disponible"
+    },
+    "tags": {
+      "loading": "Chargement des tags...",
+      "moreCount": "+{{count}} de plus"
+    }
   },
   "event_detail": {
     "event_id": "ID Événement",
@@ -235,7 +244,8 @@
     "alarm_frames_count": "{{count}} sur {{total}} images avec alarme",
     "alarm_frame_marker": "Image d'Alarme {{frameId}}",
     "max_score_marker": "Image Score Maximum {{frameId}}",
-    "marker_jumped": "Sauté à {{text}}"
+    "marker_jumped": "Sauté à {{text}}",
+    "tags": "Tags"
   },
   "settings": {
     "server": "Serveur",

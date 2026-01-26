@@ -12,7 +12,7 @@ import { Button } from '../ui/button';
 import { EventCard } from './EventCard';
 import { getEventImageUrl } from '../../api/events';
 import { calculateThumbnailDimensions, EVENT_GRID_CONSTANTS } from '../../lib/event-utils';
-import type { Monitor } from '../../api/types';
+import type { Monitor, Tag } from '../../api/types';
 
 interface EventListViewProps {
   events: any[];
@@ -25,6 +25,7 @@ interface EventListViewProps {
   onLoadMore: () => void;
   parentRef: React.RefObject<HTMLDivElement | null>;
   parentElement: HTMLDivElement | null;
+  eventTagMap?: Map<string, Tag[]>;
 }
 
 export const EventListView = ({
@@ -38,6 +39,7 @@ export const EventListView = ({
   onLoadMore,
   parentRef,
   parentElement,
+  eventTagMap,
 }: EventListViewProps) => {
   const { t } = useTranslation();
 
@@ -123,6 +125,7 @@ export const EventListView = ({
                 objectFit={thumbnailFit}
                 thumbnailWidth={thumbnailWidth}
                 thumbnailHeight={thumbnailHeight}
+                tags={eventTagMap?.get(Event.Id)}
               />
             </div>
           );

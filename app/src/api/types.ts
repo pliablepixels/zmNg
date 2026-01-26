@@ -560,6 +560,7 @@ export interface EventCardProps {
   objectFit?: React.CSSProperties['objectFit'];
   thumbnailWidth: number;
   thumbnailHeight: number;
+  tags?: Tag[];
 }
 
 // Zone types
@@ -642,3 +643,45 @@ export interface MontageLayout {
 
 // Import for ReactGridLayout namespace
 import type * as ReactGridLayout from 'react-grid-layout';
+
+// Tag types
+export const TagSchema = z.object({
+  Id: z.coerce.string(),
+  Name: z.string(),
+  CreateDate: z.string().optional(),
+  CreatedBy: z.coerce.string().nullable().optional(),
+  LastAssignedDate: z.string().nullable().optional(),
+});
+
+// Schema for tag data without event association (used for available tags list)
+export const TagDataSchema = z.object({
+  Tag: TagSchema,
+});
+
+// Schema for tag-event mapping from the API
+// The API returns: { tags: [{ Tag: {...}, Events_Tags: {EventId: 1} }] }
+// Each tag-event association is a separate entry in the array
+export const TagEventMappingSchema = z.object({
+  Tag: TagSchema,
+  Events_Tags: z.object({
+    EventId: z.coerce.string(),
+  }).optional(),
+});
+
+// Response schema for GET /api/tags.json
+// This returns all tags with their event associations
+export const TagsResponseSchema = z.object({
+  tags: z.array(TagEventMappingSchema),
+});
+
+// Response schema for GET /api/tags/index/Events.Id:1,2,3.json
+// Same format as TagsResponseSchema
+export const EventTagsResponseSchema = z.object({
+  tags: z.array(TagEventMappingSchema),
+});
+
+export type Tag = z.infer<typeof TagSchema>;
+export type TagData = z.infer<typeof TagDataSchema>;
+export type TagEventMapping = z.infer<typeof TagEventMappingSchema>;
+export type TagsResponse = z.infer<typeof TagsResponseSchema>;
+export type EventTagsResponse = z.infer<typeof EventTagsResponseSchema>;

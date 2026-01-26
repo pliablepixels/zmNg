@@ -185,7 +185,16 @@
     "favorited": "Marcado como favorito",
     "favorites_only": "Solo Favoritos",
     "added_to_favorites": "Evento añadido a favoritos",
-    "removed_from_favorites": "Evento eliminado de favoritos"
+    "removed_from_favorites": "Evento eliminado de favoritos",
+    "filter": {
+      "tags": "Etiquetas",
+      "selectTags": "Seleccionar etiquetas...",
+      "noTags": "No hay etiquetas disponibles"
+    },
+    "tags": {
+      "loading": "Cargando etiquetas...",
+      "moreCount": "+{{count}} más"
+    }
   },
   "event_detail": {
     "event_id": "ID de Evento",
@@ -235,7 +244,8 @@
     "alarm_frames_count": "{{count}} de {{total}} fotogramas con alarma",
     "alarm_frame_marker": "Fotograma de Alarma {{frameId}}",
     "max_score_marker": "Fotograma de Máxima Puntuación {{frameId}}",
-    "marker_jumped": "Saltado a {{text}}"
+    "marker_jumped": "Saltado a {{text}}",
+    "tags": "Etiquetas"
   },
   "settings": {
     "server": "Servidor",

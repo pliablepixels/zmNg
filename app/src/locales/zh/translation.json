@@ -185,7 +185,16 @@
     "favorited": "已收藏",
     "favorites_only": "仅显示收藏",
     "added_to_favorites": "事件已添加到收藏",
-    "removed_from_favorites": "事件已从收藏中移除"
+    "removed_from_favorites": "事件已从收藏中移除",
+    "filter": {
+      "tags": "标签",
+      "selectTags": "选择标签...",
+      "noTags": "没有可用的标签"
+    },
+    "tags": {
+      "loading": "正在加载标签...",
+      "moreCount": "+{{count}} 更多"
+    }
   },
   "event_detail": {
     "event_id": "事件 ID",
@@ -235,7 +244,8 @@
     "alarm_frames_count": "{{total}}帧中有{{count}}个报警帧",
     "alarm_frame_marker": "报警帧 {{frameId}}",
     "max_score_marker": "最高分数帧 {{frameId}}",
-    "marker_jumped": "跳转到 {{text}}"
+    "marker_jumped": "跳转到 {{text}}",
+    "tags": "标签"
   },
   "settings": {
     "server": "服务器",

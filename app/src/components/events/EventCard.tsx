@@ -19,6 +19,7 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '../../lib/utils';
 import { useEventFavoritesStore } from '../../stores/eventFavorites';
 import { useCurrentProfile } from '../../hooks/useCurrentProfile';
+import { TagChipList } from './TagChip';
 
 /**
  * EventCard component.
@@ -29,7 +30,7 @@ import { useCurrentProfile } from '../../hooks/useCurrentProfile';
  * @param props.monitorName - Name of the monitor that recorded the event
  * @param props.thumbnailUrl - URL for the event thumbnail image
  */
-function EventCardComponent({ event, monitorName, thumbnailUrl, objectFit = 'contain', thumbnailWidth, thumbnailHeight }: EventCardProps) {
+function EventCardComponent({ event, monitorName, thumbnailUrl, objectFit = 'contain', thumbnailWidth, thumbnailHeight, tags }: EventCardProps) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { currentProfile } = useCurrentProfile();
@@ -176,6 +177,17 @@ function EventCardComponent({ event, monitorName, thumbnailUrl, objectFit = 'con
               </>
             )}
           </div>
+
+          {/* Tags */}
+          {tags && tags.length > 0 && (
+            <TagChipList
+              tags={tags}
+              maxVisible={4}
+              size="sm"
+              className="mt-1.5"
+              overflowText={(count) => t('events.tags.moreCount', { count })}
+            />
+          )}
         </div>
       </div>
     </Card>
