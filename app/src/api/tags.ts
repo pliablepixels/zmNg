@@ -75,10 +75,15 @@ export async function getTags(): Promise<TagsResponse | null> {
  * so we need to deduplicate by tag ID.
  */
 export function extractUniqueTags(response: TagsResponse): Tag[] {
+  // Handle cases where response or tags array is missing/invalid
+  if (!response?.tags || !Array.isArray(response.tags)) {
+    return [];
+  }
+
   const tagMap = new Map<string, Tag>();
 
   for (const mapping of response.tags) {
-    if (!tagMap.has(mapping.Tag.Id)) {
+    if (mapping?.Tag?.Id && !tagMap.has(mapping.Tag.Id)) {
       tagMap.set(mapping.Tag.Id, mapping.Tag);
     }
   }

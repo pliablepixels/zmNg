@@ -81,31 +81,6 @@ export function createApiClient(baseURL: string, reLogin?: () => Promise<boolean
     const fullUrl = resolveUrl(resolvedBaseUrl, url);
     const fullUrlWithParams = appendQuery(fullUrl, params);
 
-    const logData: Record<string, unknown> = {
-      correlationId,
-      method,
-      url: fullUrlWithParams,
-      zmUrl: fullUrl,
-    };
-
-    if (Object.keys(params).length > 0) {
-      logData.queryParams = sanitizeObject(params);
-    }
-
-    if (data) {
-      if (data instanceof URLSearchParams) {
-        const formDataObj: Record<string, string> = {};
-        data.forEach((value: string, key: string) => {
-          formDataObj[key] = value;
-        });
-        logData.formData = sanitizeObject(formDataObj);
-      } else {
-        logData.bodyData = sanitizeObject(data);
-      }
-    }
-
-    log.api(`[Request #${correlationId}] ${method} ${fullUrlWithParams}`, LogLevel.DEBUG, logData);
-
     try {
       const response = await httpRequest<T>(fullUrl, {
         method,
@@ -118,13 +93,6 @@ export function createApiClient(baseURL: string, reLogin?: () => Promise<boolean
         validateStatus: config.validateStatus,
         signal: config.signal,
         onDownloadProgress: config.onDownloadProgress,
-      });
-
-      log.api(`[Response #${correlationId}] ${response.status} ${response.statusText} - ${fullUrl}`, LogLevel.DEBUG, {
-        correlationId,
-        status: response.status,
-        statusText: response.statusText,
-        data: sanitizeObject(response.data),
       });
 
       return response;

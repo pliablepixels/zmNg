@@ -58,6 +58,21 @@ describe('getEventCauseIcon', () => {
     const icon = getEventCauseIcon('DoorSensor');
     expect(icon).toBe(Circle);
   });
+
+  it('returns Move icon for Motion:All (prefix match)', () => {
+    const icon = getEventCauseIcon('Motion:All');
+    expect(icon).toBe(Move);
+  });
+
+  it('returns Move icon for Motion:Person (prefix match)', () => {
+    const icon = getEventCauseIcon('Motion:Person');
+    expect(icon).toBe(Move);
+  });
+
+  it('returns Bell icon for Alarm:Zone1 (prefix match)', () => {
+    const icon = getEventCauseIcon('Alarm:Zone1');
+    expect(icon).toBe(Bell);
+  });
 });
 
 describe('hasSpecificCauseIcon', () => {
@@ -80,5 +95,12 @@ describe('hasSpecificCauseIcon', () => {
     expect(hasSpecificCauseIcon('motion')).toBe(false);
     expect(hasSpecificCauseIcon('MOTION')).toBe(false);
     expect(hasSpecificCauseIcon('Motion')).toBe(true);
+  });
+
+  it('returns true for prefix matches', () => {
+    expect(hasSpecificCauseIcon('Motion:All')).toBe(true);
+    expect(hasSpecificCauseIcon('Motion:Person')).toBe(true);
+    expect(hasSpecificCauseIcon('Alarm:Zone1')).toBe(true);
+    expect(hasSpecificCauseIcon('Signal:Lost')).toBe(true);
   });
 });

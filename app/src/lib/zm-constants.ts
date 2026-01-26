@@ -135,4 +135,4 @@ export type ZmMonitorFunction = typeof ZM_MONITOR_FUNCTIONS[keyof typeof ZM_MONI
  */
 
 /** Maximum number of event IDs per batch when fetching event tags to avoid URL length limits */
-export const TAGS_BATCH_SIZE = 50;
+export const TAGS_BATCH_SIZE = 100;
