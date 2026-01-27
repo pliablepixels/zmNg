@@ -46,21 +46,21 @@ export default function Server() {
   const queryClient = useQueryClient();
   const { currentProfile } = useCurrentProfile();
   const bandwidth = useBandwidthSettings();
-  const { version, apiVersion } = useAuthStore();
+  const { version, apiVersion, isAuthenticated } = useAuthStore();
   const [selectedAction, setSelectedAction] = useState<string>('');
 
   // Fetch server information
   const { data: servers, isLoading: serversLoading } = useQuery({
     queryKey: ['servers', currentProfile?.id],
     queryFn: getServers,
-    enabled: !!currentProfile,
+    enabled: !!currentProfile && isAuthenticated,
   });
 
   // Fetch daemon status
   const { data: isDaemonRunning, isLoading: daemonLoading } = useQuery({
     queryKey: ['daemon-check', currentProfile?.id],
     queryFn: getDaemonCheck,
-    enabled: !!currentProfile,
+    enabled: !!currentProfile && isAuthenticated,
     refetchInterval: bandwidth.daemonCheckInterval,
   });
 
@@ -68,28 +68,28 @@ export default function Server() {
   const { data: loadData, isLoading: loadLoading } = useQuery({
     queryKey: ['server-load', currentProfile?.id],
     queryFn: getLoad,
-    enabled: !!currentProfile,
+    enabled: !!currentProfile && isAuthenticated,
   });
 
   // Fetch disk usage
   const { data: diskData, isLoading: diskLoading } = useQuery({
     queryKey: ['disk-usage', currentProfile?.id],
     queryFn: getDiskPercent,
-    enabled: !!currentProfile,
+    enabled: !!currentProfile && isAuthenticated,
   });
 
   // Fetch states
   const { data: states, isLoading: statesLoading } = useQuery({
     queryKey: ['states', currentProfile?.id],
     queryFn: getStates,
-    enabled: !!currentProfile,
+    enabled: !!currentProfile && isAuthenticated,
   });
 
   // Fetch timezone
   const { data: timezone, isLoading: timezoneLoading } = useQuery({
     queryKey: ['timezone', currentProfile?.id],
     queryFn: () => getServerTimeZone(),
-    enabled: !!currentProfile,
+    enabled: !!currentProfile && isAuthenticated,
   });
 
   // Mutation for state change
