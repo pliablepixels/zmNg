@@ -49,6 +49,10 @@ function appendQuery(url: string, params: Record<string, string | number>): stri
   return url.includes('?') ? `${url}&${queryParams}` : `${url}?${queryParams}`;
 }
 
+// Track if login is currently in progress to prevent duplicate login attempts
+let loginInProgress = false;
+let loginPromise: Promise<boolean> | null = null;
+
 export function createApiClient(baseURL: string, reLogin?: () => Promise<boolean>): ApiClient {
   const request = async <T>(
     method: ApiMethod,
@@ -64,6 +68,48 @@ export function createApiClient(baseURL: string, reLogin?: () => Promise<boolean
 
     const skipAuth = headers['Skip-Auth'] === 'true';
     const isLoginRequest = url.includes('login.json') && method.toUpperCase() === 'POST';
+
+    // PROACTIVE: If not authenticated and not a login request, trigger login first
+    if (!accessToken && !skipAuth && !isLoginRequest && reLogin && !hasRetried) {
+      log.api(`Request requires authentication, triggering login first`, LogLevel.DEBUG, {
+        correlationId,
+        method,
+        url,
+      });
+
+      let loginSuccess = false;
+
+      // If login already in progress, wait for it
+      if (loginInProgress && loginPromise) {
+        try {
+          loginSuccess = await loginPromise;
+        } catch (error) {
+          log.api('Waiting for in-progress login failed', LogLevel.ERROR, error);
+          throw new Error('Authentication required but concurrent login attempt failed');
+        }
+      } else {
+        // Start new login
+        loginInProgress = true;
+        loginPromise = reLogin();
+        try {
+          loginSuccess = await loginPromise;
+        } catch (error) {
+          log.api('Proactive login failed', LogLevel.ERROR, error);
+          throw error;
+        } finally {
+          loginInProgress = false;
+          loginPromise = null;
+        }
+      }
+
+      // Check if login actually succeeded before retrying
+      if (!loginSuccess) {
+        throw new Error('Authentication required but login failed');
+      }
+
+      // Retry the original request now that we're authenticated
+      return request(method, url, data, config, true);
+    }
 
     if (accessToken && !skipAuth && !isLoginRequest) {
       params.token = accessToken;

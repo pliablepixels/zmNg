@@ -5,7 +5,7 @@
  * Allows filtering and quick access to monitor details.
  */
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -42,27 +42,13 @@ export default function Monitors() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const { isFilterActive, filteredMonitorIds } = useGroupFilter();
 
-  // Allow fetching if authenticated OR if the profile doesn't require authentication (no username)
-  const canFetch = !!currentProfile && (isAuthenticated || !currentProfile.username);
-
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['monitors', currentProfile?.id],
     queryFn: getMonitors,
-    enabled: canFetch,
+    enabled: !!currentProfile && isAuthenticated,
     refetchInterval: bandwidth.monitorStatusInterval,
   });
 
-  // Force refetch when profile changes or auth state changes
-  // This helps resolve race conditions where the query might run before the API client is fully ready
-  useEffect(() => {
-    if (canFetch) {
-      // Small delay to ensure everything is settled
-      const timer = setTimeout(() => {
-        refetch();
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [canFetch, refetch]);
 
   const resolveErrorMessage = (err: unknown) => {
     const message = (err as Error)?.message || t('common.unknown_error');

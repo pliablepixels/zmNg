@@ -47,6 +47,7 @@ export default function Events() {
     : settings.eventsThumbnailFit;
   const updateSettings = useSettingsStore((state) => state.updateProfileSettings);
   const accessToken = useAuthStore((state) => state.accessToken);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const { isFilterActive: isGroupFilterActive, filteredMonitorIds: groupMonitorIds } = useGroupFilter();
 
   // Subscribe to the actual favorites data, not just the getter function
@@ -109,6 +110,7 @@ export default function Events() {
   const { data: monitorsData } = useQuery({
     queryKey: ['monitors'],
     queryFn: getMonitors,
+    enabled: !!currentProfile && isAuthenticated,
   });
 
   // All monitors (for filter popover display)
@@ -152,6 +154,7 @@ export default function Events() {
         endDateTime: filters.endDateTime ? formatForServer(new Date(filters.endDateTime)) : undefined,
         limit: currentEventLimit,
       }),
+    enabled: !!currentProfile && isAuthenticated,
     // Keep showing previous data while fetching more (prevents UI flash during pagination)
     placeholderData: keepPreviousData,
   });

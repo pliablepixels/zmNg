@@ -43,6 +43,13 @@ export interface ProfileSettings {
     startDate: string;
     endDate: string;
   };
+  eventsPageFilters: {
+    monitorIds: string[];
+    tagIds: string[];
+    startDateTime: string;
+    endDateTime: string;
+    favoritesOnly: boolean;
+  };
   disableLogRedaction: boolean;
   lastRoute: string; // Last visited route for this profile
   // Streaming method: 'auto' tries WebRTC/MSE/HLS for Go2RTC-enabled monitors, 'mjpeg' forces MJPEG for all
@@ -118,6 +125,13 @@ export const DEFAULT_SETTINGS: ProfileSettings = {
     cause: 'all',
     startDate: '',
     endDate: '',
+  },
+  eventsPageFilters: {
+    monitorIds: [],
+    tagIds: [],
+    startDateTime: '',
+    endDateTime: '',
+    favoritesOnly: false,
   },
   disableLogRedaction: false,
   lastRoute: '/monitors',

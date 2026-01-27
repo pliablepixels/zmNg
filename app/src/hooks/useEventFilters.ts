@@ -14,6 +14,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams, useLocation } from 'react-router-dom';
 import { useCurrentProfile } from './useCurrentProfile';
+import { useSettingsStore } from '../stores/settings';
 import type { EventFilters } from '../api/events';
 
 interface UseEventFiltersReturn {
@@ -44,7 +45,8 @@ interface UseEventFiltersReturn {
 export function useEventFilters(): UseEventFiltersReturn {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
-  const { settings } = useCurrentProfile();
+  const { currentProfile, settings } = useCurrentProfile();
+  const updateSettings = useSettingsStore((state) => state.updateProfileSettings);
 
   // Derive filters from URL
   const filters: EventFilters = useMemo(
@@ -78,23 +80,80 @@ export function useEventFilters(): UseEventFiltersReturn {
   };
 
   // Local state for filter inputs
+  // Initialize from URL params if present, otherwise use saved settings
   const [selectedMonitorIds, setSelectedMonitorIds] = useState<string[]>(() => {
-    const monitorId = filters.monitorId;
-    return monitorId ? monitorId.split(',') : [];
+    const urlMonitorId = filters.monitorId;
+    if (urlMonitorId) return urlMonitorId.split(',');
+    return settings.eventsPageFilters.monitorIds;
   });
-  const [startDateInput, setStartDateInput] = useState(
-    formatInputDate(filters.startDateTime)
-  );
-  const [endDateInput, setEndDateInput] = useState(formatInputDate(filters.endDateTime));
+  const [startDateInput, setStartDateInput] = useState(() => {
+    const urlStart = filters.startDateTime;
+    if (urlStart) return formatInputDate(urlStart);
+    return settings.eventsPageFilters.startDateTime;
+  });
+  const [endDateInput, setEndDateInput] = useState(() => {
+    const urlEnd = filters.endDateTime;
+    if (urlEnd) return formatInputDate(urlEnd);
+    return settings.eventsPageFilters.endDateTime;
+  });
   const [favoritesOnly, setFavoritesOnly] = useState(() => {
-    return searchParams.get('favorites') === 'true';
+    const urlFavorites = searchParams.get('favorites');
+    if (urlFavorites !== null) return urlFavorites === 'true';
+    return settings.eventsPageFilters.favoritesOnly;
   });
 
   // Local state for tag filter
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>(() => {
-    const tagIds = searchParams.get('tagIds');
-    return tagIds ? tagIds.split(',') : [];
+    const urlTagIds = searchParams.get('tagIds');
+    if (urlTagIds) return urlTagIds.split(',');
+    return settings.eventsPageFilters.tagIds;
   });
+
+  // Sync saved filters to URL on initial mount if URL has no filter params
+  useEffect(() => {
+    const hasUrlFilters =
+      searchParams.get('monitorId') ||
+      searchParams.get('tagIds') ||
+      searchParams.get('startDateTime') ||
+      searchParams.get('endDateTime') ||
+      searchParams.get('favorites');
+
+    // If no URL filters, apply saved settings to URL
+    if (!hasUrlFilters && currentProfile) {
+      const savedFilters = settings.eventsPageFilters;
+      const hasFilterContent =
+        savedFilters.monitorIds.length > 0 ||
+        savedFilters.tagIds.length > 0 ||
+        savedFilters.startDateTime ||
+        savedFilters.endDateTime ||
+        savedFilters.favoritesOnly;
+
+      if (hasFilterContent) {
+        const newParams: Record<string, string> = {
+          sort: 'StartDateTime',
+          direction: 'desc',
+        };
+        if (savedFilters.monitorIds.length > 0) {
+          newParams.monitorId = savedFilters.monitorIds.join(',');
+        }
+        if (savedFilters.tagIds.length > 0) {
+          newParams.tagIds = savedFilters.tagIds.join(',');
+        }
+        if (savedFilters.startDateTime) {
+          newParams.startDateTime = savedFilters.startDateTime;
+        }
+        if (savedFilters.endDateTime) {
+          newParams.endDateTime = savedFilters.endDateTime;
+        }
+        if (savedFilters.favoritesOnly) {
+          newParams.favorites = 'true';
+        }
+
+        setSearchParams(newParams, { replace: true });
+      }
+    }
+  }, []); // Run only on mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
 
   // Update local inputs when URL params change (e.g. navigation)
   useEffect(() => {
@@ -115,7 +174,7 @@ export function useEventFilters(): UseEventFiltersReturn {
     setSelectedTagIds(tagIds ? tagIds.split(',') : []);
   }, [searchParams]);
 
-  // Apply filters to URL
+  // Apply filters to URL and save to settings
   const applyFilters = useCallback(() => {
     const newParams: Record<string, string> = {
       sort: filters.sort || 'StartDateTime',
@@ -136,6 +195,19 @@ export function useEventFilters(): UseEventFiltersReturn {
       replace: true,
       state: location.state,
     });
+
+    // Save filters to settings for persistence
+    if (currentProfile) {
+      updateSettings(currentProfile.id, {
+        eventsPageFilters: {
+          monitorIds: selectedMonitorIds,
+          tagIds: selectedTagIds,
+          startDateTime: startDateInput,
+          endDateTime: endDateInput,
+          favoritesOnly,
+        },
+      });
+    }
   }, [
     selectedMonitorIds,
     selectedTagIds,
@@ -146,6 +218,8 @@ export function useEventFilters(): UseEventFiltersReturn {
     filters.direction,
     setSearchParams,
     location.state,
+    currentProfile,
+    updateSettings,
   ]);
 
   // Clear all filters
@@ -165,7 +239,20 @@ export function useEventFilters(): UseEventFiltersReturn {
         state: location.state,
       }
     );
-  }, [setSearchParams, location.state]);
+
+    // Clear saved filters from settings
+    if (currentProfile) {
+      updateSettings(currentProfile.id, {
+        eventsPageFilters: {
+          monitorIds: [],
+          tagIds: [],
+          startDateTime: '',
+          endDateTime: '',
+          favoritesOnly: false,
+        },
+      });
+    }
+  }, [setSearchParams, location.state, currentProfile, updateSettings]);
 
   // Toggle monitor selection
   const toggleMonitorSelection = useCallback((monitorId: string) => {

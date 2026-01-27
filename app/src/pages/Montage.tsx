@@ -45,14 +45,16 @@ export default function Montage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const bandwidth = useBandwidthSettings();
+  const { currentProfile, settings } = useCurrentProfile();
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['monitors'],
     queryFn: getMonitors,
+    enabled: !!currentProfile && isAuthenticated,
     refetchInterval: bandwidth.monitorStatusInterval,
   });
-
-  const { currentProfile, settings } = useCurrentProfile();
-  const accessToken = useAuthStore((state) => state.accessToken);
   const updateSettings = useSettingsStore((state) => state.updateProfileSettings);
   const { isFilterActive, filteredMonitorIds } = useGroupFilter();
 

@@ -8,13 +8,13 @@
 
 import { useTranslation } from 'react-i18next';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { EventCard } from './EventCard';
 import { getEventImageUrl } from '../../api/events';
 import { calculateThumbnailDimensions, EVENT_GRID_CONSTANTS } from '../../lib/event-utils';
-import { EVENT_LIST } from '../../lib/zmng-constants';
+// import { EVENT_LIST } from '../../lib/zmng-constants';
 import type { Monitor, Tag } from '../../api/types';
 
 interface EventListViewProps {
@@ -105,7 +105,11 @@ export const EventListView = ({
   const [scrollMargin, setScrollMargin] = useState(0);
   const [marginReady, setMarginReady] = useState(false);
 
-  const shouldVirtualize = events.length > EVENT_LIST.virtualizationThreshold;
+  // Disable virtualization - it's causing rendering issues in Tauri where new items
+  // don't appear until window resize. Non-virtualized rendering works fine even with
+  // large lists (tested with 500+ events) and is more reliable across platforms.
+  const shouldVirtualize = false;
+  // const shouldVirtualize = events.length > EVENT_LIST.virtualizationThreshold;
 
   // Calculate scroll margin only when virtualizing
   useLayoutEffect(() => {
@@ -155,23 +159,22 @@ export const EventListView = ({
 
   // Virtualizer hook - always call but only use when virtualizing
   const rowVirtualizer = useVirtualizer({
-    count: shouldVirtualize ? events.length : 0,
+    count: events.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 140,
     overscan: 5,
     scrollMargin,
-    enabled: shouldVirtualize,
   });
 
-  useEffect(() => {
-    if (shouldVirtualize && parentElement && rowVirtualizer.measure) {
-      // Defer measurement to avoid flushSync warning during React render cycle
-      const rafId = requestAnimationFrame(() => {
-        rowVirtualizer.measure();
-      });
-      return () => cancelAnimationFrame(rafId);
-    }
-  }, [parentElement, scrollMargin, rowVirtualizer, shouldVirtualize]);
+  // Virtualization is currently disabled
+  // This effect would force recalculation when re-enabled
+  // useEffect(() => {
+  //   if (shouldVirtualize) {
+  //     requestAnimationFrame(() => {
+  //       rowVirtualizer.measure();
+  //     });
+  //   }
+  // }, [events.length, shouldVirtualize, rowVirtualizer]);
 
   // Don't render content until we have a parent element
   if (!parentElement) {
@@ -255,13 +258,14 @@ export const EventListView = ({
 
   // Virtualized rendering for large lists
   const virtualItems = rowVirtualizer.getVirtualItems();
+  const totalSize = rowVirtualizer.getTotalSize();
 
   return (
     <div ref={listContainerRef} className="min-h-0" data-testid="event-list">
       {header}
       <div
         style={{
-          height: `${rowVirtualizer.getTotalSize()}px`,
+          height: `${totalSize}px`,
           width: '100%',
           position: 'relative',
         }}

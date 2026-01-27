@@ -5,14 +5,19 @@ import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import { Activity, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useCurrentProfile } from '../hooks/useCurrentProfile';
+import { useAuthStore } from '../stores/auth';
 
 export default function States() {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
+  const { currentProfile } = useCurrentProfile();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   const { data: states, isLoading, error } = useQuery({
     queryKey: ['states'],
     queryFn: getStates,
+    enabled: !!currentProfile && isAuthenticated,
   });
 
   const changeMutation = useMutation({
