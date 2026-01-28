@@ -62,7 +62,7 @@ export function createApiClient(baseURL: string, reLogin?: () => Promise<boolean
     hasRetried = false
   ): Promise<HttpResponse<T>> => {
     const correlationId = ++correlationIdCounter;
-    const { accessToken, refreshToken, refreshTokenExpires } = useAuthStore.getState();
+    const { accessToken, refreshToken, refreshTokenExpires, isAuthenticated } = useAuthStore.getState();
     const headers = { ...(config.headers ?? {}) };
     const params: Record<string, string | number> = { ...(config.params ?? {}) };
 
@@ -70,7 +70,7 @@ export function createApiClient(baseURL: string, reLogin?: () => Promise<boolean
     const isLoginRequest = url.includes('login.json') && method.toUpperCase() === 'POST';
 
     // PROACTIVE: If not authenticated and not a login request, trigger login first
-    if (!accessToken && !skipAuth && !isLoginRequest && reLogin && !hasRetried) {
+    if (!isAuthenticated && !skipAuth && !isLoginRequest && reLogin && !hasRetried) {
       log.api(`Request requires authentication, triggering login first`, LogLevel.DEBUG, {
         correlationId,
         method,
