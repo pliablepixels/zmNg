@@ -78,19 +78,13 @@ class Logger {
     const { component, action, ...consoleContext } = sanitizedContext;
     const hasContext = Object.keys(consoleContext).length > 0;
 
-    // Log sanitized data to console - stringify objects for flat, readable output
+    // Log sanitized data to console
     const consoleArgs: unknown[] = [prefix, sanitizedMessage];
     if (hasContext) {
-      consoleArgs.push(JSON.stringify(consoleContext, null, 2));
+      consoleArgs.push(consoleContext);
     }
     if (sanitizedArgs.length > 0) {
-      const stringifiedArgs = sanitizedArgs.map(arg => {
-        if (typeof arg === 'object' && arg !== null) {
-          return JSON.stringify(arg, null, 2);
-        }
-        return arg;
-      });
-      consoleArgs.push(...stringifiedArgs);
+      consoleArgs.push(...sanitizedArgs);
     }
 
     console.log(...consoleArgs);
