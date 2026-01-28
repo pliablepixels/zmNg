@@ -1,6 +1,5 @@
 
 import { createApiClient, setApiClient } from '../api/client';
-import { fetchZmsPath } from '../api/auth';
 import type { HttpError } from './http';
 import { log, LogLevel } from './logger';
 
