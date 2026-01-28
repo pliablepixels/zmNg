@@ -65,6 +65,71 @@ Tokens are stored encrypted in `SecureStorage`:
 await SecureStorage.set(`auth_tokens_${profileId}`, JSON.stringify(tokens));
 ```
 
+#### Proactive Authentication
+
+The API client implements **proactive authentication** to prevent 401 errors during app initialization. When the app loads, profiles rehydrate from localStorage immediately, but authentication takes a few seconds. Without proactive authentication, API queries would fire before login completes, resulting in 401 errors.
+
+**Implementation** (`src/api/client.ts`):
+
+The `createApiClient` function checks if the user is authenticated before making any API request (except login requests). If not authenticated, it triggers login first, waits for it to complete, then proceeds with the original request:
+
+```typescript
+// Before making HTTP request
+if (!accessToken && !skipAuth && !isLoginRequest && reLogin && !hasRetried) {
+  // Trigger login first
+  const loginSuccess = await reLogin();
+
+  if (!loginSuccess) {
+    throw new Error('Authentication required but login failed');
+  }
+
+  // Retry original request with token
+  return request(method, url, data, config, true);
+}
+```
+
+**Concurrent Request Coordination:**
+
+Multiple API requests that arrive during login share the same login promise to prevent duplicate login attempts:
+
+```typescript
+let loginInProgress = false;
+let loginPromise: Promise<boolean> | null = null;
+
+if (loginInProgress && loginPromise) {
+  // Wait for ongoing login
+  loginSuccess = await loginPromise;
+} else {
+  // Start new login
+  loginInProgress = true;
+  loginPromise = reLogin();
+  // ...
+}
+```
+
+**Benefits:**
+- ✅ Zero 401 errors during app load
+- ✅ Transparent to query callers - no special handling needed
+- ✅ Works across all platforms (Web, iOS, Android, Desktop/Tauri)
+- ✅ Prevents duplicate login attempts when multiple queries fire simultaneously
+- ✅ Fails fast if authentication fails - no infinite retry loops
+
+**Reactive 401 Handling:**
+
+If a request still gets a 401 response (e.g., token expired), the API client has a second layer of defense that tries to refresh the token or trigger re-login:
+
+```typescript
+catch (error) {
+  if (httpError.status === 401 && !hasRetried && !skipAuth && !isLoginRequest) {
+    // Try refresh token
+    await refreshAccessToken();
+    return request(method, url, data, config, true); // hasRetried=true prevents loops
+  }
+}
+```
+
+The `hasRetried` flag ensures each request only attempts authentication **once**, preventing infinite retry loops.
+
 ### Connection Keys (connkey)
 
 For streaming URLs, ZoneMinder uses connection keys instead of tokens:
