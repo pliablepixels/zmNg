@@ -20,7 +20,8 @@ export interface ZMAlarmEvent {
     Cause: string;
     Name: string;
     DetectionJson?: unknown[];
-    ImageUrl?: string; // URL to event snapshot/alarm frame
+    Picture?: string; // Server-provided image URL (if include_picture is configured)
+    ImageUrl?: string; // URL to event snapshot/alarm frame (server-provided or client-constructed)
 }
 
 export interface ZMNotificationMessage {
