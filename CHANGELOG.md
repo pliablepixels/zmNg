@@ -1,5 +1,13 @@
 # Changelog
 
+## [zmNg-0.2.4](https://github.com/pliablepixels/zmNg/tree/zmNg-0.2.4) (2026-02-04)
+
+[Full Changelog](https://github.com/pliablepixels/zmNg/compare/zmNg-0.2.3...zmNg-0.2.4)
+
+**Fixed bugs:**
+
+- zms tokens expire without refresh [\#27](https://github.com/pliablepixels/zmNg/issues/27)
+
 ## [zmNg-0.2.3](https://github.com/pliablepixels/zmNg/tree/zmNg-0.2.3) (2026-01-28)
 
 [Full Changelog](https://github.com/pliablepixels/zmNg/compare/zmNg-0.2.2...zmNg-0.2.3)
