@@ -431,10 +431,10 @@ If yes to any → Use bandwidth settings!
 
 ### When to Update Developer Docs
 Update `docs/developer-guide/` when adding:
-- New API modules (`api/*.ts`) → Update `07-api-and-data-fetching.md`
-- New components (`components/*.tsx`) → Update `05-component-architecture.md`
-- New utilities (`lib/*.ts`) → Update `12-shared-services-and-components.md`
-- New hooks (`hooks/*.ts`) → Update `05-component-architecture.md` or relevant chapter
+- New API modules (`api/*.ts`) → Update `07-api-and-data-fetching.rst`
+- New components (`components/*.tsx`) → Update `05-component-architecture.rst`
+- New utilities (`lib/*.ts`) → Update `12-shared-services-and-components.rst`
+- New hooks (`hooks/*.ts`) → Update `05-component-architecture.rst` or relevant chapter
 
 ### What to Document
 - Purpose and usage examples
@@ -520,13 +520,13 @@ For complex features with multiple approaches, UX changes, or architectural deci
 → Need: `data-testid`, e2e test in .feature file, i18n keys in ALL languages, responsive check, text overflow handling
 
 **Adding New API Module?**
-→ Create in `api/`, update `docs/developer-guide/07-api-and-data-fetching.md`
+→ Create in `api/`, update `docs/developer-guide/07-api-and-data-fetching.rst`
 
 **Adding New Component?**
-→ Create in `components/`, update `docs/developer-guide/05-component-architecture.md`
+→ Create in `components/`, update `docs/developer-guide/05-component-architecture.rst`
 
 **Adding New Utility?**
-→ Create in `lib/`, update `docs/developer-guide/12-shared-services-and-components.md`
+→ Create in `lib/`, update `docs/developer-guide/12-shared-services-and-components.rst`
 
 **Adding HTTP Request?**
 → Use `httpGet`/`httpPost`/`httpPut`/`httpDelete` from `lib/http.ts`

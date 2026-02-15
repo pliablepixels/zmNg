@@ -161,6 +161,12 @@ npm run test:e2e -- tests/monitors.spec.ts
 npm run test:all
 ```
 
+### Documentation
+
+```bash
+pip install -r docs/requirements.txt sphinx-autobuild && cd docs && make clean && make html && sphinx-autobuild . _build/html
+```
+
 ### Making releases
 - See `scripts/make_release.sh` [here](scripts/make_release.sh). This automatically tags the current state and triggers release builds
 - `app/package.json` is the source of truth for the version number. `scripts/sync-version.js` propagates it to `app/src-tauri/tauri.conf.json` and `app/src-tauri/Cargo.toml` during builds and releases

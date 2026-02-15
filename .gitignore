@@ -41,6 +41,9 @@ android/keystore.properties
 *.jks
 *.keystore
 
+# Sphinx docs build
+docs/_build/
+
 # Claude Code CLI
 .claude/settings.local.json
 

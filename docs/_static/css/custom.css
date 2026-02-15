@@ -1,0 +1,83 @@
+/* zmNg RTD theme customizations */
+
+/* -- Logo sizing in sidebar ------------------------------------------------ */
+.wy-side-nav-search img.logo {
+    max-width: 120px;
+}
+
+/* -- Collapsible TOC: replace caret icons with +/- signs ------------------- */
+
+/* Hide the default FontAwesome caret icon */
+.wy-menu-vertical li span.toctree-expand {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 18px;
+    width: 18px;
+    height: 18px;
+    text-align: center;
+    margin-left: -1.2em;
+    margin-right: 0.2em;
+    display: inline-block;
+    color: #9b9b9b;
+}
+
+/* Override the FontAwesome content with + */
+.wy-menu-vertical li span.toctree-expand::before {
+    content: "+";
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* When expanded (current section), show - */
+.wy-menu-vertical li.current > a span.toctree-expand::before {
+    content: "\2212"; /* minus sign */
+}
+
+/* Collapse non-current sidebar sections by default.
+   jQuery slideToggle sets inline display:block on click, which
+   overrides this rule, so expand/collapse toggling works normally. */
+.wy-menu-vertical li:not(.current) > ul {
+    display: none;
+}
+
+/* Hover styling for expand icons */
+.wy-menu-vertical li span.toctree-expand:hover {
+    color: #ffffff;
+}
+
+/* -- Slightly wider content area ------------------------------------------- */
+.wy-nav-content {
+    max-width: 900px;
+}
+
+/* -- Screenshot gallery styling -------------------------------------------- */
+.screenshot-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    margin: 1.5em 0;
+}
+
+.screenshot-gallery img {
+    max-height: 400px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* -- Feature comparison tables --------------------------------------------- */
+.rst-content table.docutils td,
+.rst-content table.docutils th {
+    padding: 8px 12px;
+}
+
+/* -- Admonition tweaks ----------------------------------------------------- */
+.admonition.tip {
+    border-left-color: #1abc9c;
+}
+
+.admonition.tip > .admonition-title {
+    background-color: #1abc9c22;
+}
