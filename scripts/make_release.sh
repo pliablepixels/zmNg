@@ -5,11 +5,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_DIR"
 
-# Version files
 PKG_JSON="app/package.json"
-TAURI_CONF="app/src-tauri/tauri.conf.json"
-CARGO_TOML="app/src-tauri/Cargo.toml"
-CARGO_LOCK="app/src-tauri/Cargo.lock"
+SYNC_SCRIPT="scripts/sync-version.js"
 
 # --- Read version ---
 get_version() {
@@ -20,15 +17,11 @@ get_version() {
   fi
 }
 
-# --- Update version in all files ---
+# --- Update version in package.json, then sync to tauri files ---
 set_version() {
     local new_ver="$1"
-    # package.json - update first "version" line
     sed -i '' "s/\"version\": \"[^\"]*\"/\"version\": \"${new_ver}\"/" "$PKG_JSON"
-    # tauri.conf.json - update first "version" line
-    sed -i '' "s/\"version\": \"[^\"]*\"/\"version\": \"${new_ver}\"/" "$TAURI_CONF"
-    # Cargo.toml - update version under [package]
-    sed -i '' "s/^version = \"[^\"]*\"/version = \"${new_ver}\"/" "$CARGO_TOML"
+    node "$SYNC_SCRIPT"
     # Regenerate Cargo.lock
     echo "  Updating Cargo.lock..."
     (cd app/src-tauri && cargo generate-lockfile 2>/dev/null) || true
@@ -80,7 +73,7 @@ if [ "$TAG_EXISTS" = true ]; then
             set_version "$BUMPED"
             VERSION="$BUMPED"
             TAG="zmNg-$VERSION"
-            git add "$PKG_JSON" "$TAURI_CONF" "$CARGO_TOML" "$CARGO_LOCK"
+            git add "$PKG_JSON" app/src-tauri/tauri.conf.json app/src-tauri/Cargo.toml app/src-tauri/Cargo.lock
             git commit -m "chore: bump version to $VERSION"
             git push origin "$CURRENT_BRANCH"
             echo "✅ Version bumped to $VERSION, committed and pushed"
