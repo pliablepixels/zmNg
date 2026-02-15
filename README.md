@@ -163,6 +163,7 @@ npm run test:all
 
 ### Making releases
 - See `scripts/make_release.sh` [here](scripts/make_release.sh). This automatically tags the current state and triggers release builds
+- `app/package.json` is the source of truth for the version number. `scripts/sync-version.js` propagates it to `app/src-tauri/tauri.conf.json` and `app/src-tauri/Cargo.toml` during builds and releases
 
 ### New vs Old
 [View Comparison with zmNinja](notes/COMPARISON.md)
