@@ -1,5 +1,14 @@
 # Changelog
 
+## [zmNg-0.2.5](https://github.com/pliablepixels/zmNg/tree/zmNg-0.2.5) (2026-02-24)
+
+[Full Changelog](https://github.com/pliablepixels/zmNg/compare/zmNg-0.2.4...zmNg-0.2.5)
+
+**Fixed bugs:**
+
+- fix: no visible way to exit fullscreen montage on Tauri/desktop [\#29](https://github.com/pliablepixels/zmNg/issues/29)
+- Montage initially displays correctly in full screen mode but refresh halves videos [\#28](https://github.com/pliablepixels/zmNg/issues/28)
+
 ## [zmNg-0.2.4](https://github.com/pliablepixels/zmNg/tree/zmNg-0.2.4) (2026-02-04)
 
 [Full Changelog](https://github.com/pliablepixels/zmNg/compare/zmNg-0.2.3...zmNg-0.2.4)
