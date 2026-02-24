@@ -37,7 +37,8 @@
     "unknown_error": "未知错误",
     "auth_required": "需要身份验证。请输入用户名和密码。",
     "running": "运行中",
-    "stopped": "已停止"
+    "stopped": "已停止",
+    "done": "完成"
   },
   "app": {
     "name": "zmNg",

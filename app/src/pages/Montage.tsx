@@ -33,7 +33,7 @@ import 'react-resizable/css/styles.css';
 // Extracted hooks and components
 import {
   GridLayoutControls,
-  FullscreenOverlay,
+  FullscreenControls,
   useMontageGrid,
   useContainerResize,
   useFullscreenMode,
@@ -81,12 +81,16 @@ export default function Montage() {
     return filterMonitorsByGroup(enabledMonitors, filteredMonitorIds);
   }, [enabledMonitors, isFilterActive, filteredMonitorIds]);
 
+  // Edit mode state lifted to page level
+  const [isEditMode, setIsEditMode] = useState(false);
+
   // Fullscreen mode
-  const { isFullscreen, showFullscreenOverlay, handleToggleFullscreen, setShowFullscreenOverlay } =
+  const { isFullscreen, handleToggleFullscreen } =
     useFullscreenMode({
       currentProfile,
       settings,
     });
+
 
   // Grid layout management
   const {
@@ -98,13 +102,12 @@ export default function Montage() {
     handleLayoutChange,
     handleResizeStop,
     handleWidthChange,
-    isEditMode,
-    setIsEditMode,
   } = useMontageGrid({
     monitors,
     currentProfile,
     settings,
     isFullscreen,
+    isEditMode,
   });
 
   // Container resize observation
@@ -113,12 +116,12 @@ export default function Montage() {
     currentWidthRef,
   });
 
-  // Pinch-to-zoom functionality
+  // Pinch-to-zoom (disabled in fullscreen to avoid gesture conflicts)
   const pinchZoom = usePinchZoom({
     minScale: 0.5,
     maxScale: 3,
     initialScale: 1,
-    enabled: true,
+    enabled: !isFullscreen,
   });
 
   const handleFeedFitChange = (value: string) => {
@@ -185,7 +188,13 @@ export default function Montage() {
   }
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-background relative">
+    <div
+      className={cn(
+        isFullscreen
+          ? 'fixed inset-0 z-40 bg-black flex flex-col'
+          : 'flex flex-col bg-background relative'
+      )}
+    >
       {/* Header - Hidden in fullscreen mode */}
       {!isFullscreen && (
         <>
@@ -269,14 +278,11 @@ export default function Montage() {
         </>
       )}
 
-      {/* Fullscreen Overlay Menu */}
-      {isFullscreen && (showFullscreenOverlay || window.innerWidth < 768) && (
-        <FullscreenOverlay
-          isEditMode={isEditMode}
-          onEditModeToggle={handleEditModeToggle}
+      {/* Fullscreen toolbar — always visible, thin, translucent */}
+      {isFullscreen && (
+        <FullscreenControls
           onRefetch={() => refetch()}
           onExitFullscreen={() => handleToggleFullscreen(false)}
-          onClose={() => setShowFullscreenOverlay(false)}
         />
       )}
 
@@ -285,14 +291,11 @@ export default function Montage() {
         ref={containerRef}
         {...pinchZoom.bind()}
         className={cn(
-          'flex-1 overflow-auto bg-muted/10 touch-pan-y',
-          isFullscreen ? 'p-0' : 'p-2 sm:p-3 md:p-4'
+          'flex-1 overflow-auto bg-muted/10',
+          isFullscreen
+            ? 'pt-[calc(2rem+env(safe-area-inset-top))] overscroll-contain'
+            : 'p-2 sm:p-3 md:p-4 touch-pan-y'
         )}
-        onClick={() => {
-          if (isFullscreen && !showFullscreenOverlay) {
-            setShowFullscreenOverlay(true);
-          }
-        }}
       >
         <div
           style={{
@@ -301,7 +304,13 @@ export default function Montage() {
             transition: pinchZoom.isPinching ? 'none' : 'transform 0.2s ease-out',
           }}
         >
-          <div className="w-full" data-testid="montage-grid">
+          <div
+            className={cn(
+              'w-full',
+              isFullscreen && 'pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]'
+            )}
+            data-testid="montage-grid"
+          >
             <WrappedGridLayout
               layout={layout}
               cols={gridCols}

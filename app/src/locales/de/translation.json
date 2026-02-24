@@ -37,7 +37,8 @@
     "unknown_error": "Unbekannter Fehler",
     "auth_required": "Authentifizierung erforderlich. Bitte Benutzername und Passwort eingeben.",
     "running": "Läuft",
-    "stopped": "Gestoppt"
+    "stopped": "Gestoppt",
+    "done": "Fertig"
   },
   "app": {
     "name": "zmNg",

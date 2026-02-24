@@ -90,13 +90,15 @@
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
     font-family: system-ui, -apple-system, sans-serif;
-    overflow-x: hidden; /* Prevent horizontal scroll */
+    overflow: hidden; /* App uses flex layout with internal scroll containers */
     width: 100%;
+    overscroll-behavior: none; /* Prevent iOS rubber-band bounce that shifts fixed elements */
     -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
   }
-  
+
   html {
-    overflow-x: hidden;
+    overflow: hidden;
+    overscroll-behavior: none;
   }
 }
 

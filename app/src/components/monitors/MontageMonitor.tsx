@@ -275,7 +275,7 @@ function MontageMonitorComponent({
           !isFullscreen && "cursor-pointer"
         )}
         style={!isFullscreen && aspectRatio ? { aspectRatio } : undefined}
-        onClick={() => !isFullscreen && !isEditing && navigate(`/monitors/${monitor.Id}`)}
+        onClick={() => !isEditing && navigate(`/monitors/${monitor.Id}`)}
       >
         {/* Skeleton loader with correct aspect ratio */}
         {!imageLoaded && (

@@ -37,7 +37,8 @@
     "unknown_error": "Error desconocido",
     "auth_required": "Se requiere autenticación. Ingrese un nombre de usuario y una contraseña.",
     "running": "En ejecución",
-    "stopped": "Detenido"
+    "stopped": "Detenido",
+    "done": "Listo"
   },
   "app": {
     "name": "zmNg",

@@ -37,7 +37,8 @@
     "unknown_error": "Erreur inconnue",
     "auth_required": "Authentification requise. Veuillez saisir un nom d'utilisateur et un mot de passe.",
     "running": "En cours d'exécution",
-    "stopped": "Arrêté"
+    "stopped": "Arrêté",
+    "done": "Terminé"
   },
   "app": {
     "name": "zmNg",

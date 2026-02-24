@@ -1,7 +1,8 @@
 /**
  * Hook for fullscreen mode management
  *
- * Handles fullscreen state, overlay visibility, and auto-hide timer.
+ * Handles fullscreen state and persistence. Controls are always visible
+ * (no toggle/auto-hide logic needed).
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -16,9 +17,7 @@ interface UseFullscreenModeOptions {
 
 interface UseFullscreenModeReturn {
   isFullscreen: boolean;
-  showFullscreenOverlay: boolean;
   handleToggleFullscreen: (fullscreen: boolean) => void;
-  setShowFullscreenOverlay: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export function useFullscreenMode({
@@ -28,22 +27,11 @@ export function useFullscreenMode({
   const updateSettings = useSettingsStore((state) => state.updateProfileSettings);
 
   const [isFullscreen, setIsFullscreen] = useState(settings.montageIsFullscreen);
-  const [showFullscreenOverlay, setShowFullscreenOverlay] = useState(false);
 
   // Update fullscreen state when profile changes
   useEffect(() => {
     setIsFullscreen(settings.montageIsFullscreen);
   }, [currentProfile?.id, settings.montageIsFullscreen]);
-
-  // Auto-hide overlay after 5 seconds (only on desktop)
-  useEffect(() => {
-    if (showFullscreenOverlay && window.innerWidth >= 768) {
-      const timer = setTimeout(() => {
-        setShowFullscreenOverlay(false);
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [showFullscreenOverlay]);
 
   const handleToggleFullscreen = useCallback(
     (fullscreen: boolean) => {
@@ -53,18 +41,12 @@ export function useFullscreenMode({
       updateSettings(currentProfile.id, {
         montageIsFullscreen: fullscreen,
       });
-
-      if (!fullscreen) {
-        setShowFullscreenOverlay(false);
-      }
     },
     [currentProfile, updateSettings]
   );
 
   return {
     isFullscreen,
-    showFullscreenOverlay,
     handleToggleFullscreen,
-    setShowFullscreenOverlay,
   };
 }

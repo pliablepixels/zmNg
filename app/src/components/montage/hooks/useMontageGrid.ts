@@ -77,6 +77,7 @@ interface UseMontageGridOptions {
   currentProfile: Profile | null;
   settings: ProfileSettings;
   isFullscreen: boolean;
+  isEditMode: boolean;
 }
 
 interface UseMontageGridReturn {
@@ -91,8 +92,6 @@ interface UseMontageGridReturn {
   handleResizeStop: (layout: Layout[], oldItem: Layout, newItem: Layout) => void;
   handleWidthChange: (width: number) => void;
   setGridCols: React.Dispatch<React.SetStateAction<number>>;
-  isEditMode: boolean;
-  setIsEditMode: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export function useMontageGrid({
@@ -100,6 +99,7 @@ export function useMontageGrid({
   currentProfile,
   settings,
   isFullscreen,
+  isEditMode,
 }: UseMontageGridOptions): UseMontageGridReturn {
   const { t } = useTranslation();
   const updateSettings = useSettingsStore((state) => state.updateProfileSettings);
@@ -108,7 +108,6 @@ export function useMontageGrid({
   const [gridCols, setGridCols] = useState<number>(settings.montageGridCols);
   const [isScreenTooSmall, setIsScreenTooSmall] = useState(false);
   const [layout, setLayout] = useState<Layout[]>([]);
-  const [isEditMode, setIsEditMode] = useState(false);
   const [hasWidth, setHasWidth] = useState(false);
 
   const screenTooSmallRef = useRef(false);
@@ -128,7 +127,7 @@ export function useMontageGrid({
   }, [monitors]);
 
   const buildDefaultLayout = useCallback(
-    (monitorList: MonitorData[], cols: number, gridWidth: number): Layout[] => {
+    (monitorList: MonitorData[], cols: number, gridWidth: number, margin: number): Layout[] => {
       return monitorList.map(({ Monitor }, index) => {
         const widthUnits = 1;
         const heightUnits = calculateHeightUnits(
@@ -137,7 +136,7 @@ export function useMontageGrid({
           widthUnits,
           gridWidth,
           cols,
-          GRID_LAYOUT.margin
+          margin
         );
         return {
           i: Monitor.Id,
@@ -174,6 +173,7 @@ export function useMontageGrid({
     if (monitors.length === 0) return;
     if (!hasWidth || currentWidthRef.current === 0) return;
 
+    const margin = isFullscreen ? 0 : GRID_LAYOUT.margin;
     let nextLayout: Layout[] = [];
     const stored = settings.montageLayouts?.lg;
 
@@ -182,21 +182,21 @@ export function useMontageGrid({
       const filtered = stored.filter((item) => existingIds.has(item.i));
       const presentIds = new Set(filtered.map((item) => item.i));
       const missing = monitors.filter((item) => !presentIds.has(item.Monitor.Id));
-      const defaults = buildDefaultLayout(missing, gridCols, currentWidthRef.current);
+      const defaults = buildDefaultLayout(missing, gridCols, currentWidthRef.current, margin);
       nextLayout = [...filtered, ...defaults];
     } else {
-      nextLayout = buildDefaultLayout(monitors, gridCols, currentWidthRef.current);
+      nextLayout = buildDefaultLayout(monitors, gridCols, currentWidthRef.current, margin);
     }
 
     const normalized = normalizeLayout(
       nextLayout,
       gridCols,
       currentWidthRef.current,
-      GRID_LAYOUT.margin
+      margin
     );
 
     setLayout((prev) => (areLayoutsEqual(prev, normalized) ? prev : normalized));
-  }, [monitors, gridCols, settings.montageLayouts, hasWidth, buildDefaultLayout, normalizeLayout]);
+  }, [monitors, gridCols, settings.montageLayouts, hasWidth, isFullscreen, buildDefaultLayout, normalizeLayout]);
 
   const handleApplyGridLayout = useCallback(
     (cols: number) => {
@@ -220,7 +220,7 @@ export function useMontageGrid({
         montageGridCols: cols,
       });
 
-      const nextLayout = buildDefaultLayout(monitors, cols, currentWidthRef.current);
+      const nextLayout = buildDefaultLayout(monitors, cols, currentWidthRef.current, margin);
       setLayout(nextLayout);
       saveMontageLayout(currentProfile.id, { ...settings.montageLayouts, lg: nextLayout });
 
@@ -328,7 +328,5 @@ export function useMontageGrid({
     handleResizeStop,
     handleWidthChange,
     setGridCols,
-    isEditMode,
-    setIsEditMode,
   };
 }

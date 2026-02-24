@@ -36,7 +36,8 @@
     "show_password": "Show password",
     "selected": "Selected",
     "unknown_error": "Unknown error",
-    "auth_required": "Authentication required. Please enter a username and password."
+    "auth_required": "Authentication required. Please enter a username and password.",
+    "done": "Done"
   },
   "app": {
     "name": "zmNg",

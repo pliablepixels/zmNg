@@ -5,5 +5,5 @@
  */
 
 export { GridLayoutControls } from './GridLayoutControls';
-export { FullscreenOverlay } from './FullscreenOverlay';
+export { FullscreenControls } from './FullscreenControls';
 export { useMontageGrid, useContainerResize, useFullscreenMode, getMaxColsForWidth } from './hooks';
