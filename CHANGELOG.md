@@ -1,5 +1,21 @@
 # Changelog
 
+## [zmNg-1.0.0](https://github.com/pliablepixels/zmNg/tree/zmNg-1.0.0) (2026-03-06)
+
+[Full Changelog](https://github.com/pliablepixels/zmNg/compare/zmNg-0.2.6...zmNg-1.0.0)
+
+**Implemented enhancements:**
+
+- feat: add Direct ZM notification mode alongside ES mode [\#30](https://github.com/pliablepixels/zmNg/issues/30)
+
+**Closed issues:**
+
+- chore: bump version to 1.0.0 and unify app identifier [\#31](https://github.com/pliablepixels/zmNg/issues/31)
+
+## [zmNg-0.2.6](https://github.com/pliablepixels/zmNg/tree/zmNg-0.2.6) (2026-03-03)
+
+[Full Changelog](https://github.com/pliablepixels/zmNg/compare/zmNg-0.2.5...zmNg-0.2.6)
+
 ## [zmNg-0.2.5](https://github.com/pliablepixels/zmNg/tree/zmNg-0.2.5) (2026-02-24)
 
 [Full Changelog](https://github.com/pliablepixels/zmNg/compare/zmNg-0.2.4...zmNg-0.2.5)
