@@ -23,11 +23,17 @@ import { getAppVersion } from '../lib/version';
  * also monitorName and cause as structured fields.
  */
 export interface PushNotificationData {
+  // ES format fields
   mid?: string;
   eid?: string;
   monitorName?: string;
   cause?: string;
   notification_foreground?: string;
+  // ZM direct mode format fields
+  MonitorId?: string;
+  EventId?: string;
+  MonitorName?: string;
+  Cause?: string;
 }
 
 export class MobilePushService {
@@ -324,47 +330,44 @@ export class MobilePushService {
       data: notification.data,
     });
 
-    // Extract event data and add to notification store
-    // ES sends mid (monitor ID) and eid (event ID) in the data payload
-    if (data?.mid && data?.eid) {
-      const notificationStore = useNotificationStore.getState();
+    const notificationStore = useNotificationStore.getState();
 
-      // If we are connected to the event server, we will receive this event via WebSocket.
-      // Ignore the push notification to avoid duplicate processing/toasts.
-      if (notificationStore.isConnected) {
-        log.push('Ignoring foreground push notification - already connected to event server', LogLevel.INFO, {
-          eventId: data.eid,
-        });
-        return;
-      }
-
-      const profileId = notificationStore.currentProfileId;
-
-      if (profileId) {
-        let imageUrl: string | undefined;
-
-        const { profiles, currentProfileId } = useProfileStore.getState();
-        const currentProfile = profiles.find(p => p.id === currentProfileId);
-        const authStore = useAuthStore.getState();
-
-        if (currentProfile && authStore.accessToken) {
-          imageUrl = `${currentProfile.portalUrl}/index.php?view=image&eid=${data.eid}&fid=snapshot&width=600&token=${authStore.accessToken}`;
-        }
-
-        // Prefer structured data fields from ES, fall back to parsing notification title/body
-        const monitorName = data.monitorName || notification.title?.replace(/\s*Alarm.*$/, '') || 'Unknown';
-        const cause = data.cause || notification.body || 'Motion detected';
-
-        notificationStore.addEvent(profileId, {
-          MonitorId: parseInt(data.mid, 10),
-          MonitorName: monitorName,
-          EventId: parseInt(data.eid, 10),
-          Cause: cause,
-          Name: monitorName,
-          ImageUrl: imageUrl,
-        }, 'push');
-      }
+    // If we are connected to the event server, we will receive this event via WebSocket.
+    // Ignore the push notification to avoid duplicate processing/toasts.
+    if (notificationStore.isConnected) {
+      log.push('Ignoring foreground push notification - already connected to event server', LogLevel.INFO, {
+        eventId: data?.eid,
+      });
+      return;
     }
+
+    const profileId = notificationStore.currentProfileId;
+    if (!profileId) return;
+
+    const { profiles, currentProfileId } = useProfileStore.getState();
+    const currentProfile = profiles.find(p => p.id === currentProfileId);
+    const authStore = useAuthStore.getState();
+
+    // Extract event data from either ES format (mid/eid) or ZM direct format (EventId/MonitorId)
+    const mid = data?.mid || data?.MonitorId;
+    const eid = data?.eid || data?.EventId;
+
+    let imageUrl: string | undefined;
+    if (eid && currentProfile && authStore.accessToken) {
+      imageUrl = `${currentProfile.portalUrl}/index.php?view=image&eid=${eid}&fid=snapshot&width=600&token=${authStore.accessToken}`;
+    }
+
+    const monitorName = data?.monitorName || data?.MonitorName || notification.title?.replace(/\s*Alarm.*$/, '') || 'Unknown';
+    const cause = data?.cause || data?.Cause || notification.body || 'Motion detected';
+
+    notificationStore.addEvent(profileId, {
+      MonitorId: mid ? parseInt(String(mid), 10) : 0,
+      MonitorName: monitorName,
+      EventId: eid ? parseInt(String(eid), 10) : Date.now(),
+      Cause: cause,
+      Name: monitorName,
+      ImageUrl: imageUrl,
+    }, 'push');
   }
 
   /**
@@ -373,49 +376,48 @@ export class MobilePushService {
   private _handleNotificationAction(notification: Notification): void {
     const data = notification.data as PushNotificationData | undefined;
 
-    log.push('Processing notification tap', LogLevel.INFO, {
-      mid: data?.mid,
-      eid: data?.eid,
-    });
+    const mid = data?.mid || data?.MonitorId;
+    const eid = data?.eid || data?.EventId;
 
-    if (data?.eid && data?.mid) {
-      const notificationStore = useNotificationStore.getState();
-      const profileId = notificationStore.currentProfileId;
+    log.push('Processing notification tap', LogLevel.INFO, { mid, eid });
 
-      if (profileId) {
-        let imageUrl: string | undefined;
+    const notificationStore = useNotificationStore.getState();
+    const profileId = notificationStore.currentProfileId;
 
-        const { profiles, currentProfileId } = useProfileStore.getState();
-        const currentProfile = profiles.find(p => p.id === currentProfileId);
-        const authStore = useAuthStore.getState();
+    if (profileId) {
+      const { profiles, currentProfileId } = useProfileStore.getState();
+      const currentProfile = profiles.find(p => p.id === currentProfileId);
+      const authStore = useAuthStore.getState();
 
-        if (currentProfile && authStore.accessToken) {
-          imageUrl = `${currentProfile.portalUrl}/index.php?view=image&eid=${data.eid}&fid=snapshot&width=600&token=${authStore.accessToken}`;
-        }
-
-        const monitorName = data.monitorName || notification.title?.replace(/\s*Alarm.*$/, '') || 'Unknown';
-        const cause = data.cause || notification.body || 'Motion detected';
-
-        notificationStore.addEvent(profileId, {
-          MonitorId: parseInt(data.mid, 10),
-          MonitorName: monitorName,
-          EventId: parseInt(data.eid, 10),
-          Cause: cause,
-          Name: monitorName,
-          ImageUrl: imageUrl,
-        }, 'push');
-
-        notificationStore.markEventRead(profileId, parseInt(data.eid, 10));
-
-        log.push('Added notification to history from tap action and marked as read', LogLevel.INFO, {
-          eventId: data.eid,
-          profileId,
-        });
+      let imageUrl: string | undefined;
+      if (eid && currentProfile && authStore.accessToken) {
+        imageUrl = `${currentProfile.portalUrl}/index.php?view=image&eid=${eid}&fid=snapshot&width=600&token=${authStore.accessToken}`;
       }
 
-      navigationService.navigateToEvent(data.eid);
+      const monitorName = data?.monitorName || data?.MonitorName || notification.title?.replace(/\s*Alarm.*$/, '') || 'Unknown';
+      const cause = data?.cause || data?.Cause || notification.body || 'Motion detected';
+      const eventId = eid ? parseInt(String(eid), 10) : Date.now();
 
-      log.push('Navigating to event detail', LogLevel.INFO, { eventId: data.eid });
+      notificationStore.addEvent(profileId, {
+        MonitorId: mid ? parseInt(String(mid), 10) : 0,
+        MonitorName: monitorName,
+        EventId: eventId,
+        Cause: cause,
+        Name: monitorName,
+        ImageUrl: imageUrl,
+      }, 'push');
+
+      notificationStore.markEventRead(profileId, eventId);
+
+      log.push('Added notification to history from tap action and marked as read', LogLevel.INFO, {
+        eventId: eid,
+        profileId,
+      });
+    }
+
+    if (eid) {
+      navigationService.navigateToEvent(String(eid));
+      log.push('Navigating to event detail', LogLevel.INFO, { eventId: eid });
     }
   }
 }
