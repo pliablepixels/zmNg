@@ -43,16 +43,22 @@ zmNg is a ground-up rewrite of zmNinja using modern web technologies (React, Typ
 
 ### Why don't push notifications work?
 
-Push notifications require:
+Push notifications on mobile (iOS/Android) require:
 1. Building the app yourself with Firebase credentials
-2. Running the Event Notification Server with direct FCM support
-3. Enabling notifications in zmNg settings
+2. One of the following backends:
+   - **ES mode**: The Event Notification Server with FCM support
+   - **Direct mode**: ZoneMinder with the Notifications REST API (no Event Server needed)
+3. Enabling notifications in zmNg settings and selecting the appropriate mode
 
 See {doc}`notifications` for the full setup guide.
 
 ### Can I get notifications on desktop?
 
-Desktop apps receive web-based (foreground) notifications when the app is open. Background/push notifications are only available on mobile.
+Yes. Desktop apps show in-app toast notifications while the app is open:
+- **ES mode**: Events arrive in real time via WebSocket.
+- **Direct mode**: zmNg polls the ZM events API at a configurable interval.
+
+Background/push notifications (via FCM) are only available on mobile (iOS/Android). Desktop apps (Tauri) do not support FCM.
 
 ## Performance
 

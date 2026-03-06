@@ -769,40 +769,74 @@ Android).
 Feature Deep Dive: Notifications
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The notification system is the most complex non-UI feature in the app,
-involving native plugins, API calls, and local state.
+The notification system supports two modes and involves native plugins,
+REST API calls, WebSocket connections, and local state management.
 
-**1. The Stack** - **Native Layer**: Firebase Cloud Messaging (FCM) /
-Apple Push Notification Service (APNS) - **Plugin**:
-``@capacitor/push-notifications`` - **Service**:
-``src/services/notifications.ts`` - **Store**:
-``src/stores/notifications.ts`` - **UI**:
-``src/pages/NotificationSettings.tsx``
+**1. Notification Modes**
 
-**2. The Registration Flow** 1. User enables notifications in Settings
-UI. 2. ``useSettingsStore`` calls ``NotificationService.register()``. 3.
-**Native Prompt**: “zmNg would like to send you notifications.” 4.
-**Token Generation**: OS generates a unique push token. 5. **API Sync**:
-App sends this token to ZoneMinder server via
-``POST /api/host/registerFcmToken``.
+- **ES (Event Server)**: WebSocket connection to zmeventnotification
+  server for real-time events. FCM push on iOS/Android. Default mode.
+- **Direct**: Uses ZoneMinder's Notifications REST API. FCM push on
+  iOS/Android (server sends directly). Event polling on desktop/web.
+  No Event Server required.
 
-**3. Handling Incoming Notifications** When a push notification arrives:
-- **Foreground**: ``NotificationService`` listens for
-``pushNotificationReceived``. It shows a local ``toast`` to the user
-without disrupting their work. - **Background/Closed**: Tapping the
-notification triggers ``pushNotificationActionPerformed``. The app
-launches and navigates deeply to the relevant Event or Monitor ID.
+**2. The Stack**
 
-.. code:: typescript
+- **Native Layer**: Firebase Cloud Messaging (FCM) via
+  ``@capacitor-firebase/messaging``
+- **WebSocket Service**: ``src/services/notifications.ts`` (ES mode)
+- **Push Service**: ``src/services/pushNotifications.ts`` (FCM on
+  iOS/Android)
+- **Event Poller**: ``src/services/eventPoller.ts`` (Direct mode on
+  desktop/web)
+- **Notifications API**: ``src/api/notifications.ts`` (Direct mode
+  token registration)
+- **Store**: ``src/stores/notifications.ts``
+- **Orchestrator**: ``src/components/NotificationHandler.tsx``
+- **UI**: ``src/pages/NotificationSettings.tsx``
 
-   // src/services/notifications.ts (Simplified)
-   PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
-     const eventId = notification.data.eventId;
-     if (eventId) {
-       // Navigate straight to event playback
-       router.navigate(`/events/${eventId}`);
-     }
-   });
+**3. The Registration Flow**
+
+ES mode:
+
+1. User enables notifications and selects Event Server mode.
+2. App connects to ES via WebSocket and authenticates.
+3. On mobile, ``MobilePushService`` requests FCM permission and obtains
+   a token.
+4. Token is sent to ES via the WebSocket ``push`` command.
+
+Direct mode:
+
+1. User enables notifications and selects Direct mode.
+2. On mobile, ``MobilePushService`` requests FCM permission and obtains
+   a token.
+3. Token is registered with ZoneMinder via
+   ``POST /api/notifications.json`` (includes platform, monitor list,
+   and push state).
+4. On desktop/web, the event poller starts polling
+   ``/api/events.json`` at the configured interval.
+
+**4. Handling Incoming Notifications**
+
+- **Foreground (WebSocket/ES mode)**: Events arrive via WebSocket.
+  ``NotificationHandler`` watches the store and shows toast
+  notifications. FCM duplicates are suppressed (guard checks
+  ``isConnected``).
+- **Foreground (Push/Direct mode)**: FCM ``notificationReceived``
+  fires. ``MobilePushService`` parses the payload (supports both ES
+  and ZM field formats) and calls ``addEvent``. The store update
+  triggers a toast via ``NotificationHandler``.
+- **Foreground (Poller/Direct desktop)**: The event poller adds new
+  events to the store. Toasts are shown by ``NotificationHandler``.
+- **Background/Closed**: Tapping a system notification triggers
+  ``notificationActionPerformed``. The app launches and navigates to
+  the event detail page.
+
+**5. Deduplication**
+
+``addEvent`` in the store replaces any existing event with the same
+``EventId``, preventing duplicate entries when the same event arrives
+from multiple sources (e.g., WebSocket and FCM).
 
 Next Steps
 ----------

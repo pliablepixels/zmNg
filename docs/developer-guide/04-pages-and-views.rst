@@ -678,11 +678,23 @@ Notification System
 ~~~~~~~~~~~~~~~~~~~
 
 **Pages**: - **History**: ``src/pages/NotificationHistory.tsx`` - List
-of past push notifications with read status. - **Settings**:
-``src/pages/NotificationSettings.tsx`` - Configuration for the
-notification server connection, including: - WebSocket connection
-management (``wss://``) - Per-monitor subscription toggles - Check
-intervals - Push notification registration (Capacitor)
+of past notifications with read status, event thumbnails, and tap-to-
+navigate. - **Settings**: ``src/pages/NotificationSettings.tsx`` -
+Notification configuration, including:
+
+- **Connection status badge**: Shows connected/disconnected (ES mode)
+  or "Direct mode active" (Direct mode)
+- **Mode selector**: Choose between Event Server (ES) and Direct mode.
+  Direct mode is auto-detected and greyed out if the ZM server lacks
+  the Notifications API.
+- **ES mode settings**: WebSocket host, port, SSL toggle, connect/
+  disconnect controls, advanced options (toasts, sounds)
+- **Direct mode settings**: Polling interval (10s–120s), detected-
+  events-only filter
+- **Per-monitor filters**: Toggle notifications per camera with
+  configurable check intervals
+- **Push notification registration**: FCM token registered with either
+  ES (via WebSocket) or ZM (via REST API) depending on mode
 
 Server Status
 ~~~~~~~~~~~~~
