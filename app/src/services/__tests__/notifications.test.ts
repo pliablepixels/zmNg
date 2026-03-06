@@ -204,7 +204,7 @@ describe('ZMNotificationService', () => {
       await vi.advanceTimersByTimeAsync(5000);
       // Might or might not have fired due to jitter, but advance more to be sure
       await vi.advanceTimersByTimeAsync(5000);
-      expect(wsCtor.mock.calls.length).toBeGreaterThanOrEqual(4);
+      expect(vi.mocked(wsCtor).mock.calls.length).toBeGreaterThanOrEqual(4);
     });
 
     it('reconnectNow triggers immediate reconnect', async () => {
