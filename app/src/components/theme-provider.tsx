@@ -8,9 +8,9 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, useCallback } from "react"
 import { useProfileStore } from '../stores/profile';
-import { useSettingsStore } from '../stores/settings';
+import { useSettingsStore, type ThemePreference } from '../stores/settings';
 
-type Theme = "dark" | "light" | "system"
+type Theme = ThemePreference
 
 type ThemeProviderProps = {
     children: React.ReactNode
