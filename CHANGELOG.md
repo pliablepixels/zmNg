@@ -1,5 +1,20 @@
 # Changelog
 
+## [zmNg-1.0.3](https://github.com/pliablepixels/zmNg/tree/zmNg-1.0.3) (2026-03-07)
+
+[Full Changelog](https://github.com/pliablepixels/zmNg/compare/zmNg-1.0.2...zmNg-1.0.3)
+
+**Implemented enhancements:**
+
+- feat: allow multiple monitor selection in events widget [\#42](https://github.com/pliablepixels/zmNg/issues/42)
+- feat: add cream theme [\#40](https://github.com/pliablepixels/zmNg/issues/40)
+- feat: add amber theme [\#39](https://github.com/pliablepixels/zmNg/issues/39)
+- feat: add slate theme [\#38](https://github.com/pliablepixels/zmNg/issues/38)
+
+**Fixed bugs:**
+
+- fix: remove spacing between monitor feeds in dashboard montage widget [\#41](https://github.com/pliablepixels/zmNg/issues/41)
+
 ## [zmNg-1.0.2](https://github.com/pliablepixels/zmNg/tree/zmNg-1.0.2) (2026-03-07)
 
 [Full Changelog](https://github.com/pliablepixels/zmNg/compare/zmNg-1.0.1...zmNg-1.0.2)
