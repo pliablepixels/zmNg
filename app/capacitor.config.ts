@@ -13,7 +13,7 @@ const config: CapacitorConfig = {
     allowNavigation: ['*']
   },
   ios: {
-    contentInset: 'automatic',
+    contentInset: 'never',
     backgroundColor: '#020817',
   },
   plugins: {
