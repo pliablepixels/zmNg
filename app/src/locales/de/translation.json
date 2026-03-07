@@ -479,6 +479,8 @@
     "title_short": "Benachr.",
     "subtitle": "Verlauf",
     "clear_all": "Alles löschen",
+    "clear_confirm_title": "Benachrichtigungsverlauf löschen?",
+    "clear_confirm_desc": "Dies entfernt alle {{count}} Benachrichtigungen aus Ihrem Verlauf. Dies kann nicht rückgängig gemacht werden.",
     "mark_all_read": "Alles als gelesen markieren",
     "mark_read": "Als gelesen markieren",
     "no_notifications": "Keine Benachrichtigungen",

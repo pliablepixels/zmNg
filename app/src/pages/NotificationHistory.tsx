@@ -5,11 +5,22 @@
  * Allows users to view event details, mark as read, or clear history.
  */
 
+import { useState } from 'react';
 import { useNotificationStore } from '../stores/notifications';
 import { useCurrentProfile } from '../hooks/useCurrentProfile';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../components/ui/alert-dialog';
 import { Bell, Trash2, CheckCheck, ExternalLink, AlertCircle, Wifi, Smartphone, RefreshCw } from 'lucide-react';
 import { getEventCauseIcon } from '../lib/event-icons';
 import { formatDistanceToNow } from 'date-fns';
@@ -21,6 +32,7 @@ export default function NotificationHistory() {
   const { t } = useTranslation();
   const { currentProfile } = useCurrentProfile();
   const { getEvents, getUnreadCount, markEventRead, markAllRead, clearEvents } = useNotificationStore();
+  const [isClearDialogOpen, setIsClearDialogOpen] = useState(false);
 
   // Get events and unread count for current profile
   const events = currentProfile ? getEvents(currentProfile.id) : [];
@@ -68,8 +80,7 @@ export default function NotificationHistory() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2">
-            <span className="hidden sm:inline">{t('notification_history.title')}</span>
-            <span className="sm:hidden">{t('notification_history.title_short')}</span>
+            {t('notification_history.title')}
             {unreadCount > 0 && (
               <Badge variant="destructive" className="text-[10px] sm:text-xs h-4 sm:h-5">
                 {unreadCount}
@@ -89,7 +100,7 @@ export default function NotificationHistory() {
             </Button>
           )}
           {events.length > 0 && (
-            <Button variant="destructive" onClick={handleClearEvents} size="sm" className="h-8 sm:h-10">
+            <Button variant="destructive" onClick={() => setIsClearDialogOpen(true)} size="sm" className="h-8 sm:h-10" data-testid="clear-history-button">
               <Trash2 className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">{t('notification_history.clear_all')}</span>
             </Button>
@@ -209,6 +220,27 @@ export default function NotificationHistory() {
           {t('notification_history.showing_count', { count: events.length })}
         </div>
       )}
+
+      <AlertDialog open={isClearDialogOpen} onOpenChange={setIsClearDialogOpen}>
+        <AlertDialogContent data-testid="clear-history-dialog">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('notification_history.clear_confirm_title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('notification_history.clear_confirm_desc', { count: events.length })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="clear-history-cancel">{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleClearEvents}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid="clear-history-confirm"
+            >
+              {t('notification_history.clear_all')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

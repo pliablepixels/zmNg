@@ -86,7 +86,7 @@ interface NotificationState {
   _initialize: () => void;
   _cleanup: () => void;
   _syncMonitorFilters: () => Promise<void>;
-  _updateBadge: () => Promise<void>;
+  _updateBadge: (count?: number) => Promise<void>;
   _registerPushTokenIfAvailable: () => Promise<void>;
 }
 
@@ -265,6 +265,9 @@ export const useNotificationStore = create<NotificationState>()(
 
           // Register push token if on mobile and token is available
           get()._registerPushTokenIfAvailable();
+
+          // Sync badge count with server after connect
+          get()._updateBadge();
         } catch (error) {
           log.notifications('Failed to connect to notification server', LogLevel.ERROR, { profileId, error });
           throw error;
@@ -606,7 +609,7 @@ export const useNotificationStore = create<NotificationState>()(
         }
       },
 
-      _updateBadge: async () => {
+      _updateBadge: async (count?: number) => {
         const { currentProfileId } = get();
         if (!currentProfileId) {
           log.notifications('Cannot update badge - no profile connected', LogLevel.WARN);
@@ -614,7 +617,7 @@ export const useNotificationStore = create<NotificationState>()(
         }
 
         const settings = get().getProfileSettings(currentProfileId);
-        const { badgeCount } = settings;
+        const badgeCount = count ?? settings.badgeCount;
 
         try {
           if (settings.notificationMode === 'direct') {
@@ -622,6 +625,9 @@ export const useNotificationStore = create<NotificationState>()(
             const notifId = settings.notificationId;
             if (notifId) {
               await updateNotification(notifId, { badgeCount });
+              log.notifications('Updated badge count via ZM API', LogLevel.DEBUG, { badgeCount, notifId });
+            } else {
+              log.notifications('Cannot update badge - no notification ID (token not registered)', LogLevel.WARN);
             }
           } else {
             // ES mode: update badge count via WebSocket

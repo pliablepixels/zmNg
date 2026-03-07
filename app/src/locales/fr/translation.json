@@ -479,6 +479,8 @@
     "title_short": "Notifs",
     "subtitle": "Historique",
     "clear_all": "Tout effacer",
+    "clear_confirm_title": "Effacer l'historique des notifications ?",
+    "clear_confirm_desc": "Cela supprimera les {{count}} notifications de votre historique. Cette action est irréversible.",
     "mark_all_read": "Tout marquer comme lu",
     "mark_read": "Marquer comme lu",
     "no_notifications": "Pas de notifications",

@@ -479,6 +479,8 @@
     "title_short": "通知",
     "subtitle": "历史记录",
     "clear_all": "全部清除",
+    "clear_confirm_title": "清除通知历史记录？",
+    "clear_confirm_desc": "这将从您的历史记录中删除所有 {{count}} 条通知。此操作无法撤销。",
     "mark_all_read": "全部标记为已读",
     "mark_read": "标记为已读",
     "no_notifications": "无通知",

@@ -477,6 +477,8 @@
     "title_short": "Notifs",
     "subtitle": "History",
     "clear_all": "Clear All",
+    "clear_confirm_title": "Clear notification history?",
+    "clear_confirm_desc": "This will remove all {{count}} notifications from your history. This cannot be undone.",
     "mark_all_read": "Mark All Read",
     "mark_read": "Mark Read",
     "no_notifications": "No notifications",

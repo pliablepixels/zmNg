@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { useNotificationStore } from '../stores/notifications';
 import { useCurrentProfile } from '../hooks/useCurrentProfile';
 import { useProfileStore } from '../stores/profile';
+import { useAuthStore } from '../stores/auth';
 import { toast } from 'sonner';
 import { Bell } from 'lucide-react';
 import { getEventCauseIcon } from '../lib/event-icons';
@@ -77,6 +78,8 @@ export function NotificationHandler() {
     // profile to register against (there's no WebSocket connect to set it)
     if (mode === 'direct') {
       useNotificationStore.setState({ currentProfileId: currentProfile.id });
+      // Sync badge count with server after setting profile
+      useNotificationStore.getState()._updateBadge();
     }
 
     const pushService = getPushService();
@@ -110,7 +113,56 @@ export function NotificationHandler() {
     }
   }, [currentProfile?.id, isConnected, currentProfileId, disconnect]);
 
-  // Clear native badge and delivered notifications when app comes to foreground (iOS/Android)
+  // Process delivered notifications and sync badge when profile connects (handles cold start + warm resume)
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform() || !currentProfileId) return;
+
+    const processDelivered = async () => {
+      try {
+        const { FirebaseMessaging } = await import('@capacitor-firebase/messaging');
+        const { notifications } = await FirebaseMessaging.getDeliveredNotifications();
+
+        if (notifications.length > 0) {
+          const store = useNotificationStore.getState();
+          const { profiles } = useProfileStore.getState();
+          const profile = profiles.find(p => p.id === currentProfileId);
+          const authStore = useAuthStore.getState();
+
+          for (const notif of notifications) {
+            const data = notif.data as Record<string, string> | undefined;
+            const mid = data?.mid || data?.MonitorId;
+            const eid = data?.eid || data?.EventId;
+
+            let imageUrl: string | undefined;
+            if (eid && profile && authStore.accessToken) {
+              imageUrl = `${profile.portalUrl}/index.php?view=image&eid=${eid}&fid=snapshot&width=600&token=${authStore.accessToken}`;
+            }
+
+            const monitorName = data?.monitorName || data?.MonitorName || notif.title?.replace(/\s*Alarm.*$/, '') || 'Unknown';
+            const cause = data?.cause || data?.Cause || notif.body || 'Motion detected';
+
+            store.addEvent(currentProfileId, {
+              MonitorId: mid ? parseInt(String(mid), 10) : 0,
+              MonitorName: monitorName,
+              EventId: eid ? parseInt(String(eid), 10) : Date.now(),
+              Cause: cause,
+              Name: monitorName,
+              ImageUrl: imageUrl,
+            }, 'push');
+          }
+          log.notificationHandler('Added delivered notifications to history', LogLevel.INFO, { count: notifications.length });
+        }
+
+        await FirebaseMessaging.removeAllDeliveredNotifications();
+      } catch (err) {
+        log.notificationHandler('Failed to process delivered notifications', LogLevel.ERROR, err);
+      }
+    };
+
+    processDelivered();
+  }, [currentProfileId]);
+
+  // Clear native badge and sync badge count when app comes to foreground (iOS/Android)
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
 
@@ -123,10 +175,50 @@ export function NotificationHandler() {
 
         const listener = await CapApp.addListener('appStateChange', async ({ isActive }) => {
           if (isActive) {
+            // Read delivered notifications that arrived while backgrounded
+            try {
+              const store = useNotificationStore.getState();
+              const profileId = store.currentProfileId;
+              if (profileId) {
+                const { notifications } = await FirebaseMessaging.getDeliveredNotifications();
+                if (notifications.length > 0) {
+                  const { profiles } = useProfileStore.getState();
+                  const profile = profiles.find(p => p.id === profileId);
+                  const authStore = useAuthStore.getState();
+
+                  for (const notif of notifications) {
+                    const data = notif.data as Record<string, string> | undefined;
+                    const mid = data?.mid || data?.MonitorId;
+                    const eid = data?.eid || data?.EventId;
+
+                    let imageUrl: string | undefined;
+                    if (eid && profile && authStore.accessToken) {
+                      imageUrl = `${profile.portalUrl}/index.php?view=image&eid=${eid}&fid=snapshot&width=600&token=${authStore.accessToken}`;
+                    }
+
+                    const monitorName = data?.monitorName || data?.MonitorName || notif.title?.replace(/\s*Alarm.*$/, '') || 'Unknown';
+                    const cause = data?.cause || data?.Cause || notif.body || 'Motion detected';
+
+                    store.addEvent(profileId, {
+                      MonitorId: mid ? parseInt(String(mid), 10) : 0,
+                      MonitorName: monitorName,
+                      EventId: eid ? parseInt(String(eid), 10) : Date.now(),
+                      Cause: cause,
+                      Name: monitorName,
+                      ImageUrl: imageUrl,
+                    }, 'push');
+                  }
+                  log.notificationHandler('Added delivered notifications to history on resume', LogLevel.INFO, { count: notifications.length });
+                }
+              }
+            } catch (err) {
+              log.notificationHandler('Failed to read delivered notifications on resume', LogLevel.ERROR, err);
+            }
+
             await FirebaseMessaging.removeAllDeliveredNotifications();
             log.notificationHandler('Cleared native badge on app resume', LogLevel.DEBUG);
 
-            // Sync badge count with server so future pushes use the correct number
+            // Sync badge count with server
             const store = useNotificationStore.getState();
             store._updateBadge();
           }

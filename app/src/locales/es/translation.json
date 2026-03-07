@@ -479,6 +479,8 @@
     "title_short": "Notif",
     "subtitle": "Historial",
     "clear_all": "Borrar Todo",
+    "clear_confirm_title": "¿Borrar historial de notificaciones?",
+    "clear_confirm_desc": "Esto eliminará las {{count}} notificaciones de su historial. Esta acción no se puede deshacer.",
     "mark_all_read": "Marcar Todo Leído",
     "mark_read": "Marcar Leído",
     "no_notifications": "Sin notificaciones",
