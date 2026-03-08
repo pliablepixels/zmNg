@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
-		DC4FCM0130000000000F0001 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DC4FCM0130000000000F0002 /* GoogleService-Info.plist */; };
 		504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
 		504EC30D1FED79650016851F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30B1FED79650016851F /* Main.storyboard */; };
 		504EC30F1FED79650016851F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30E1FED79650016851F /* Assets.xcassets */; };
@@ -18,6 +17,9 @@
 		A084ECDBA7D38E1E42DFC39D /* Pods_App.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */; };
 		DC10E70100000000000F0001 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC10E70100000000000F0003 /* NotificationService.swift */; };
 		DC10E70100000000000F0002 /* ImageNotification.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = DC10E70100000000000F0005 /* ImageNotification.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		DC31AE442F5DAA5700F5EABD /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = DC31AE432F5DAA5700F5EABD /* PrivacyInfo.xcprivacy */; };
+		DC31AE452F5DAA5700F5EABD /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = DC31AE432F5DAA5700F5EABD /* PrivacyInfo.xcprivacy */; };
+		DC4FCM0130000000000F0001 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DC4FCM0130000000000F0002 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,13 +58,14 @@
 		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
 		AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_App.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AF51FD2D460BCFE21FA515B2 /* Pods-App.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.release.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.release.xcconfig"; sourceTree = "<group>"; };
-		DC3ECBB92EFC1BDC00F7400B /* AppRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AppRelease.entitlements; sourceTree = "<group>"; };
-		DCEC04202EE7528400FEFD4D /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
-		DC4FCM0130000000000F0002 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
-		FC68EB0AF532CFC21C3344DD /* Pods-App.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.debug.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.debug.xcconfig"; sourceTree = "<group>"; };
 		DC10E70100000000000F0003 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		DC10E70100000000000F0004 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DC10E70100000000000F0005 /* ImageNotification.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ImageNotification.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		DC31AE432F5DAA5700F5EABD /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		DC3ECBB92EFC1BDC00F7400B /* AppRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AppRelease.entitlements; sourceTree = "<group>"; };
+		DC4FCM0130000000000F0002 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		DCEC04202EE7528400FEFD4D /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
+		FC68EB0AF532CFC21C3344DD /* Pods-App.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.debug.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -115,6 +118,7 @@
 		504EC3061FED79650016851F /* App */ = {
 			isa = PBXGroup;
 			children = (
+				DC31AE432F5DAA5700F5EABD /* PrivacyInfo.xcprivacy */,
 				DC3ECBB92EFC1BDC00F7400B /* AppRelease.entitlements */,
 				DCEC04202EE7528400FEFD4D /* App.entitlements */,
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
@@ -130,15 +134,6 @@
 			path = App;
 			sourceTree = "<group>";
 		};
-		DC10E70100000000000F0006 /* ImageNotification */ = {
-			isa = PBXGroup;
-			children = (
-				DC10E70100000000000F0003 /* NotificationService.swift */,
-				DC10E70100000000000F0004 /* Info.plist */,
-			);
-			path = ImageNotification;
-			sourceTree = "<group>";
-		};
 		7F8756D8B27F46E3366F6CEA /* Pods */ = {
 			isa = PBXGroup;
 			children = (
@@ -146,6 +141,15 @@
 				AF51FD2D460BCFE21FA515B2 /* Pods-App.release.xcconfig */,
 			);
 			name = Pods;
+			sourceTree = "<group>";
+		};
+		DC10E70100000000000F0006 /* ImageNotification */ = {
+			isa = PBXGroup;
+			children = (
+				DC10E70100000000000F0003 /* NotificationService.swift */,
+				DC10E70100000000000F0004 /* Info.plist */,
+			);
+			path = ImageNotification;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -241,6 +245,7 @@
 				50379B232058CBB4000EE86E /* capacitor.config.json in Resources */,
 				504EC30D1FED79650016851F /* Main.storyboard in Resources */,
 				2FAD9763203C412B000D30F8 /* config.xml in Resources */,
+				DC31AE452F5DAA5700F5EABD /* PrivacyInfo.xcprivacy in Resources */,
 				DC4FCM0130000000000F0001 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -249,6 +254,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DC31AE442F5DAA5700F5EABD /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
