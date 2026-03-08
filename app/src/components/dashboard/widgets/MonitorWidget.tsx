@@ -28,7 +28,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { AlertTriangle, VideoOff } from 'lucide-react';
 import { Skeleton } from '../../ui/skeleton';
 import { useTranslation } from 'react-i18next';
-import { calculateGridDimensions, getGridTemplateStyle } from '../../../lib/grid-utils';
+import { calculateGridDimensions } from '../../../lib/grid-utils';
 import { filterEnabledMonitors } from '../../../lib/filters';
 import { log, LogLevel } from '../../../lib/logger';
 
@@ -299,15 +299,20 @@ export const MonitorWidget = memo(function MonitorWidget({ monitorIds, objectFit
 
     // Calculate optimal grid layout for multiple monitors
     const { cols, rows } = calculateGridDimensions(activeMonitorIds.length);
-    const gridStyle = getGridTemplateStyle(cols, rows);
 
     return (
         <div
-            className="w-full h-full grid gap-0 bg-black"
-            style={gridStyle}
+            className="w-full h-full flex flex-wrap bg-black"
         >
             {activeMonitorIds.map((id) => (
-                <div key={id} className="relative overflow-hidden">
+                <div
+                    key={id}
+                    className="relative overflow-hidden"
+                    style={{
+                        width: `${100 / cols}%`,
+                        height: `${100 / rows}%`,
+                    }}
+                >
                     <SingleMonitor monitorId={id} objectFit={objectFit} />
                 </div>
             ))}
