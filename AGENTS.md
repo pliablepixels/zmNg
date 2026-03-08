@@ -33,6 +33,7 @@
 - **Never implement features/fixes without a GitHub issue** - create issue first, reference in commits
 - **Never add new APIs/components without updating docs** - update developer-guide in same session
 - **Never update Tauri JS or Rust packages independently** - JS `@tauri-apps/*` and Rust `tauri-plugin-*` versions must match. Update both `package.json` and `Cargo.toml` together.
+- **Never check in plan files** - Plans (`.md` files used during feature planning) must not be committed to the repository. Delete plan files once the feature is complete.
 
 ---
 
