@@ -346,7 +346,10 @@ export const useProfileStore = create<ProfileState>()(
           if (!currentProfileId) return false;
 
           const profile = profiles.find((p) => p.id === currentProfileId);
-          if (!profile || !profile.username || !profile.password) return false;
+          if (!profile) return false;
+
+          // No credentials means no auth required (public server) - not a failure
+          if (!profile.username || !profile.password) return true;
 
           try {
             const password = await getDecryptedPassword(currentProfileId);

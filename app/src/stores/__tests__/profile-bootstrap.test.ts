@@ -47,6 +47,7 @@ vi.mock('../auth', () => ({
     getState: vi.fn(() => ({
       login: vi.fn().mockResolvedValue(undefined),
       accessToken: 'mock-token',
+      setTokens: vi.fn(),
     })),
   },
 }));
@@ -86,12 +87,21 @@ describe('Profile Bootstrap', () => {
   });
 
   describe('bootstrapAuth', () => {
-    it('skips authentication when no credentials are stored', async () => {
+    it('skips authentication when no credentials are stored and marks as authenticated', async () => {
+      const { useAuthStore } = await import('../auth');
+      const mockSetTokens = vi.fn();
+      vi.mocked(useAuthStore.getState).mockReturnValue({
+        login: vi.fn(),
+        accessToken: null,
+        setTokens: mockSetTokens,
+      } as any);
+
       const profileWithoutCreds = { ...mockProfile, username: undefined, password: undefined };
 
       await bootstrapAuth(profileWithoutCreds, mockContext);
 
       expect(mockContext.getDecryptedPassword).not.toHaveBeenCalled();
+      expect(mockSetTokens).toHaveBeenCalledWith({});
     });
 
     it('authenticates with stored credentials', async () => {

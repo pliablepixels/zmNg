@@ -25,6 +25,9 @@ export async function bootstrapAuth(
   if (!profile.username || !profile.password) {
     log.profileService('No credentials stored, skipping authentication', LogLevel.INFO);
     log.profileService('This is normal for public servers', LogLevel.INFO);
+    // Mark as authenticated so API client doesn't try to re-login
+    const { useAuthStore } = await import('./auth');
+    useAuthStore.getState().setTokens({});
     return;
   }
 
