@@ -339,7 +339,13 @@
     "debug_settings_desc": "Erweiterte Einstellungen zur Fehlerbehebung",
     "disable_log_redaction": "Log-Redaktion deaktivieren",
     "disable_log_redaction_desc": "Sensible Daten (Passwörter, Token) in Logs anzeigen. Mit Vorsicht verwenden!",
-    "disable_log_redaction_warning": "WARNUNG: Dies wird sensible Informationen in Logs offenlegen."
+    "disable_log_redaction_warning": "WARNUNG: Dies wird sensible Informationen in Logs offenlegen.",
+    "connection_settings": "Verbindung",
+    "connection_settings_desc": "Server-Verbindungseinstellungen",
+    "allow_self_signed_certs": "Selbstsignierte Zertifikate zulassen",
+    "allow_self_signed_certs_desc": "HTTPS-Verbindungen zu Servern mit selbstsignierten oder nicht vertrauenswürdigen SSL-Zertifikaten akzeptieren.",
+    "allow_self_signed_certs_warning": "Dies verringert die Verbindungssicherheit. Nur mit vertrauenswürdigen Servern in sicheren Netzwerken verwenden.",
+    "self_signed_certs_desktop_note": "Auf dem Desktop fügen Sie Ihr Zertifikat zum System-Vertrauensspeicher hinzu."
   },
   "logs": {
     "title": "Protokolle",

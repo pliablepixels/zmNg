@@ -338,7 +338,13 @@
     "debug_settings_desc": "Advanced settings for troubleshooting",
     "disable_log_redaction": "Disable Log Redaction",
     "disable_log_redaction_desc": "Show sensitive data (passwords, tokens) in logs. Use with caution!",
-    "disable_log_redaction_warning": "WARNING: This will expose sensitive information in logs."
+    "disable_log_redaction_warning": "WARNING: This will expose sensitive information in logs.",
+    "connection_settings": "Connection",
+    "connection_settings_desc": "Server connection settings",
+    "allow_self_signed_certs": "Allow Self-Signed Certificates",
+    "allow_self_signed_certs_desc": "Accept HTTPS connections to servers using self-signed or untrusted SSL certificates.",
+    "allow_self_signed_certs_warning": "This reduces connection security. Only use with servers you trust on secure networks.",
+    "self_signed_certs_desktop_note": "On desktop, add your certificate to the system trust store."
   },
   "logs": {
     "title": "Logs",

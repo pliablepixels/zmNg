@@ -8,6 +8,7 @@
 import { useTranslation } from 'react-i18next';
 import { AccountSettings } from '../components/settings/AccountSettings';
 import { DashboardSettings } from '../components/settings/DashboardSettings';
+import { ConnectionSettings } from '../components/settings/ConnectionSettings';
 import { DebugSettings } from '../components/settings/DebugSettings';
 import { DisplaySettings } from '../components/settings/DisplaySettings';
 import { EventSettings } from '../components/settings/EventSettings';
@@ -32,6 +33,7 @@ export default function Settings() {
         <DisplaySettings />
         <EventSettings />
         <DashboardSettings />
+        <ConnectionSettings />
         <DebugSettings />
         <AccountSettings />
       </div>

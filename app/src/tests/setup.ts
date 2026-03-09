@@ -152,6 +152,15 @@ vi.mock('html5-qrcode', () => ({
   },
 }));
 
+// Mock SSLTrust plugin
+vi.mock('../src/plugins/ssl-trust', () => ({
+  SSLTrust: {
+    enable: vi.fn().mockResolvedValue(undefined),
+    disable: vi.fn().mockResolvedValue(undefined),
+    isEnabled: vi.fn().mockResolvedValue({ enabled: false }),
+  },
+}));
+
 // Mock capacitor-barcode-scanner for native QR scanning tests
 vi.mock('capacitor-barcode-scanner', () => ({
   BarcodeScanner: {

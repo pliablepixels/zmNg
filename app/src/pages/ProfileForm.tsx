@@ -15,6 +15,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useProfileStore } from '../stores/profile';
 import { createApiClient, setApiClient } from '../api/client';
 import { discoverZoneminder, DiscoveryError } from '../lib/discovery';
+import { Switch } from '../components/ui/switch';
 import { Video, Server, ShieldCheck, ArrowRight, Loader2, Eye, EyeOff, ArrowLeft, QrCode, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { log, LogLevel } from '../lib/logger';
@@ -48,6 +49,9 @@ export default function ProfileForm() {
   const [showManualUrls, setShowManualUrls] = useState(false);
   const [manualApiUrl, setManualApiUrl] = useState('');
   const [manualCgiUrl, setManualCgiUrl] = useState('');
+
+  // Self-signed certificate support
+  const [allowSelfSignedCerts, setAllowSelfSignedCerts] = useState(false);
 
   // QR Scanner state
   const [showQRScanner, setShowQRScanner] = useState(false);
@@ -144,6 +148,12 @@ export default function ProfileForm() {
     const signal = abortControllerRef.current.signal;
 
     try {
+      // Apply SSL trust before any network calls if enabled
+      if (allowSelfSignedCerts) {
+        const { applySSLTrustSetting } = await import('../lib/ssl-trust');
+        await applySSLTrustSetting(true);
+      }
+
       const normalizedUsername = username.trim();
       const hasUsername = normalizedUsername.length > 0;
       const hasPassword = password.length > 0;
@@ -261,6 +271,12 @@ export default function ProfileForm() {
       });
       log.profileForm('Profile created', LogLevel.INFO, { profileName: finalProfileName, profileId: newProfileId });
 
+      // Save self-signed cert setting to the new profile
+      if (allowSelfSignedCerts) {
+        const { useSettingsStore } = await import('../stores/settings');
+        useSettingsStore.getState().updateProfileSettings(newProfileId, { allowSelfSignedCerts: true });
+      }
+
       // Switch to the newly created profile (unless it's the first profile, which is auto-set as current)
       if (!isFirstProfile) {
         const switchProfile = useProfileStore.getState().switchProfile;
@@ -287,7 +303,7 @@ export default function ProfileForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background relative overflow-y-auto p-4">
       {/* Background Effects */}
       <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:20px_20px]" />
       <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/20 rounded-full blur-3xl opacity-50 animate-pulse" />
@@ -409,6 +425,18 @@ export default function ProfileForm() {
             <p className="text-xs text-muted-foreground">
               {t('setup.credentials_optional')}
             </p>
+          </div>
+
+          <div className="flex items-center justify-between gap-3">
+            <Label htmlFor="self-signed-certs" className="text-sm text-muted-foreground cursor-pointer">
+              {t('settings.allow_self_signed_certs')}
+            </Label>
+            <Switch
+              id="self-signed-certs"
+              checked={allowSelfSignedCerts}
+              onCheckedChange={setAllowSelfSignedCerts}
+              data-testid="setup-self-signed-certs-switch"
+            />
           </div>
 
           {/* Manual URL Entry Toggle */}

@@ -339,7 +339,13 @@
     "debug_settings_desc": "Paramètres avancés pour le dépannage",
     "disable_log_redaction": "Désactiver la rédaction des journaux",
     "disable_log_redaction_desc": "Afficher les données sensibles (mots de passe, jetons) dans les journaux. À utiliser avec prudence !",
-    "disable_log_redaction_warning": "ATTENTION : Cela exposera des informations sensibles dans les journaux."
+    "disable_log_redaction_warning": "ATTENTION : Cela exposera des informations sensibles dans les journaux.",
+    "connection_settings": "Connexion",
+    "connection_settings_desc": "Paramètres de connexion au serveur",
+    "allow_self_signed_certs": "Autoriser les certificats auto-signés",
+    "allow_self_signed_certs_desc": "Accepter les connexions HTTPS aux serveurs utilisant des certificats SSL auto-signés ou non fiables.",
+    "allow_self_signed_certs_warning": "Cela réduit la sécurité de la connexion. Utilisez uniquement avec des serveurs de confiance sur des réseaux sécurisés.",
+    "self_signed_certs_desktop_note": "Sur bureau, ajoutez votre certificat au magasin de confiance du système."
   },
   "logs": {
     "title": "Journaux",

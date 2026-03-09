@@ -217,10 +217,28 @@ export async function bootstrapMultiPortStreaming(
 /**
  * Run all bootstrap steps in sequence
  */
+/**
+ * Bootstrap SSL trust setting before any API calls
+ */
+export async function bootstrapSSLTrust(
+  profile: Profile
+): Promise<void> {
+  try {
+    const { useSettingsStore } = await import('./settings');
+    const settings = useSettingsStore.getState().getProfileSettings(profile.id);
+    const { applySSLTrustSetting } = await import('../lib/ssl-trust');
+    await applySSLTrustSetting(settings.allowSelfSignedCerts);
+  } catch (error) {
+    log.profileService('Failed to apply SSL trust setting', LogLevel.WARN, { error });
+  }
+}
+
 export async function performBootstrap(
   profile: Profile,
   context: BootstrapContext
 ): Promise<void> {
+  // SSL trust must be configured before any API calls
+  await bootstrapSSLTrust(profile);
   await bootstrapAuth(profile, context);
   await bootstrapTimezone(profile, context);
   await bootstrapZmsPath(profile, context);

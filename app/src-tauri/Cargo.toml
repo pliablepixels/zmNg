@@ -1,6 +1,6 @@
 [package]
 name = "app"
-version = "1.0.4"
+version = "1.0.5"
 description = "A Tauri App"
 authors = ["you"]
 license = ""
@@ -24,6 +24,6 @@ log = "0.4"
 # When running `cargo update`, also update matching @tauri-apps/* packages in package.json.
 tauri = { version = "2.10.2", features = ["devtools"] }
 tauri-plugin-log = "2.8.0"
-tauri-plugin-http = "2.5.7"
+tauri-plugin-http = { version = "2.5.7", features = ["dangerous-settings"] }
 tauri-plugin-fs = "2.4.5"
 tauri-plugin-dialog = "2.6.0"

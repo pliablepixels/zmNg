@@ -433,11 +433,18 @@ async function tauriHttpRequest<T>(
 ): Promise<HttpResponse<T>> {
   const requestBody = serializeRequestBody(body);
 
+  // Check if self-signed cert support is enabled for Tauri
+  const { isTauriSslTrustEnabled } = await import('./ssl-trust');
+  const dangerOpts = isTauriSslTrustEnabled()
+    ? { danger: { acceptInvalidCerts: true, acceptInvalidHostnames: true } }
+    : {};
+
   const response = await tauriFetch(url, {
     method,
     headers,
     body: requestBody,
     signal,
+    ...dangerOpts,
   });
 
   const { data, headers: responseHeaders } = await parseFetchResponse<T>(response, responseType, onDownloadProgress);

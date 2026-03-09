@@ -197,6 +197,7 @@ class Logger {
   time = this.makeComponentLogger('Time');
   videoMarkers = this.makeComponentLogger('VideoMarkers');
   videoPlayer = this.makeComponentLogger('VideoPlayer');
+  sslTrust = this.makeComponentLogger('SSLTrust');
   zmsEventPlayer = this.makeComponentLogger('ZmsEventPlayer');
 
   // Factory method to create component loggers with optional default level
@@ -223,7 +224,7 @@ const componentLoggers = [
   'eventCard', 'eventDetail', 'eventMontage', 'http', 'imageError', 'monitor', 'monitorCard',
   'monitorDetail', 'montageMonitor', 'navigation', 'notificationHandler', 'notifications',
   'notificationSettings', 'profile', 'profileForm', 'profileService', 'profileSwitcher',
-  'push', 'queryCache', 'secureImage', 'secureStorage', 'server', 'time', 'videoMarkers',
+  'push', 'queryCache', 'secureImage', 'secureStorage', 'server', 'sslTrust', 'time', 'videoMarkers',
   'videoPlayer', 'zmsEventPlayer'
 ] as const;
 

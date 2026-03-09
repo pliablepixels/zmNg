@@ -339,7 +339,13 @@
     "debug_settings_desc": "Ajustes avanzados para la solución de problemas",
     "disable_log_redaction": "Desactivar redacción de registros",
     "disable_log_redaction_desc": "Mostrar datos sensibles (contraseñas, tokens) en los registros. ¡Úselo con precaución!",
-    "disable_log_redaction_warning": "ADVERTENCIA: Esto expondrá información sensible en los registros."
+    "disable_log_redaction_warning": "ADVERTENCIA: Esto expondrá información sensible en los registros.",
+    "connection_settings": "Conexión",
+    "connection_settings_desc": "Configuración de conexión del servidor",
+    "allow_self_signed_certs": "Permitir certificados autofirmados",
+    "allow_self_signed_certs_desc": "Aceptar conexiones HTTPS a servidores con certificados SSL autofirmados o no confiables.",
+    "allow_self_signed_certs_warning": "Esto reduce la seguridad de la conexión. Use solo con servidores de confianza en redes seguras.",
+    "self_signed_certs_desktop_note": "En escritorio, agregue su certificado al almacén de confianza del sistema."
   },
   "logs": {
     "title": "Registros",
