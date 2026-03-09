@@ -59,7 +59,7 @@ Passwords are never stored in plaintext.
 **"Connection failed"**
 - Verify the Portal URL is correct and accessible from your device
 - Check that ZoneMinder API is enabled (`OPT_USE_API = 1` in ZoneMinder options)
-- Self-signed certificates are not supported - use a valid certificate or plain HTTP
+- If using a self-signed certificate, enable **Allow self-signed certificates** in Settings > Connection (or toggle it when adding the profile)
 
 **"Authentication failed"**
 - Verify username and password

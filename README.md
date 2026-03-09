@@ -55,7 +55,7 @@ I am happy to accept PRs, but I don't want [AI slop](https://en.wikipedia.org/wi
 - Before you PR, please do a code review
 
 ### Limitations & Notes
-- Self signed/untrusted certificates are not supported. It's not worth the effort to support them. Please use LetsEncrypt or other free certs, or just use http.
+- Self-signed certificates are supported on mobile (iOS/Android) via Settings > Connection. On desktop, add your CA to the system trust store. Using proper certificates (e.g. [LetsEncrypt](https://letsencrypt.org/)) is still recommended.
 - If you want push notifications, you'll have to use a newer [Event Server](https://zmeventnotificationv7.readthedocs.io/en/latest/)
 
 

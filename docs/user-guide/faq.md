@@ -8,7 +8,7 @@ ZoneMinder 1.36 or newer with API access enabled (`OPT_USE_API = 1`).
 
 ### Does zmNinjaNG work with self-signed certificates?
 
-No. Self-signed or untrusted certificates are not supported. Use [Let's Encrypt](https://letsencrypt.org/) (free) or another trusted certificate authority. You can also use plain HTTP if your server is on a local network.
+Yes. On mobile (iOS/Android), enable **Allow self-signed certificates** in Settings > Connection or when adding a new profile. On desktop, add your certificate authority to the system trust store. Using [Let's Encrypt](https://letsencrypt.org/) (free) or another trusted CA is still recommended. You can also use plain HTTP if your server is on a local network.
 
 ### Is zmNinjaNG free?
 
@@ -25,7 +25,7 @@ zmNinjaNG is a ground-up rewrite of zmNinja using modern web technologies (React
 - Check that your ZoneMinder server is accessible from your device
 - Verify the Portal URL format (typically `https://your-server/zm`)
 - Ensure the ZoneMinder API is enabled
-- If using HTTPS, verify the certificate is from a trusted authority
+- If using HTTPS with a self-signed certificate, make sure the self-signed certificate toggle is enabled in Settings > Connection
 
 ### The app connects but shows no monitors
 

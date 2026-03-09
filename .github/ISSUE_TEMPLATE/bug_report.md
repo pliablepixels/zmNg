@@ -9,9 +9,7 @@ assignees: ''
 
 **NOTE**: Please read the [self support](https://github.com/pliablepixels/zmNinjaNG/blob/main/README.md#agentic-ai-you-and-me) guidelines. You are free to post issues, but there is no guarantee I will respond. 
 
-**NOTE**: zmNinjaNG no longer supports self signed certificates. Your options:
-1. Use HTTP with WireGuard
-2. Get a proper free certificate (example LetsEncrypt)
+**NOTE**: If you are using self-signed certificates, enable the toggle in Settings > Connection (mobile) or add your CA to the system trust store (desktop). Using proper certificates (e.g. LetsEncrypt) is recommended.
 
 **zmNinjaNG version**
 You will find the version in the logs menu option
