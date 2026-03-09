@@ -14,6 +14,10 @@ A modern web and mobile application for ZoneMinder, providing a clean, intuitive
 
 Watch a video of the demo [HERE](https://youtu.be/ces_2ap-htc)
 
+### Important Notes:
+- zmNinjaNG doesn't support self signed certs. Either use HTTP with WireGuard or generate a free signed certificate (ex. [LetsEncrypt](https://letsencrypt.org/))
+- zmNinjaNG has been tested with [ES7+](https://zmeventnotificationv7.readthedocs.io/en/latest/) - I'd recommend you switch to this new ecosystem 
+
 ### Screenshots
 <sub><sup>frames courtesy [appleframer](https://appleframer.com/)</sup></sub>
 
