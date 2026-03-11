@@ -1162,28 +1162,6 @@ Key Takeaways
 
 --------------
 
-Recent Refactoring (January 2025)
----------------------------------
-
-The following utilities were recently extracted to eliminate
-duplication:
-
-1. **``profile-bootstrap.ts``** - Extracted profile initialization logic
-   from profile store
-2. **``proxy-utils.ts``** - Centralized proxy URL wrapping (previously
-   duplicated 4×)
-3. **``serializeRequestBody()``** in http.ts - Extracted duplicate body
-   serialization
-4. **``generateAndSetConnKey()``** in monitors.ts - Extracted duplicate
-   key generation
-5. **``getDownloadHandler()`` / ``getDataUrlSnapshotHandler()``** in
-   download.ts - Platform strategy pattern
-6. **``EventsFilterPopover``** - Extracted from Events page (~80 lines
-   of inline JSX)
-
-These changes reduced code by ~600+ lines while improving
-maintainability.
-
 Navigation Service (``lib/navigation.ts``)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
