@@ -179,26 +179,10 @@ export default function ProfileForm() {
     const signal = abortControllerRef.current.signal;
 
     try {
-      // Apply SSL trust before any network calls if enabled
+      // Enable trust-all for HTTP before any network calls (needed for discovery)
       if (allowSelfSignedCerts) {
-        const { applySSLTrustSetting, getServerCertFingerprint } = await import('../lib/ssl-trust');
-        // Temporarily enable trust-all to fetch the cert
+        const { applySSLTrustSetting } = await import('../lib/ssl-trust');
         await applySSLTrustSetting(true);
-
-        // On native: TOFU flow — fetch cert and ask user to trust it
-        if (Platform.isNative) {
-          const info = await getServerCertFingerprint(portalUrl);
-          if (info) {
-            const trusted = await requestCertTrust(info);
-            if (!trusted) {
-              await applySSLTrustSetting(false);
-              setTesting(false);
-              return;
-            }
-            // Apply fingerprint-based trust
-            await applySSLTrustSetting(true, info.fingerprint);
-          }
-        }
       }
 
       const normalizedUsername = username.trim();
@@ -259,6 +243,22 @@ export default function ProfileForm() {
         apiUrl = discovered.apiUrl;
         cgiUrl = discovered.cgiUrl;
         log.profileForm('URLs discovered', LogLevel.INFO, { portalUrl: confirmedPortalUrl, apiUrl, cgiUrl });
+      }
+
+      // TOFU: after discovery succeeds, fetch the server cert and ask user to trust it
+      if (allowSelfSignedCerts && Platform.isNative) {
+        const { getServerCertFingerprint, applySSLTrustSetting } = await import('../lib/ssl-trust');
+        const info = await getServerCertFingerprint(confirmedPortalUrl);
+        if (info) {
+          const trusted = await requestCertTrust(info);
+          if (!trusted) {
+            await applySSLTrustSetting(false);
+            setTesting(false);
+            return;
+          }
+          // Apply fingerprint-based trust (installs WebView handler)
+          await applySSLTrustSetting(true, info.fingerprint);
+        }
       }
 
       // If credentials are provided, try to login
